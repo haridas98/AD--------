@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Server data
+server/data/content.json
+
+# Uploads (optional, uncomment if needed)
+# public/uploads/
+
+# Vite
+.vite/
+
+# Generated files (if they are auto-generated)
+# src/generated/
