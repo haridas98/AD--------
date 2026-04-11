@@ -1,9 +1,12 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import routeMap from '../generated/routeMap.js';
 import localImageMap from '../generated/localImageMap.js';
 
 const MANAGED_ATTR = 'data-react-legacy-managed';
+
+// Cache for loaded pages
+const pageCache = new Map();
 
 function normalizeRoute(pathname) {
   if (!pathname) return '/';
@@ -190,9 +193,11 @@ export default function LegacySite() {
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   const legacyHtmlPath = useMemo(() => getLegacyHtmlPath(location.pathname), [location.pathname]);
 
+  // Handle clicks for SPA navigation
   useEffect(() => {
     function onClick(event) {
       if (event.defaultPrevented) return;
@@ -225,13 +230,34 @@ export default function LegacySite() {
     return () => node.removeEventListener('click', onClick);
   }, [navigate, location.pathname]);
 
+  // Load and cache page content
   useEffect(() => {
     let disposed = false;
 
     async function load() {
       setError('');
+      setIsLoading(true);
 
       try {
+        // Check cache first
+        if (pageCache.has(legacyHtmlPath)) {
+          if (disposed || !containerRef.current) return;
+          
+          const cached = pageCache.get(legacyHtmlPath);
+          applyHead(cached.sourceDoc, cached.legacyDir);
+          applyBodyAttributes(cached.sourceDoc, location.pathname === '/');
+          
+          containerRef.current.innerHTML = cached.bodyHTML;
+          rewriteContainerUrls(containerRef.current, cached.legacyDir);
+          executeBodyScripts(containerRef.current, cached.legacyDir);
+          
+          containerRef.current.classList.remove('legacy-fade-in');
+          void containerRef.current.offsetWidth;
+          containerRef.current.classList.add('legacy-fade-in');
+          setIsLoading(false);
+          return;
+        }
+
         const response = await fetch(legacyHtmlPath);
         if (!response.ok) {
           throw new Error(`Cannot load page: ${legacyHtmlPath}`);
@@ -243,6 +269,13 @@ export default function LegacySite() {
         const sourceDoc = new DOMParser().parseFromString(html, 'text/html');
         const legacyDir = getLegacyDir(legacyHtmlPath);
 
+        // Cache the parsed document
+        pageCache.set(legacyHtmlPath, {
+          sourceDoc,
+          legacyDir,
+          bodyHTML: sourceDoc.body.innerHTML
+        });
+
         applyHead(sourceDoc, legacyDir);
         applyBodyAttributes(sourceDoc, location.pathname === '/');
 
@@ -253,9 +286,11 @@ export default function LegacySite() {
         containerRef.current.classList.remove('legacy-fade-in');
         void containerRef.current.offsetWidth;
         containerRef.current.classList.add('legacy-fade-in');
+        setIsLoading(false);
       } catch (err) {
         if (!disposed) {
           setError(err instanceof Error ? err.message : 'Unknown error');
+          setIsLoading(false);
         }
       }
     }
@@ -267,6 +302,7 @@ export default function LegacySite() {
     };
   }, [legacyHtmlPath, location.pathname]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearManagedHeadNodes();
@@ -281,6 +317,22 @@ export default function LegacySite() {
         <h1>Page load error</h1>
         <p>{error}</p>
       </main>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="legacy-loading" style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '60vh',
+        background: '#141414'
+      }}>
+        <div style={{ color: '#fff', fontFamily: 'GilroyLight, sans-serif', fontSize: '18px' }}>
+          Loading...
+        </div>
+      </div>
     );
   }
 

@@ -12,6 +12,27 @@
   to { opacity: 1; }
 }
 
+/* Smooth page transitions for SPA */
+.legacy-page-transition {
+  animation: pageIn 280ms ease;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading state styling */
+.legacy-loading {
+  transition: opacity 200ms ease;
+}
+
 .admin-shell {
   --bg: #f7f3ee;
   --paper: #fffaf4;
