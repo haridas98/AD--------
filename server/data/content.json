@@ -1,0 +1,1775 @@
+{
+  "site": {
+    "name": "Alexandra Diz Architecture",
+    "phone": "+1 415 769 8563",
+    "email": "alexandra@alexandradiz.com",
+    "instagram": "https://www.instagram.com/alexandra_diz/",
+    "facebook": "https://www.facebook.com/alexadiz",
+    "houzz": "https://www.houzz.com/pro/alexandra-diz/alexandra-diz-architecture"
+  },
+  "sections": [
+    {
+      "id": "projects",
+      "name": "Projects",
+      "type": "home-anchor"
+    },
+    {
+      "id": "kitchens",
+      "name": "Kitchens",
+      "type": "category"
+    },
+    {
+      "id": "full-house-remodeling",
+      "name": "Full house remodeling",
+      "type": "category"
+    },
+    {
+      "id": "bathrooms",
+      "name": "Bathroom",
+      "type": "category"
+    },
+    {
+      "id": "adu1",
+      "name": "ADU",
+      "type": "category"
+    },
+    {
+      "id": "projects-before-and-after",
+      "name": "Projects before and after",
+      "type": "category"
+    },
+    {
+      "id": "fireplaces",
+      "name": "Fireplaces",
+      "type": "category"
+    },
+    {
+      "id": "contact",
+      "name": "Contact",
+      "type": "page",
+      "slug": "contact"
+    }
+  ],
+  "categories": [
+    {
+      "id": "kitchens",
+      "name": "Kitchens",
+      "homeTitle": "Kitchen Remodeling Projects"
+    },
+    {
+      "id": "full-house-remodeling",
+      "name": "Full House Remodeling",
+      "homeTitle": "Full House Remodeling Projects"
+    },
+    {
+      "id": "bathrooms",
+      "name": "Bathrooms",
+      "homeTitle": "Bathroom Remodeling Projects"
+    },
+    {
+      "id": "adu1",
+      "name": "ADU",
+      "homeTitle": "ADU Projects"
+    },
+    {
+      "id": "fireplaces",
+      "name": "Fireplaces",
+      "homeTitle": "Fireplace Projects"
+    },
+    {
+      "id": "projects-before-and-after",
+      "name": "Before & After",
+      "homeTitle": "Before and After Projects"
+    }
+  ],
+  "pages": {
+    "about": {
+      "title": "About",
+      "body": "Studio-led interior architecture and remodeling design with a strong focus on livable elegance and practical detail."
+    },
+    "services": {
+      "title": "Services",
+      "body": "Full interior design, kitchen remodeling, bathroom remodeling, and complete house transformation support."
+    },
+    "contact": {
+      "title": "Contact",
+      "body": "For project inquiries, use the contacts below or reach out through social channels."
+    }
+  },
+  "projects": [
+    {
+      "id": "1",
+      "title": "Boulder",
+      "slug": "Boulderadu",
+      "categoryId": "adu1",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197988/5816243/76763616/1000-AlexandraDiz-d2d8096665d61f5cfb0b37848762459d.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197988/5816243/76763616/1000-AlexandraDiz-d2d8096665d61f5cfb0b37848762459d.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197988/5816243/76763616/1000-AlexandraDiz-bdbea33542e5a485d3439bf3ad25d044.jpg"
+      ],
+      "summary": "A adu project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "ADU planning with compact layout optimization, full finish package, and construction-ready detailing.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "2",
+      "title": "Lake house",
+      "slug": "lakehouse",
+      "categoryId": "adu1",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6199918/5818813/76800882/1000-AlexandraDiz-0ee0c4728b80db80c5acb76213cfa9bc.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6199918/5818813/76800882/1000-AlexandraDiz-0ee0c4728b80db80c5acb76213cfa9bc.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6199918/5818813/76800882/1000-AlexandraDiz-ca0d20388a08297a778a5f8777e436d2.jpg"
+      ],
+      "summary": "A adu project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "ADU planning with compact layout optimization, full finish package, and construction-ready detailing.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "3",
+      "title": "Menlo park contemporary house",
+      "slug": "menlo-park",
+      "categoryId": "adu1",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197984/5816239/76763499/1000-AlexandraDiz-525c482897599898f92ae7585ff528bd.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197984/5816239/76763499/1000-AlexandraDiz-525c482897599898f92ae7585ff528bd.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197984/5816239/76763499/1000-AlexandraDiz-cb871038abbafc883fb32870dcc7c637.jpg"
+      ],
+      "summary": "A adu project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "ADU planning with compact layout optimization, full finish package, and construction-ready detailing.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "4",
+      "title": "Mountain View House",
+      "slug": "mountainview",
+      "categoryId": "adu1",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6199921/5818816/76800989/1000-AlexandraDiz-18e68c6ffadb2e9416b206d65cc80284.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6199921/5818816/76800989/1000-AlexandraDiz-18e68c6ffadb2e9416b206d65cc80284.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6199921/5818816/76800989/1000-AlexandraDiz-4dbb8eadc229ad14f28e3deb54d53c88.jpg"
+      ],
+      "summary": "A adu project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "ADU planning with compact layout optimization, full finish package, and construction-ready detailing.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "5",
+      "title": "Aquamarine Perfection",
+      "slug": "Aquamarine-Perfection",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7961756/7931182/103701616/1000-AlexandraDiz-1435d97bf1b065e776f5ac17127e44a4.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7961756/7931182/103701616/1000-AlexandraDiz-1435d97bf1b065e776f5ac17127e44a4.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7961756/7931182/103701616/1000-AlexandraDiz-e790856c887ed014b62bdd88db7487cd.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "6",
+      "title": "Bathroom in Victorian style (Palo Alto)",
+      "slug": "bathroom-in-victorian-style-palo-alto",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422371/6113048/80355593/1000-AlexandraDiz-328f38254dbed2250885e1eb31b6699e.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422371/6113048/80355593/1000-AlexandraDiz-328f38254dbed2250885e1eb31b6699e.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422371/6113048/80355593/1000-AlexandraDiz-470263e6bb664f4e774fc377d25b1dc2.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "7",
+      "title": "Beige Tenderness",
+      "slug": "beige-tenderness",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8146606/8182822/106266388/1000-AlexandraDiz-0ac566bb5319f98f9ed4e0a9c411ecae.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8146606/8182822/106266388/1000-AlexandraDiz-0ac566bb5319f98f9ed4e0a9c411ecae.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8146606/8182822/106266388/1000-AlexandraDiz-7b38d2751dd92e29b1a7570adbf30d42.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "8",
+      "title": "Belmond  Coronet",
+      "slug": "belmond-2441-coronet-2",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195134/5812547/76709591/1000-AlexandraDiz-aa7701dcaa47ec595b6ba5e4cb43ed10.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195134/5812547/76709591/1000-AlexandraDiz-aa7701dcaa47ec595b6ba5e4cb43ed10.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195134/5812547/76709591/1000-AlexandraDiz-1d8348dc016b4f135aa8f96f5448c3e1.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "9",
+      "title": "Black and white balance",
+      "slug": "black-and-white-balance",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396975/6078316/79941829/1000-AlexandraDiz-48f7f01a689ab988ed6037e1e65ee9d4.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396975/6078316/79941829/1000-AlexandraDiz-48f7f01a689ab988ed6037e1e65ee9d4.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396975/6078316/79941829/1000-AlexandraDiz-f32f581416c29c0dc3e0e321242d6d27.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "10",
+      "title": "Blue depth (Oakland)",
+      "slug": "blue-depth-oakland",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428961/6121431/80459168/1000-AlexandraDiz-27dc58ed572fa17ad78ffa3947cfbfba.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428961/6121431/80459168/1000-AlexandraDiz-27dc58ed572fa17ad78ffa3947cfbfba.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428961/6121431/80459168/1000-AlexandraDiz-dc8190ce5628903f9c0e1175de0d1df6.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "11",
+      "title": "Blue Geometry (Los Altos)",
+      "slug": "blue-geometry-los-altos",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480471/6190696/81378663/1000-AlexandraDiz-c0548ff6eb4123cbff791bf450a30445.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480471/6190696/81378663/1000-AlexandraDiz-c0548ff6eb4123cbff791bf450a30445.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480471/6190696/81378663/1000-AlexandraDiz-a84782e46268df9249687b0d4a94c23d.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "12",
+      "title": "San Jose",
+      "slug": "chauncey1",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195256/5812691/76711025/1000-AlexandraDiz-64978c012e91c419236223842f4980f5.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195256/5812691/76711025/1000-AlexandraDiz-64978c012e91c419236223842f4980f5.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195256/5812691/76711025/1000-AlexandraDiz-16f7df2c528af00f0fc5358b23f5b9d0.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "13",
+      "title": "Dark gold (Los Altos)",
+      "slug": "dark-gold-los-altos",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480474/6190699/81378768/1000-AlexandraDiz-46cec27ff1a51091c62cd5ad9c2b8272.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480474/6190699/81378768/1000-AlexandraDiz-46cec27ff1a51091c62cd5ad9c2b8272.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480474/6190699/81378768/1000-AlexandraDiz-c8cca9c0aef5829192b34f1b23605e47.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "14",
+      "title": "Dark luxury",
+      "slug": "dark-luxury",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396590/6077792/79934881/1000-AlexandraDiz-7ce048a9c93a0d18cc723c0a2dad3de2.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396590/6077792/79934881/1000-AlexandraDiz-7ce048a9c93a0d18cc723c0a2dad3de2.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396590/6077792/79934881/1000-AlexandraDiz-58a6dc22ba0bb217282bd7826fa62425.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "15",
+      "title": "Eastern motifs",
+      "slug": "eastern-motifs",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396576/6077771/79934465/1000-AlexandraDiz-56fc84ea264b4856212a5ac9d68b3686.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396576/6077771/79934465/1000-AlexandraDiz-56fc84ea264b4856212a5ac9d68b3686.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396576/6077771/79934465/1000-AlexandraDiz-3e664c9f007c9c41dca78cfa649b81ff.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "16",
+      "title": "Escanyo (kids)",
+      "slug": "escanyo",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196492/5814287/76732603/1000-AlexandraDiz-94a18250cf85373f245dd4ff34bb3ff0.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196492/5814287/76732603/1000-AlexandraDiz-94a18250cf85373f245dd4ff34bb3ff0.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196492/5814287/76732603/1000-AlexandraDiz-97d5b1f74151cd54228965ba9751a9cf.JPG"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "17",
+      "title": "Escanyo",
+      "slug": "escanyomaster",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196498/5814294/76732708/1000-AlexandraDiz-43f0b5ff11c8321e04b16e8bdfd42633.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196498/5814294/76732708/1000-AlexandraDiz-43f0b5ff11c8321e04b16e8bdfd42633.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196498/5814294/76732708/1000-AlexandraDiz-3a38ff52a13da3fa4bc532ea02dcde59.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "18",
+      "title": "Foster city",
+      "slug": "foster-city",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108859/5697603/75208158/1000-AlexandraDiz-41f17d76c837552ad4fb452e8be58a5f.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108859/5697603/75208158/1000-AlexandraDiz-41f17d76c837552ad4fb452e8be58a5f.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108859/5697603/75208158/1000-AlexandraDiz-79953d972157d5cc6450dbc248a20e54.jpeg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "19",
+      "title": "Green symphony (Pacifica)",
+      "slug": "green-symphony-pacifica",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396957/6078292/79941215/1000-AlexandraDiz-71eeed5c0868b55feccc6f5f13991b06.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396957/6078292/79941215/1000-AlexandraDiz-71eeed5c0868b55feccc6f5f13991b06.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396957/6078292/79941215/1000-AlexandraDiz-2555cf7b6a15f017bf535d4cd5e1e3e6.jpeg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "20",
+      "title": "San Carlos",
+      "slug": "hull",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104159/5691296/75119163/1000-AlexandraDiz-a9b5a7c31cc6890392ebbb4abdabdc16.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104159/5691296/75119163/1000-AlexandraDiz-a9b5a7c31cc6890392ebbb4abdabdc16.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104159/5691296/75119163/1000-AlexandraDiz-c88a5f78083d9e16b35bd0c118af66ee.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "21",
+      "title": "Jungle whisper (San Carlos)",
+      "slug": "jungle-whisper-san-carlos",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6395122/6075821/79907816/1000-AlexandraDiz-24950e0919606ff9ebc5095d3003bdd5.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6395122/6075821/79907816/1000-AlexandraDiz-24950e0919606ff9ebc5095d3003bdd5.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6395122/6075821/79907816/1000-AlexandraDiz-ec9357c269366886014e30fa0a68ea79.jpeg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "22",
+      "title": "Lightness of wood (San Jose)",
+      "slug": "lightness-of-wood-san-jose",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422361/6113035/80355304/1000-AlexandraDiz-0104aea539882c8e1c57089abd06ab8e.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422361/6113035/80355304/1000-AlexandraDiz-0104aea539882c8e1c57089abd06ab8e.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422361/6113035/80355304/1000-AlexandraDiz-b0de5674dd22f2c481686a228f07b185.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "23",
+      "title": "Los Gatos",
+      "slug": "los-gatos",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108862/5697605/75208200/1000-AlexandraDiz-345b83405f5becd6af065f5dda2b94fb.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108862/5697605/75208200/1000-AlexandraDiz-345b83405f5becd6af065f5dda2b94fb.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108862/5697605/75208200/1000-AlexandraDiz-fd905a3afdbf95af7d45ac47493df053.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "24",
+      "title": "Modern Bathroom (San Carlos)",
+      "slug": "modern-bathroom-san-carlos",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864498/6705160/88101368/1000-AlexandraDiz-e731cf954de102f3bb51e8e2fac29afe.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864498/6705160/88101368/1000-AlexandraDiz-e731cf954de102f3bb51e8e2fac29afe.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864498/6705160/88101368/1000-AlexandraDiz-27b98e5f9eceee96129fa24de44368f4.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "25",
+      "title": "Natural comfort",
+      "slug": "natural-comfort",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396655/6077874/79935651/1000-AlexandraDiz-8e98fd05b85dbf9934fa400d68ae8a83.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396655/6077874/79935651/1000-AlexandraDiz-8e98fd05b85dbf9934fa400d68ae8a83.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396655/6077874/79935651/1000-AlexandraDiz-aa4de50554ebd259078a00784567889d.jpeg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "26",
+      "title": "Oakland",
+      "slug": "oakland-5073",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108864/5697606/75208392/1000-AlexandraDiz-a3802ed702b0e69aff9c6e2bf41721ee.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108864/5697606/75208392/1000-AlexandraDiz-a3802ed702b0e69aff9c6e2bf41721ee.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108864/5697606/75208392/1000-AlexandraDiz-e44e908633c6cb1772b5d2bec6d87242.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "27",
+      "title": "Palo Alto",
+      "slug": "palo-alto-800",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108891/5697638/75208539/1000-AlexandraDiz-4d8fb1cf882a00c0e0686d27f6f0f265.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108891/5697638/75208539/1000-AlexandraDiz-4d8fb1cf882a00c0e0686d27f6f0f265.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108891/5697638/75208539/1000-AlexandraDiz-1468cfcf796460219c1e71110f104424.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "28",
+      "title": "Peace of mind (Los Altos)",
+      "slug": "peace-of-mind-los-altos",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480399/6190593/81377597/1000-AlexandraDiz-e3859fb6dae890f1e5a43d136f8c3935.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480399/6190593/81377597/1000-AlexandraDiz-e3859fb6dae890f1e5a43d136f8c3935.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480399/6190593/81377597/1000-AlexandraDiz-45e7efd19218d024329d2cd650528bec.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "29",
+      "title": "Redwood city",
+      "slug": "redwood-citybathroom",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197971/5816224/76763283/1000-AlexandraDiz-f5e2e33303f6814f811bdb0955f5c0d9.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197971/5816224/76763283/1000-AlexandraDiz-f5e2e33303f6814f811bdb0955f5c0d9.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6197971/5816224/76763283/1000-AlexandraDiz-702c574970112ee2254711769e103e60.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "30",
+      "title": "Refined Lines",
+      "slug": "refined-lines",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8194170/8244310/106880826/1000-AlexandraDiz-56c5869ca4c705d7d87d57ea18718d0f.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8194170/8244310/106880826/1000-AlexandraDiz-56c5869ca4c705d7d87d57ea18718d0f.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8194170/8244310/106880826/1000-AlexandraDiz-c70d7b2e0022cee757ef28217542508a.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "31",
+      "title": "Relax oasis in Pleasanton, CA",
+      "slug": "relax-oasis",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6384493/6061546/79726099/1000-AlexandraDiz-0db364823899c62a19dd172b78e2edba.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6384493/6061546/79726099/1000-AlexandraDiz-0db364823899c62a19dd172b78e2edba.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6384493/6061546/79726099/1000-AlexandraDiz-0627e26d8e736123cf04516f2de23f00.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "32",
+      "title": "Los Gatos",
+      "slug": "rio-vista",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104161/5691299/75119234/1000-AlexandraDiz-9aed956f640dd88efb9aea92e810116d.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104161/5691299/75119234/1000-AlexandraDiz-9aed956f640dd88efb9aea92e810116d.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104161/5691299/75119234/1000-AlexandraDiz-9548eb3bafbb0a11f5f3bc1ef16248f3.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "33",
+      "title": "San Bruno",
+      "slug": "san-bruno",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104199/5691345/75119847/1000-AlexandraDiz-9058dd55b3b6ca50e6f0d28067986108.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104199/5691345/75119847/1000-AlexandraDiz-9058dd55b3b6ca50e6f0d28067986108.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104199/5691345/75119847/1000-AlexandraDiz-7c6061cea5d09ff9565e67f3d9681950.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "34",
+      "title": "San Carlos",
+      "slug": "san-carlos",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196542/5814346/76734050/1000-AlexandraDiz-f79ea3aa69930c4114d79214bc3d58ee.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196542/5814346/76734050/1000-AlexandraDiz-f79ea3aa69930c4114d79214bc3d58ee.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196542/5814346/76734050/1000-AlexandraDiz-74b2b83d3883e94e59e89320dc5fe836.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "35",
+      "title": "San Carlos Chestnut",
+      "slug": "san-carlos-chestnut",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196549/5814355/76734199/1000-AlexandraDiz-f1a073de0e334df5bf5eb5e60c1a2b1d.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196549/5814355/76734199/1000-AlexandraDiz-f1a073de0e334df5bf5eb5e60c1a2b1d.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196549/5814355/76734199/1000-AlexandraDiz-84de5c0ea51559894234aaa0be52ac50.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "36",
+      "title": "San Jose",
+      "slug": "san-jose-4265",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108895/5697640/75208559/1000-AlexandraDiz-2fa691cb92b80a474bab84bae42276f0.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108895/5697640/75208559/1000-AlexandraDiz-2fa691cb92b80a474bab84bae42276f0.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108895/5697640/75208559/1000-AlexandraDiz-2ad5e54572b578c606d3a33d10c1905e.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "37",
+      "title": "Elegant minimalism (San Jose)",
+      "slug": "san-jose-bathroom",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195115/5812520/76709402/1000-AlexandraDiz-f47cbce8657a4a3708f82f96b84cf7d9.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195115/5812520/76709402/1000-AlexandraDiz-f47cbce8657a4a3708f82f96b84cf7d9.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195115/5812520/76709402/1000-AlexandraDiz-d57379bb71b0d64b0226303940806e97.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "38",
+      "title": "Saratoga",
+      "slug": "Saratoga-3",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195188/5812611/76710274/1000-AlexandraDiz-7d3c176df9a5a28772e600d2aec32518.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195188/5812611/76710274/1000-AlexandraDiz-7d3c176df9a5a28772e600d2aec32518.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195188/5812611/76710274/1000-AlexandraDiz-1381234de3a51270aad28c2f6f1892f6.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "39",
+      "title": "Shades of blue (Pacifica)",
+      "slug": "shades-of-blue-pacifica",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396967/6078307/79941410/1000-AlexandraDiz-948113a6a2038a7edab277a4c004966c.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396967/6078307/79941410/1000-AlexandraDiz-948113a6a2038a7edab277a4c004966c.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396967/6078307/79941410/1000-AlexandraDiz-84346f5c723c9002c742a187191025e8.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "40",
+      "title": "Stil Mountin View",
+      "slug": "stil-mountin-view",
+      "categoryId": "bathrooms",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104166/5691305/75119514/1000-AlexandraDiz-3673ee2490d7a54cac7ebf01072ad77b.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104166/5691305/75119514/1000-AlexandraDiz-3673ee2490d7a54cac7ebf01072ad77b.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104166/5691305/75119514/1000-AlexandraDiz-636ec4225094e8dd915bd2840e68706c.jpg"
+      ],
+      "summary": "A bathrooms project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Bathroom planning, tile and fixture selection, lighting updates, and storage optimization.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "41",
+      "title": "Classical Melody, Palo Alto",
+      "slug": "classical-melody-palo-alto",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074692/8087984/105207944/1000-AlexandraDiz-e7b43afbb8f826e76fc919571e603bca.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074692/8087984/105207944/1000-AlexandraDiz-e7b43afbb8f826e76fc919571e603bca.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "42",
+      "title": "Corner of Happiness, San Francisco",
+      "slug": "corner-of-happiness-san-francisco",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074704/8087998/105208004/1000-AlexandraDiz-3f9fead7ad4f7b8699ef90468e93a7d8.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074704/8087998/105208004/1000-AlexandraDiz-3f9fead7ad4f7b8699ef90468e93a7d8.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "43",
+      "title": "Geometric Shapes, San Jose",
+      "slug": "geometric-shapes-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074688/8087980/105207902/1000-AlexandraDiz-7a7a9c0b0b45ffbcd748e7ba480b2b65.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074688/8087980/105207902/1000-AlexandraDiz-7a7a9c0b0b45ffbcd748e7ba480b2b65.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074688/8087980/105207902/1000-AlexandraDiz-b346131a318ac12a60d55647fb46043f.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "44",
+      "title": "Grace, San Jose",
+      "slug": "grace-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074690/8087982/105207942/1000-AlexandraDiz-e7447f31838cf620acb41cd8c818cc7f.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074690/8087982/105207942/1000-AlexandraDiz-e7447f31838cf620acb41cd8c818cc7f.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "45",
+      "title": "House of Thoughts, Redwood City",
+      "slug": "house-of-thoughts-redwood-city",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074708/8088002/105208032/1000-AlexandraDiz-ce8d1a0398290415ef0457d3e9078686.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074708/8088002/105208032/1000-AlexandraDiz-ce8d1a0398290415ef0457d3e9078686.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "46",
+      "title": "Inspiration, San Jose",
+      "slug": "inspiration-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074602/8087888/105207098/1000-AlexandraDiz-8b775d08f46bb6c5e5c85e193590ca20.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074602/8087888/105207098/1000-AlexandraDiz-8b775d08f46bb6c5e5c85e193590ca20.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "47",
+      "title": "Japandi, Fremont",
+      "slug": "japandi-fremont",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074700/8087994/105207988/1000-AlexandraDiz-4996e2bddf3b3659fca7b1306827d1c7.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074700/8087994/105207988/1000-AlexandraDiz-4996e2bddf3b3659fca7b1306827d1c7.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "48",
+      "title": "Light of Wood, San Jose",
+      "slug": "light-of-wood-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074514/8087768/105205988/1000-AlexandraDiz-95358c3bbfe2c8eb4dc1a02a083a199b.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074514/8087768/105205988/1000-AlexandraDiz-95358c3bbfe2c8eb4dc1a02a083a199b.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "49",
+      "title": "Noble Luxury, San Jose",
+      "slug": "noble-luxury-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074606/8087894/105207142/1000-AlexandraDiz-cfa0d886b92f4f336c7d404b771e7210.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074606/8087894/105207142/1000-AlexandraDiz-cfa0d886b92f4f336c7d404b771e7210.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074606/8087894/105207142/1000-AlexandraDiz-fb0add2836a18a925b778dee9e63d6e5.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "50",
+      "title": "Quiet Comfort, San Jose",
+      "slug": "quiet-comfort-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074512/8087766/105205980/1000-AlexandraDiz-821b465eadcbb2e2b64413dbaf52c3f1.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074512/8087766/105205980/1000-AlexandraDiz-821b465eadcbb2e2b64413dbaf52c3f1.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074512/8087766/105205980/1000-AlexandraDiz-ce89f77bb4982c3d3ee7bbe92be41209.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "51",
+      "title": "Safe Haven, Cupertino",
+      "slug": "safe-haven-cupertino",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074516/8087770/105205994/1000-AlexandraDiz-a9cea9df5fc9c8632d61001afbf61585.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074516/8087770/105205994/1000-AlexandraDiz-a9cea9df5fc9c8632d61001afbf61585.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074516/8087770/105205994/1000-AlexandraDiz-597d7cb9884dc0ea9de91a11044eaaf1.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "52",
+      "title": "Sophisticated Dream, Oakland",
+      "slug": "sophisticated-dream-oakland",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074518/8087774/105206008/1000-AlexandraDiz-edab925e41272787ce8986b796457d7e.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074518/8087774/105206008/1000-AlexandraDiz-edab925e41272787ce8986b796457d7e.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074518/8087774/105206008/1000-AlexandraDiz-e95cab7d84164997f31a0c55d5357641.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "53",
+      "title": "Stylish Solution, San Jose",
+      "slug": "stylish-solution-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074696/8087988/105207960/1000-AlexandraDiz-eab3c782bec627b9b588e782240464b1.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074696/8087988/105207960/1000-AlexandraDiz-eab3c782bec627b9b588e782240464b1.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "54",
+      "title": "Warm Evening, Fremont",
+      "slug": "warm-evening-fremont",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074694/8087986/105207946/1000-AlexandraDiz-9c90ddf3d7a9807d979bd787516085c3.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074694/8087986/105207946/1000-AlexandraDiz-9c90ddf3d7a9807d979bd787516085c3.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074694/8087986/105207946/1000-AlexandraDiz-a7b805dfd57a6aef48e01ed045062220.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "55",
+      "title": "White Wings, San Jose",
+      "slug": "white-wings-san-jose",
+      "categoryId": "fireplaces",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074520/8087776/105206018/1000-AlexandraDiz-c7c84c46359ae589bbb81925079ff9f8.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8074520/8087776/105206018/1000-AlexandraDiz-c7c84c46359ae589bbb81925079ff9f8.jpg"
+      ],
+      "summary": "A fireplaces project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Fireplace wall redesign, material refinement, surround detailing, and integrated decor styling.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "56",
+      "title": "Ocean House, Pacifica, California",
+      "slug": "california-ocean-house-in-paccifica",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5036802/4236262/54504844/1000-093bee3e618a18f7e7c5c9f25cac47c0.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5036802/4236262/54504844/1000-093bee3e618a18f7e7c5c9f25cac47c0.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5036802/4236262/54504844/1000-fdcdf90e00b7b311376f24bffa8a278e.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "57",
+      "title": "Clear Lines House, San Jose",
+      "slug": "clear-lines-house",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7980194/7956196/103922414/1000-AlexandraDiz-baabf861af16ad5ad06555dd4fc3eb07.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7980194/7956196/103922414/1000-AlexandraDiz-baabf861af16ad5ad06555dd4fc3eb07.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7980194/7956196/103922414/1000-AlexandraDiz-ce6ed6d43d8659b1bf0ad97098632f41.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "58",
+      "title": "Cozy home in Menlo park (CA)",
+      "slug": "cozy-home-in-menlo-park-ca",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6429820/6122600/80473609/1000-AlexandraDiz-ab053c1fcf34d5e16351e00edd72fe94.png",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6429820/6122600/80473609/1000-AlexandraDiz-ab053c1fcf34d5e16351e00edd72fe94.png",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6429820/6122600/80473609/1000-AlexandraDiz-0b888e27c61aaa5c46d80a6457c836f8.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "59",
+      "title": "Cozy Home",
+      "slug": "cozy-house",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7770326/7671884/100834338/1000-AlexandraDiz-870d6b7e02f7f6e3d4dcf87ab1bbea4a.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7770326/7671884/100834338/1000-AlexandraDiz-870d6b7e02f7f6e3d4dcf87ab1bbea4a.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7770326/7671884/100834338/1000-AlexandraDiz-a13d9b0956515458fe5e3bbcdbbbf1cb.jpeg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "60",
+      "title": "Fremont",
+      "slug": "fremont",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6341683/6004015/79030410/1000-AlexandraDiz-cc8d03d3bdc2a772da6e8506072a704f.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6341683/6004015/79030410/1000-AlexandraDiz-cc8d03d3bdc2a772da6e8506072a704f.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6341683/6004015/79030410/1000-AlexandraDiz-2dc18c7a787663eaac495cd1bdfda737.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "61",
+      "title": "House in San Carlos",
+      "slug": "house-in-san-carlos",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864501/6705163/88101461/1000-AlexandraDiz-582f054b8e03a28f85648bcf85c6e18f.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864501/6705163/88101461/1000-AlexandraDiz-582f054b8e03a28f85648bcf85c6e18f.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864501/6705163/88101461/1000-AlexandraDiz-bdcb73964d49116d2773ef862da87d3b.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "62",
+      "title": "Los Altos",
+      "slug": "los-altos",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6476506/6185627/81317141/1000-AlexandraDiz-8cb910715c47a33de94d97b0899a0654.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6476506/6185627/81317141/1000-AlexandraDiz-8cb910715c47a33de94d97b0899a0654.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6476506/6185627/81317141/1000-AlexandraDiz-f54e7a667ee8a38476a158547c38b80d.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "63",
+      "title": "Modern House in Menlo Park, California",
+      "slug": "menlopark",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5286000/4610308/59668740/1000-e0d4f146049b015a8b8aaad0cba40ebc.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5286000/4610308/59668740/1000-e0d4f146049b015a8b8aaad0cba40ebc.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5286000/4610308/59668740/1000-83bde2bd6f17c7335a3c5d8bfa0fca2e.jpg"
+      ],
+      "summary": "This project is carried out in cooperation with Lifetime Remodeling Inc.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "64",
+      "title": "Modern Design House, Cupertino",
+      "slug": "modern-design-house-cupertino",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072408/8085086/105179468/1000-AlexandraDiz-fedab31842dfbda7afabc44788fe4b38.JPG",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072408/8085086/105179468/1000-AlexandraDiz-fedab31842dfbda7afabc44788fe4b38.JPG",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072408/8085086/105179468/1000-AlexandraDiz-36bffccc8a55cb7b6965edcae000be40.JPG"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "65",
+      "title": "House in San Jose, California",
+      "slug": "san-jose-california-in-progress",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5089976/4313723/55555589/1000-4fc531824410b1486b9cc80df4c7023c.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5089976/4313723/55555589/1000-4fc531824410b1486b9cc80df4c7023c.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5089976/4313723/55555589/1000-b522061765fbac865d44e1a18655acbe.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "66",
+      "title": "Saratoga",
+      "slug": "Saratoga",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104164/5691303/75119461/1000-AlexandraDiz-bc6795e86feda3b297996fa61f3381ff.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104164/5691303/75119461/1000-AlexandraDiz-bc6795e86feda3b297996fa61f3381ff.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104164/5691303/75119461/1000-AlexandraDiz-52a3e30d3fd1905a5b6410fc168904d8.jpeg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "67",
+      "title": "Sunny House Redwood City",
+      "slug": "sunny-house-redwood-city",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6909457/6765122/88882513/1000-AlexandraDiz-848c4b4429dd11d48fa0e7244893eb8e.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6909457/6765122/88882513/1000-AlexandraDiz-848c4b4429dd11d48fa0e7244893eb8e.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6909457/6765122/88882513/1000-AlexandraDiz-1d2e889d3c2a5dd2c70fca960e17800d.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "68",
+      "title": "The Charm of Serenity",
+      "slug": "the-charm-of-serenity",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8147172/8183520/106276032/1000-AlexandraDiz-c594dc010ba7b8a73bd78a860db9585e.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8147172/8183520/106276032/1000-AlexandraDiz-c594dc010ba7b8a73bd78a860db9585e.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8147172/8183520/106276032/1000-AlexandraDiz-15ea9406e6809cb68425abe2a2da7ddf.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "69",
+      "title": "House in Walnut Creek, California",
+      "slug": "walnut-creek",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5089942/4313670/60712400/1000-73556e19f6dc22021671b786d5278946.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5089942/4313670/60712400/1000-73556e19f6dc22021671b786d5278946.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5089942/4313670/60712400/1000-57a3c95854c88d6a53136bccf36713b5.jpg"
+      ],
+      "summary": "Working Drawings",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "70",
+      "title": "White Cloud House",
+      "slug": "white-cloud-house",
+      "categoryId": "full-house-remodeling",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072324/8084962/105177910/1000-AlexandraDiz-dfba2abbe1262bbecb270fd4e6e181e8.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072324/8084962/105177910/1000-AlexandraDiz-dfba2abbe1262bbecb270fd4e6e181e8.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072324/8084962/105177910/1000-AlexandraDiz-abb2148ddfd09ba88e50bbbff52c8847.jpg"
+      ],
+      "summary": "A full house remodeling project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Complete interior remodeling scope including layout updates, finishes, and room-to-room continuity.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "71",
+      "title": "Belmond",
+      "slug": "belmond",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6106013/5693699/75152340/1000-AlexandraDiz-1ba20fcd3850a9df6c5f72ea3c7d093a.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6106013/5693699/75152340/1000-AlexandraDiz-1ba20fcd3850a9df6c5f72ea3c7d093a.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6106013/5693699/75152340/1000-AlexandraDiz-56a8d0e69b158aee69f8ef54a51aee5b.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "72",
+      "title": "Belmond  Coronet",
+      "slug": "belmond-2441-coronet",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108857/5697599/75208132/1000-AlexandraDiz-73069f457fe30c096726150a38a3b905.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108857/5697599/75208132/1000-AlexandraDiz-73069f457fe30c096726150a38a3b905.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108857/5697599/75208132/1000-AlexandraDiz-8b81435cc79af441736b864bbfa6d11c.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "73",
+      "title": "Bright mood (Pacifica)",
+      "slug": "bright-mood-pacifica",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396954/6078288/79941020/1000-AlexandraDiz-c7bdff8d6f4a0031cc85194a4fe455fa.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396954/6078288/79941020/1000-AlexandraDiz-c7bdff8d6f4a0031cc85194a4fe455fa.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6396954/6078288/79941020/1000-AlexandraDiz-0061502ba24544522e1adc28299d5264.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": true,
+      "published": true
+    },
+    {
+      "id": "74",
+      "title": "Velvet green (San Jose)",
+      "slug": "chauncey",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104155/5691292/75119022/1000-AlexandraDiz-b1406a3ea58032c152ad72ddd8faecd3.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104155/5691292/75119022/1000-AlexandraDiz-b1406a3ea58032c152ad72ddd8faecd3.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6104155/5691292/75119022/1000-AlexandraDiz-66b2709eea244df8124357b289259ed9.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "75",
+      "title": "Emerald Sky",
+      "slug": "emerald-sky",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8126396/8155894/105998362/1000-AlexandraDiz-0dfc1c159a9b7ef34549d03906351099.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8126396/8155894/105998362/1000-AlexandraDiz-0dfc1c159a9b7ef34549d03906351099.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8126396/8155894/105998362/1000-AlexandraDiz-ad627425741b628e073becfe6a008e26.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "76",
+      "title": "Escanyo",
+      "slug": "escanyokitchens",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196502/5814297/76732774/1000-AlexandraDiz-574ebc3fa64ff1cb6cc852a9f8b3f45c.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196502/5814297/76732774/1000-AlexandraDiz-574ebc3fa64ff1cb6cc852a9f8b3f45c.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6196502/5814297/76732774/1000-AlexandraDiz-539aa92a0f105b0fe4076d0ba60bc5af.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "77",
+      "title": "Grey perfection kitchen",
+      "slug": "grey-perfection-kitchen",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7770334/7671894/100834456/1000-AlexandraDiz-3b3f2a4bb9de8dba58b5170f581b3c5c.JPG",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7770334/7671894/100834456/1000-AlexandraDiz-3b3f2a4bb9de8dba58b5170f581b3c5c.JPG",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/7770334/7671894/100834456/1000-AlexandraDiz-5d957762221ad458d2e2ca25d1a4c297.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "78",
+      "title": "Honey Gold",
+      "slug": "honey-gold",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8196362/8246980/106904104/1000-AlexandraDiz-bb906e0f113dc1495b308b472947368f.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8196362/8246980/106904104/1000-AlexandraDiz-bb906e0f113dc1495b308b472947368f.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8196362/8246980/106904104/1000-AlexandraDiz-18a1397948311b4db5afd5d08942a0f5.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "79",
+      "title": "San Carlos",
+      "slug": "hullkitchen",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195255/5812690/76710998/1000-AlexandraDiz-6b65d3ba1780f753204f0df4c83fe645.png",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195255/5812690/76710998/1000-AlexandraDiz-6b65d3ba1780f753204f0df4c83fe645.png",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195255/5812690/76710998/1000-AlexandraDiz-dcb7fb895d3b929256a168087563939d.png"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "80",
+      "title": "Marble mist kitchen (San Carlos)",
+      "slug": "marble-mist-kitchen-san-carlos",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6395061/6075740/79906377/1000-AlexandraDiz-670facde26422471f64cca3b8a9a66ab.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6395061/6075740/79906377/1000-AlexandraDiz-670facde26422471f64cca3b8a9a66ab.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6395061/6075740/79906377/1000-AlexandraDiz-31c80114ec9ced2669a2d85ef65bdba2.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "81",
+      "title": "Modern kitchen in Sunnyvale",
+      "slug": "modern-kitchen-in-sunnyvale",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5923662/5446119/71762429/1000-584063a8ccfe41a0027ff944c683ac8c.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5923662/5446119/71762429/1000-584063a8ccfe41a0027ff944c683ac8c.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/5923662/5446119/71762429/1000-13b9fd79bb26c94f340d72c9afd4d510.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "82",
+      "title": "Harmony of nature (Mountain View)",
+      "slug": "mountain-view",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6255236/5887851/77562277/1000-AlexandraDiz-f599132725d1839dabc0ada09a6c65d6.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6255236/5887851/77562277/1000-AlexandraDiz-f599132725d1839dabc0ada09a6c65d6.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6255236/5887851/77562277/1000-AlexandraDiz-623f246d0a5c9c47b64ed6099b7456b1.jpeg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "83",
+      "title": "Oakland",
+      "slug": "oakland",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6256384/5889368/79391448/1000-AlexandraDiz-feefa8081f587535d50fcbf49f8c5cf1.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6256384/5889368/79391448/1000-AlexandraDiz-feefa8081f587535d50fcbf49f8c5cf1.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6256384/5889368/79391448/1000-AlexandraDiz-e5d24e0cbd7ba8e035a101c3a9a9a5de.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "84",
+      "title": "Pacifica Cypress",
+      "slug": "pacifica-cypress",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6193598/5810703/76679578/1000-AlexandraDiz-1ee6420a2039c04873632a95b720ad90.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6193598/5810703/76679578/1000-AlexandraDiz-1ee6420a2039c04873632a95b720ad90.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6193598/5810703/76679578/1000-AlexandraDiz-26fcc5b47279107fea0a24e4cf333c5e.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "85",
+      "title": "Palo Alto",
+      "slug": "palo-alto-kitchen",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195111/5812516/76709329/1000-AlexandraDiz-82802b178c0aae6298c00e93eaf9ea6e.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195111/5812516/76709329/1000-AlexandraDiz-82802b178c0aae6298c00e93eaf9ea6e.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195111/5812516/76709329/1000-AlexandraDiz-2e68cea52f55fb59618621dbf03bb408.jpeg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "86",
+      "title": "Pure elegance kitchen",
+      "slug": "pure-elegance-kitchen",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6909466/6765138/88882775/1000-AlexandraDiz-859e92c9414fd48c332d8f31a1bd5a7b.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6909466/6765138/88882775/1000-AlexandraDiz-859e92c9414fd48c332d8f31a1bd5a7b.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6909466/6765138/88882775/1000-AlexandraDiz-2bbb892a61261248455a4ec02f088bc2.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "87",
+      "title": "Los Gatos",
+      "slug": "rio-vistakit",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195189/5812612/76710332/1000-AlexandraDiz-dd7d5012a1c965e1548f75d7f551e3b3.png",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195189/5812612/76710332/1000-AlexandraDiz-dd7d5012a1c965e1548f75d7f551e3b3.png",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195189/5812612/76710332/1000-AlexandraDiz-0e23c8be639ac5f28ff77a2819c542b7.png"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "88",
+      "title": "San Bruno",
+      "slug": "san-bruno-1",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195156/5812583/76709930/1000-AlexandraDiz-250e1ab16b7f564e9df9e050b4fadeaa.png",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195156/5812583/76709930/1000-AlexandraDiz-250e1ab16b7f564e9df9e050b4fadeaa.png",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195156/5812583/76709930/1000-AlexandraDiz-f83037642232ceecd55c66be6d9080a9.png"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "89",
+      "title": "Modern Kitchen (San Carlos)",
+      "slug": "san-carlos-modern-kitchen",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864496/6705156/88101363/1000-AlexandraDiz-a85d32308ea45d3e1d22bf4753ddc8e1.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864496/6705156/88101363/1000-AlexandraDiz-a85d32308ea45d3e1d22bf4753ddc8e1.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6864496/6705156/88101363/1000-AlexandraDiz-7f7dc6a7c954f9d54e5139247a31e2b4.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "90",
+      "title": "San Jose",
+      "slug": "san-jose-1574",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108893/5697639/75208547/1000-AlexandraDiz-f564c82fa146161af0947111dab42816.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108893/5697639/75208547/1000-AlexandraDiz-f564c82fa146161af0947111dab42816.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108893/5697639/75208547/1000-AlexandraDiz-20dbca1422fb5ade178588600e801964.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "91",
+      "title": "Saratoga",
+      "slug": "Saratoga-2",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195166/5812587/76710053/1000-AlexandraDiz-bc6795e86feda3b297996fa61f3381ff.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195166/5812587/76710053/1000-AlexandraDiz-bc6795e86feda3b297996fa61f3381ff.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6195166/5812587/76710053/1000-AlexandraDiz-52a3e30d3fd1905a5b6410fc168904d8.jpeg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "92",
+      "title": "Small kitchen (Oakland)",
+      "slug": "small-kitchen-oakland",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428919/6121368/80458604/1000-AlexandraDiz-0b0c667d9c1144966ae0a0e6a54b19f7.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428919/6121368/80458604/1000-AlexandraDiz-0b0c667d9c1144966ae0a0e6a54b19f7.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428919/6121368/80458604/1000-AlexandraDiz-a18b4fc68a77c0f298c6ba4a271caf54.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "93",
+      "title": "Sparkling graphite (Los Altos)",
+      "slug": "sparkling-graphite-los-altos",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480393/6190588/81377491/1000-AlexandraDiz-6459f955439ea6d9712af106bf9d229b.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480393/6190588/81377491/1000-AlexandraDiz-6459f955439ea6d9712af106bf9d229b.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6480393/6190588/81377491/1000-AlexandraDiz-f65cdc772e0f3ee26c4b60d103289613.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "94",
+      "title": "Sunnyvale",
+      "slug": "sunnyvale-990",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108897/5697641/75208566/1000-AlexandraDiz-382de9db09d6c02ecdbbbbdfc32446c1.jpeg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108897/5697641/75208566/1000-AlexandraDiz-382de9db09d6c02ecdbbbbdfc32446c1.jpeg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108897/5697641/75208566/1000-AlexandraDiz-e76e971d6834ca8642d9cf07d6ecdfd4.jpeg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "95",
+      "title": "The Grace of the Classics",
+      "slug": "the-grace-of-the-classics",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8196360/8246978/106904062/1000-AlexandraDiz-89630f4cfb41bbf5403aa72febf7e997.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8196360/8246978/106904062/1000-AlexandraDiz-89630f4cfb41bbf5403aa72febf7e997.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8196360/8246978/106904062/1000-AlexandraDiz-f9d8537c0342ffc6083268233103215c.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "96",
+      "title": "Topaz",
+      "slug": "topaz",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108898/5697642/75208570/1000-AlexandraDiz-dca34752155c64f1a8ec4edf4953d1d0.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108898/5697642/75208570/1000-AlexandraDiz-dca34752155c64f1a8ec4edf4953d1d0.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6108898/5697642/75208570/1000-AlexandraDiz-23214ae163a28f31783258d40ce0d5a8.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "97",
+      "title": "Victorian style (Palo Alto)",
+      "slug": "victorian-style-palo-alto",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422368/6113045/80355521/1000-AlexandraDiz-45206dbfd681fc4c783e4c4339b46e54.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422368/6113045/80355521/1000-AlexandraDiz-45206dbfd681fc4c783e4c4339b46e54.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6422368/6113045/80355521/1000-AlexandraDiz-7c01366aba29113568be97a64f035f8f.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "98",
+      "title": "Warm kitchen (Oakland)",
+      "slug": "warm-kitchen-oakland",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428900/6121358/80458516/1000-AlexandraDiz-f2135dbf1f35c13d704d17dbf275f6ca.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428900/6121358/80458516/1000-AlexandraDiz-f2135dbf1f35c13d704d17dbf275f6ca.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/6428900/6121358/80458516/1000-AlexandraDiz-b594dca072eb07c10e4e72d6026523b7.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    },
+    {
+      "id": "99",
+      "title": "Wooden Comfort Kitchen (Fremont)",
+      "slug": "wooden-comfort-kitchen-fremont",
+      "categoryId": "kitchens",
+      "location": "",
+      "year": "",
+      "coverImage": "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072412/8085092/105179548/1000-AlexandraDiz-933209ff0db963dda1e69e1744e91a0c.jpg",
+      "gallery": [
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072412/8085092/105179548/1000-AlexandraDiz-933209ff0db963dda1e69e1744e91a0c.jpg",
+        "https://static-cdn4-2.vigbo.tech/u54940/67783/blog/8072412/8085092/105179548/1000-AlexandraDiz-be8f7c570198fec02d8f5fef416567df.jpg"
+      ],
+      "summary": "A kitchens project focused on clean composition, balanced materials, and practical day-to-day comfort.",
+      "workDone": "Space planning, cabinet layout, lighting strategy, finish selection, and installation coordination.",
+      "featuredOnHome": false,
+      "published": true
+    }
+  ]
+}

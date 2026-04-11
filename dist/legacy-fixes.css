@@ -1,0 +1,81 @@
+﻿/* Keep original Vigbo dark aesthetic. Only corrective overrides. */
+
+body.legacy-mode {
+  margin: 0;
+}
+
+/* Readability on dark photo backgrounds */
+body.legacy-mode .md-top-slider .slide__content,
+body.legacy-mode .md-top-slider .slide__caption {
+  background: linear-gradient(180deg, rgba(9, 9, 9, 0.12), rgba(9, 9, 9, 0.38));
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+body.legacy-mode .md-top-slider .slide__content *,
+body.legacy-mode .md-top-slider .slide__caption *,
+body.legacy-mode .widget[data-type='simple-text'] .text-box * {
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
+}
+
+/* Elegant buttons in original style language */
+body.legacy-mode .post-button-content {
+  border-radius: 999px !important;
+  letter-spacing: 0.04em;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+body.legacy-mode .post-button-content.style-bold {
+  background: rgba(17, 17, 17, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  color: #f2eee9 !important;
+}
+
+body.legacy-mode .post-button-content.style-bold:hover {
+  background: rgba(17, 17, 17, 0.68) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+  transform: translateY(-1px);
+}
+
+/* Keep project photos visually same but stable in responsive contexts */
+body.legacy-mode img,
+body.legacy-mode video,
+body.legacy-mode iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Homepage block alignment fix (non-invasive) */
+body.legacy-home .l-content .container.custom__content--max-width {
+  width: 100%;
+}
+
+body.legacy-home .md-section .row {
+  align-items: stretch;
+}
+
+body.legacy-home .md-section .widget {
+  height: 100%;
+}
+
+/* Smooth SPA transition without changing layout */
+body.legacy-mode .l-content {
+  animation: legacyPageIn 260ms ease;
+}
+
+@keyframes legacyPageIn {
+  from { opacity: 0.94; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  body.legacy-mode .md-menu__main {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.legacy-home .md-section .row,
+  body.legacy-home .md-section .col {
+    min-width: 0;
+  }
+}
