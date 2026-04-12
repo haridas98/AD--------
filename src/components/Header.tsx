@@ -52,7 +52,7 @@ export default function Header() {
 
   return (
     <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
-      <div className="header-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 30px', height: '60px' }}>
+      <div className="header-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', height: '60px', maxWidth: '1600px', margin: '0 auto' }}>
         {/* Logo */}
         <NavLink to="/" className="brand" onClick={closeMenu} style={{ fontFamily: "'GilroyLight', sans-serif", fontSize: '14px', fontWeight: 400, color: '#fff', letterSpacing: '0', whiteSpace: 'nowrap' }}>
           Alexandra Diz
