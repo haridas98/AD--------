@@ -46,10 +46,11 @@ export default function Header({ sections }: HeaderProps) {
 
         {/* Navigation */}
         <nav className={`top-nav ${menuOpen ? 'open' : ''}`}>
+          <button className="top-nav-close" onClick={closeMenu} aria-label="Close menu">✕</button>
           {navItems.map((item) => {
             const href =
               item.type === 'category'
-                ? `/section/${item.id}`
+                ? `/category/${item.id}`
                 : `/${item.slug || item.id}`;
 
             return (

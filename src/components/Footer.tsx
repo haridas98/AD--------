@@ -23,7 +23,7 @@ export default function Footer({ site, sections }: FooterProps) {
           {footerLinks.map((item) => {
             const href =
               item.type === 'category'
-                ? `/section/${item.id}`
+                ? `/category/${item.id}`
                 : `/${item.slug || item.id}`;
 
             return (
