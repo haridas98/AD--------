@@ -11,6 +11,7 @@ import CategoryPage from './pages/CategoryPage';
 import ProjectPage from './pages/ProjectPage';
 import ServicesPage from './pages/ServicesPage';
 import AboutPage from './pages/AboutPage';
+import BeforeAfterPage from './pages/BeforeAfterPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import AdminPage from './pages/AdminPage';
@@ -66,7 +67,7 @@ export default function App() {
                 <Route path="/full-house-remodeling" element={<CategoryPage />} />
                 <Route path="/bathrooms" element={<CategoryPage />} />
                 <Route path="/adu1" element={<CategoryPage />} />
-                <Route path="/projects-before-and-after" element={<CategoryPage />} />
+                <Route path="/projects-before-and-after" element={<BeforeAfterPage />} />
                 <Route path="/fireplaces" element={<CategoryPage />} />
 
                 {/* Project pages: /kitchens/modern-kitchen, /bathrooms/relax-oasis, etc. */}
@@ -101,18 +102,6 @@ export default function App() {
         </Layout>
       </ErrorBoundary>
     </HelmetProvider>
-  );
-}
-
-function StaticPageWrapper({ pageId }: { pageId: string }) {
-  const { getPage, site } = useAppStore();
-  const page = getPage(pageId);
-  if (!page) return <Navigate to="/" replace />;
-  return (
-    <motion.main className="container page-pad static-page" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <h1 style={{ color: '#fff' }}>{page.title}</h1>
-      <p style={{ color: 'rgba(255,255,255,0.7)' }}>{page.body}</p>
-    </motion.main>
   );
 }
 
