@@ -29,6 +29,18 @@ yarn-error.log*
 
 # Server data
 server/data/content.json
+server/prisma/dev.db
+server/prisma/dev.db-journal
+server/prisma/migrations/
+server/.env
+server/data/
+
+# AI agents
+.agents/
+.qwen/
+.claude/
+.superpowers/
+.gstack/
 
 # Uploads (optional, uncomment if needed)
 # public/uploads/
