@@ -10,7 +10,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <>
       {site ? <Header sections={sections} /> : <div className="site-header" style={{ height: '60px' }} />}
       {children}
-      {site ? <Footer site={site} sections={sections} /> : null}
+      {site ? <Footer site={site} /> : null}
     </>
   );
 }

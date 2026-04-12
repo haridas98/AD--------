@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Section } from '../types';
+import type { Section, Category } from '../types';
 
-export default function Header({ sections }: { sections: Section[] }) {
+interface HeaderProps {
+  sections: Section[];
+  categories?: Category[];
+}
+
+export default function Header({ sections, categories }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -15,11 +20,28 @@ export default function Header({ sections }: { sections: Section[] }) {
 
   const closeMenu = () => setMenuOpen(false);
 
-  const navItems = sections.filter((s) => s.id !== 'projects');
-  // Insert Blog before About
-  const blogItem = { id: 'blog', name: 'Blog', type: 'page' as const, slug: 'blog' };
-  const aboutIdx = navItems.findIndex((s) => s.name.toLowerCase().includes('about') || s.name.toLowerCase().includes('services') || s.id === 'about' || s.id === 'services');
-  const finalItems = aboutIdx >= 0 ? [...navItems.slice(0, aboutIdx), blogItem, ...navItems.slice(aboutIdx)] : [...navItems, blogItem];
+  // Build exact original menu structure
+  const menuItems = [
+    { id: 'projects', name: 'Projects', href: '/' },
+    { id: 'kitchens', name: 'Kitchens', href: '/kitchens' },
+    { id: 'full-house-remodeling', name: 'Full house remodeling', href: '/full-house-remodeling' },
+    { id: 'bathrooms', name: 'Bathroom', href: '/bathrooms' },
+    { id: 'adu1', name: 'ADU', href: '/adu1' },
+    { id: 'projects-before-and-after', name: 'Projects before and after', href: '/projects-before-and-after' },
+    { id: 'video-series', name: 'Video Series', href: '/video-series' },
+    { id: 'services', name: 'Services', href: '/process', sub: [
+      { name: 'Full Service Interior Design', href: '/process' },
+      { name: 'Bathroom Remodeling', href: '/process_bath' },
+      { name: 'Kitchen Remodeling', href: '/process_kitchen' },
+    ]},
+    { id: 'about-me', name: 'About me', href: '/press', sub: [
+      { name: 'Press | Media', href: '/press' },
+      { name: 'Testimonials', href: '/testimonials' },
+      { name: 'About me', href: '/aboutme' },
+    ]},
+    { id: 'contact', name: 'Contact', href: '/contact' },
+    { id: 'fireplaces', name: 'Fireplaces', href: '/fireplaces' },
+  ];
 
   return (
     <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
@@ -36,16 +58,24 @@ export default function Header({ sections }: { sections: Section[] }) {
 
         <nav className={`top-nav ${menuOpen ? 'open' : ''}`}>
           <button className="top-nav-close" onClick={closeMenu} aria-label="Close">✕</button>
-          {finalItems.map((item) => {
-            let href = `/${item.slug || item.id}`;
-            if (item.type === 'category') href = `/category/${item.id}`;
-            if (item.id === 'blog') href = '/blog';
-            return (
-              <NavLink key={item.id} to={href} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={closeMenu}>
+          {menuItems.map((item) => (
+            <div key={item.id} className="nav-item-wrap">
+              <NavLink
+                to={item.href}
+                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                onClick={closeMenu}
+              >
                 {item.name}
               </NavLink>
-            );
-          })}
+              {item.sub && (
+                <div className="submenu">
+                  {item.sub.map((sub) => (
+                    <NavLink key={sub.href} to={sub.href} className="submenu-link" onClick={closeMenu}>{sub.name}</NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </nav>
       </div>
     </header>

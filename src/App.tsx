@@ -34,7 +34,14 @@ export default function App() {
       setLoading(true); setError(null);
       try {
         const data = await api.getContent();
-        setContent({ site: { name: 'Alexandra Diz Architecture', phone: '+1 415 769 8563', email: 'alexandra@alexandradiz.com', instagram: data.site?.instagram || '', facebook: data.site?.facebook || '', houzz: data.site?.houzz || '' }, sections: data.sections || [], categories: data.categories || [], projects: data.projects || [], blogPosts: data.blogPosts || [], pages: data.pages || {} });
+        setContent({
+          site: { name: 'Alexandra Diz Architecture', phone: '+1 415 769 8563', email: 'alexandra@alexandradiz.com', instagram: data.site?.instagram || '', facebook: data.site?.facebook || '', houzz: data.site?.houzz || '' },
+          sections: data.sections || [],
+          categories: data.categories || [],
+          projects: data.projects || [],
+          blogPosts: data.blogPosts || [],
+          pages: data.pages || {},
+        });
       } catch (err: any) { setError(err.message); }
       finally { setLoading(false); }
     }
@@ -52,12 +59,40 @@ export default function App() {
             <PageTransition>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/category/:slug" element={<CategoryPage />} />
-                <Route path="/project/:slug" element={<ProjectPage />} />
+
+                {/* Category pages: /kitchens, /bathrooms, etc. */}
+                <Route path="/kitchens" element={<CategoryPage />} />
+                <Route path="/full-house-remodeling" element={<CategoryPage />} />
+                <Route path="/bathrooms" element={<CategoryPage />} />
+                <Route path="/adu1" element={<CategoryPage />} />
+                <Route path="/projects-before-and-after" element={<CategoryPage />} />
+                <Route path="/fireplaces" element={<CategoryPage />} />
+
+                {/* Project pages: /kitchens/modern-kitchen, /bathrooms/relax-oasis, etc. */}
+                <Route path="/kitchens/:slug" element={<ProjectPage />} />
+                <Route path="/full-house-remodeling/:slug" element={<ProjectPage />} />
+                <Route path="/bathrooms/:slug" element={<ProjectPage />} />
+                <Route path="/adu1/:slug" element={<ProjectPage />} />
+                <Route path="/projects-before-and-after/:slug" element={<ProjectPage />} />
+                <Route path="/fireplaces/:slug" element={<ProjectPage />} />
+
+                {/* Static pages */}
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/video-series" element={<VideoSeriesPage />} />
+                <Route path="/process" element={<StaticPageWrapper pageId="services" />} />
+                <Route path="/process_bath" element={<StaticPageWrapper pageId="services" />} />
+                <Route path="/process_kitchen" element={<StaticPageWrapper pageId="services" />} />
+                <Route path="/press" element={<StaticPageWrapper pageId="about" />} />
+                <Route path="/testimonials" element={<StaticPageWrapper pageId="about" />} />
+                <Route path="/aboutme" element={<StaticPageWrapper pageId="about" />} />
+
+                {/* Blog */}
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
-                <Route path="/:pageId" element={<StaticPage />} />
+
+                {/* Admin */}
                 <Route path="/admin" element={<AdminWrapper />} />
+
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </PageTransition>
@@ -65,6 +100,42 @@ export default function App() {
         </Layout>
       </ErrorBoundary>
     </HelmetProvider>
+  );
+}
+
+function StaticPageWrapper({ pageId }: { pageId: string }) {
+  const { getPage, site } = useAppStore();
+  const page = getPage(pageId);
+  if (!page) return <Navigate to="/" replace />;
+  return (
+    <motion.main className="container page-pad static-page" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <h1 style={{ color: '#fff' }}>{page.title}</h1>
+      <p style={{ color: 'rgba(255,255,255,0.7)' }}>{page.body}</p>
+    </motion.main>
+  );
+}
+
+function ContactPage() {
+  const { site } = useAppStore();
+  return (
+    <motion.main className="container contact-page" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '120px 15px 60px' }}>
+      <h1 style={{ color: '#fff' }}>Contact</h1>
+      <p style={{ color: 'rgba(255,255,255,0.7)' }}>For project inquiries, use the contacts below or reach out through social channels.</p>
+      <div className="contact-info">
+        {site?.email && <div className="contact-item"><strong style={{ color: '#fff' }}>Email:</strong> <a href={`mailto:${site.email}`}>{site.email}</a></div>}
+        {site?.phone && <div className="contact-item"><strong style={{ color: '#fff' }}>Phone:</strong> <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a></div>}
+        {site?.instagram && <div className="contact-item"><strong style={{ color: '#fff' }}>Instagram:</strong> <a href={site.instagram} target="_blank" rel="noopener noreferrer">@alexandra_diz</a></div>}
+      </div>
+    </motion.main>
+  );
+}
+
+function VideoSeriesPage() {
+  return (
+    <motion.main className="container" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '120px 15px 60px', textAlign: 'center' }}>
+      <h1 style={{ color: '#fff' }}>Video Series</h1>
+      <p style={{ color: 'rgba(255,255,255,0.7)' }}>Coming soon — video content showcasing our design process.</p>
+    </motion.main>
   );
 }
 

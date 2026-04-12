@@ -239,23 +239,39 @@ export default function AdminPage({ data, refresh }: any) {
 
       {/* ========== PROJECTS ========== */}
       {tab === 'projects' && (
-        <div style={{ display: 'grid', gridTemplateColumns: selId ? '300px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
-          {/* List */}
-          <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Projects</h3>
-              <button onClick={newProject} style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>+ New</button>
+        <div>
+          {/* Action bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ color: '#fff', margin: 0, fontSize: '18px' }}>{form ? 'Editing Project' : 'Projects'}</h3>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {form && <button onClick={() => { setSelId(''); setForm(null); }} style={{ ...miniBtn, padding: '8px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>← Back to List</button>}
+              {!form && <button onClick={newProject} className="btn-primary">+ New Project</button>}
             </div>
-            {adminData.projects?.map((p: any) => (
-              <div key={p.id} onClick={() => editProject(p)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '8px', cursor: 'pointer', background: selId === p.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '4px', transition: 'background 0.2s' }}>
-                {getCover(p) ? <img src={getCover(p)} alt="" style={{ width: '44px', height: '44px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '44px', height: '44px', borderRadius: '6px', background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />}
-                <div style={{ minWidth: 0 }}><div style={{ color: '#fff', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</div><div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{p.cityName || ''} {p.year ? `(${p.year})` : ''}</div></div>
-                <div style={{ marginLeft: 'auto', width: '8px', height: '8px', borderRadius: '50%', background: p.isPublished ? '#27ae60' : '#e74c3c', flexShrink: 0 }} />
-              </div>
-            ))}
           </div>
 
-          {/* Editor */}
+          {/* Project list — only when not editing */}
+          {!form && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px', marginBottom: '30px' }}>
+              {adminData.projects?.map((p: any) => (
+                <div key={p.id} onClick={() => editProject(p)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(198,164,123,0.1)'; e.currentTarget.style.borderColor = 'rgba(198,164,123,0.3)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                >
+                  {getCover(p) ? <img src={getCover(p)} alt="" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />}
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{p.cityName || ''} {p.year ? `(${p.year})` : ''}</div>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                      <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: p.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: p.isPublished ? '#27ae60' : '#e74c3c' }}>{p.isPublished ? 'Published' : 'Draft'}</span>
+                      {p.isFeatured && <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Editor — only when form is open */}
           {form && (
             <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{selId ? 'Edit Project' : 'New Project'}</h3>
@@ -313,7 +329,7 @@ export default function AdminPage({ data, refresh }: any) {
               </form>
             </div>
           )}
-          {!form && <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '60px' }}><p>Select a project or click + New</p></div>}
+          {!form && adminData.projects?.length === 0 && <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '60px' }}><p>No projects yet. Click + New Project to get started.</p></div>}
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { BlockRenderer } from '../components/blocks';
@@ -7,13 +7,20 @@ import { useAppStore } from '../store/useAppStore';
 
 export default function ProjectPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { getProjectBySlug, getCategoryById, site } = useAppStore();
-  const project = getProjectBySlug(slug || '');
-  const category = project ? getCategoryById(project.categoryId) : null;
+  const location = useLocation();
+  const { projects, site } = useAppStore();
+
+  // Extract category from path
+  const catSlug = location.pathname.split('/')[1];
+  const categoryId = useAppStore.getState().categories.find((c) => c.slug === catSlug || c.id === catSlug)?.id || catSlug;
+
+  // Find project by slug (unique across all projects)
+  const project = projects.find((p) => p.slug === slug);
 
   if (!project) return <Navigate to="/" replace />;
 
   const content = typeof project.content === 'string' ? JSON.parse(project.content) : project.content;
+  const category = useAppStore.getState().categories.find((c) => c.id === project.categoryId);
 
   return (
     <>
