@@ -24,28 +24,45 @@
     },
     "filesystem": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem"]
+      "args": [
+        "@modelcontextprotocol/server-filesystem"
+      ]
     },
     "browser": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-browser"]
+      "args": [
+        "@modelcontextprotocol/server-browser"
+      ]
     },
     "github": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"]
+      "args": [
+        "@modelcontextprotocol/server-github"
+      ]
     },
     "code": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-code"]
+      "args": [
+        "@modelcontextprotocol/server-code"
+      ]
     },
     "fetch": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-fetch"]
+      "args": [
+        "@modelcontextprotocol/server-fetch"
+      ]
     },
     "memory": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-memory"]
+      "args": [
+        "@modelcontextprotocol/server-memory"
+      ]
     }
   },
-  "$version": 3
+  "$version": 3,
+  "permissions": {
+    "allow": [
+      "mcp__filesystem__create_directory"
+    ]
+  }
 }

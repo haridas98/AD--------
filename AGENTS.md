@@ -20,7 +20,34 @@ This project has **Superpowers skills** installed. Use them as your methodology:
 - **Quality**: `requesting-code-review`, `receiving-code-review`, `verification-before-completion`, `systematic-debugging`
 - **Workflow**: `using-git-worktrees`, `finishing-a-development-branch`
 
-Skills are located in `.claude/skills/` (or equivalent). Each has a `SKILL.md` with detailed methodology.
+### Skill Locations
+
+- **Qwen Code**: `.qwen/skills/<skill-name>/SKILL.md`
+- **Claude Code**: `.claude/skills/<skill-name>/SKILL.md`
+
+Each skill directory contains a `SKILL.md` with detailed methodology. Additional prompt templates and reference files may also be present.
+
+### How to Invoke Skills (Qwen Code)
+
+Skills MUST be invoked using the `skill` tool BEFORE generating any response related to the task:
+
+```
+skill: "brainstorming"          — Before any creative work
+skill: "writing-plans"          — When you have requirements for multi-step tasks
+skill: "subagent-driven-development"  — When executing implementation plans
+skill: "systematic-debugging"   — When encountering any bug or unexpected behavior
+skill: "test-driven-development" — When implementing any feature or bugfix
+skill: "verification-before-completion" — Before claiming work is complete
+skill: "using-git-worktrees"    — When starting feature work needing isolation
+skill: "finishing-a-development-branch" — When implementation is complete
+skill: "requesting-code-review" — Before merging to verify work meets requirements
+skill: "receiving-code-review"  — When receiving code review feedback
+skill: "executing-plans"        — When you have a written plan to execute
+skill: "dispatching-parallel-agents" — When facing 2+ independent tasks
+skill: "writing-skills"         — When creating or editing skills
+```
+
+**Critical rule:** Always invoke the relevant skill tool IMMEDIATELY as your first action when a task matches a skill's description. Never announce or mention a skill in text without actually calling the tool.
 
 ---
 
