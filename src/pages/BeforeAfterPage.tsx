@@ -37,7 +37,7 @@ export default function BeforeAfterPage() {
         <meta name="description" content="Before and after transformations of our interior design projects" />
       </Helmet>
 
-      <main className="container" style={{ padding: '120px 15px 60px' }}>
+      <main className="container page-pad wide" style={{ paddingTop: '120px' }}>
         <motion.header className="page-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 style={{ color: '#fff', fontFamily: "'GilroyExtraBold', sans-serif", fontSize: '28px', fontWeight: 800, margin: '0 0 10px' }}>Before & After</h1>
           <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>Transformation stories from our projects</p>

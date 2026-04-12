@@ -10,12 +10,12 @@ export default function BlogPage() {
   return (
     <>
       <Helmet><title>Blog — {site?.name || 'Alexandra Diz'}</title><meta name="description" content="Interior design tips, project stories, and trends" /></Helmet>
-      <main className="container" style={{ padding: '120px 15px 60px' }}>
+      <main className="container page-pad wide" style={{ paddingTop: '120px' }}>
         <motion.header className="page-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 style={{ color: '#fff' }}>Design Journal</h1>
           <p style={{ color: 'rgba(255,255,255,0.7)' }}>Insights, trends, and stories from our projects</p>
         </motion.header>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
+        <div className="cards-grid category-grid">
           {blogPosts?.map((post: any, i: number) => (
             <motion.article key={post.id} className="blog-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} whileHover={{ y: -4 }} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
               <Link to={`/blog/${post.slug}`}>

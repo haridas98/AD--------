@@ -88,16 +88,16 @@ export default function HomePage() {
                   <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </Link>
               </div>
-              <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
-                {catProjects.slice(0, 6).map((project, idx) => {
+              <div className="cards-grid">
+                {catProjects.slice(0, 8).map((project, idx) => {
                   const cover = getCover(project);
                   return (
                     <motion.article key={project.id} className="project-card" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} whileHover={{ y: -4 }}>
-                      <Link to={getProjectLink(project)} className="project-image-wrap" style={{ aspectRatio: '4/5' }}>
-                        {cover && <img src={cover} alt={project.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                      <Link to={getProjectLink(project)} className="project-image-wrap">
+                        {cover && <img src={cover} alt={project.title} loading="lazy" />}
                       </Link>
-                      <div className="project-body" style={{ padding: '12px 0 0' }}>
-                        <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{project.title}</h3>
+                      <div className="project-body">
+                        <h3>{project.title}</h3>
                       </div>
                     </motion.article>
                   );

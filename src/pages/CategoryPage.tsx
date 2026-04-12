@@ -43,12 +43,12 @@ export default function CategoryPage() {
         <title>{name} — {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content={`${name} projects by Alexandra Diz`} />
       </Helmet>
-      <main className="container" style={{ padding: '120px 15px 60px' }}>
+      <main className="container page-pad wide" style={{ paddingTop: '120px' }}>
         <motion.header className="page-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 style={{ color: '#fff' }}>{name}</h1>
           {category?.description && <p style={{ color: 'rgba(255,255,255,0.7)' }}>{category.description}</p>}
         </motion.header>
-        <div className="cards-grid">
+        <div className="cards-grid category-grid">
           {catProjects.map((project, i) => (
             <motion.article key={project.id} className="project-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} whileHover={{ y: -4 }}>
               <Link to={`/${catSlug}/${project.slug}`} className="project-image-wrap">
