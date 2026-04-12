@@ -18,7 +18,7 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
 
   return (
     <motion.section
-      className="block-before-after"
+      className="container block-before-after"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}

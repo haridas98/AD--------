@@ -14,7 +14,7 @@ interface CTASectionBlockProps {
 export default function CTASectionBlock({ data }: CTASectionBlockProps) {
   return (
     <motion.section
-      className={`block-cta ${data.align === 'left' ? 'block-cta--left' : data.align === 'right' ? 'block-cta--right' : ''}`}
+      className={`container block-cta ${data.align === 'left' ? 'block-cta--left' : data.align === 'right' ? 'block-cta--right' : ''}`}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
