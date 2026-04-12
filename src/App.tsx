@@ -9,7 +9,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import HomePage from './pages/HomePage';
 import CategoryPage from './pages/CategoryPage';
 import ProjectPage from './pages/ProjectPage';
-import StaticPage from './pages/StaticPage';
+import ServicesPage from './pages/ServicesPage';
+import AboutPage from './pages/AboutPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import AdminPage from './pages/AdminPage';
@@ -79,12 +80,12 @@ export default function App() {
                 {/* Static pages */}
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/video-series" element={<VideoSeriesPage />} />
-                <Route path="/process" element={<StaticPageWrapper pageId="services" />} />
-                <Route path="/process_bath" element={<StaticPageWrapper pageId="services" />} />
-                <Route path="/process_kitchen" element={<StaticPageWrapper pageId="services" />} />
-                <Route path="/press" element={<StaticPageWrapper pageId="about" />} />
-                <Route path="/testimonials" element={<StaticPageWrapper pageId="about" />} />
-                <Route path="/aboutme" element={<StaticPageWrapper pageId="about" />} />
+                <Route path="/process" element={<ServicesPage serviceType="process" />} />
+                <Route path="/process_bath" element={<ServicesPage serviceType="process_bath" />} />
+                <Route path="/process_kitchen" element={<ServicesPage serviceType="process_kitchen" />} />
+                <Route path="/press" element={<AboutPage aboutType="press" />} />
+                <Route path="/testimonials" element={<AboutPage aboutType="testimonials" />} />
+                <Route path="/aboutme" element={<AboutPage aboutType="aboutme" />} />
 
                 {/* Blog */}
                 <Route path="/blog" element={<BlogPage />} />
