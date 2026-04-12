@@ -174,7 +174,7 @@ img, video, iframe {
   align-items: center;
   gap: 0;
   flex: 1;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .nav-link {
