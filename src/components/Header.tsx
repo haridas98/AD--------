@@ -59,7 +59,7 @@ export default function Header() {
         </NavLink>
 
         {/* Desktop nav */}
-        <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '0', flex: 1, justifyContent: 'center' }}>
+        <nav className="desktop-nav">
           {menuItems.map((item) => (
             <div key={item.name} className="nav-item-wrap" style={{ position: 'relative' }}>
               <NavLink
