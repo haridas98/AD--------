@@ -20,7 +20,7 @@ import AdminPage from './pages/AdminPage';
 function PageTransition({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   return (
-    <motion.div key={location.pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: 'easeOut' }}>{children}</motion.div>
+    <motion.div key={location.pathname} className="page-transition" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: 'easeOut' }}>{children}</motion.div>
   );
 }
 
@@ -51,8 +51,8 @@ export default function App() {
     load();
   }, []);
 
-  if (loading && !site) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#141414', color: '#fff' }}>Loading...</div>;
-  if (error && !site) return <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#141414', color: '#fff' }}><h1>Error</h1><p>{error}</p><button className="btn-primary" onClick={() => window.location.reload()}>Reload</button></div>;
+  if (loading && !site) return <div className="app-loading">Loading...</div>;
+  if (error && !site) return <div className="app-error"><h1>Error</h1><p>{error}</p><button className="btn-primary" onClick={() => window.location.reload()}>Reload</button></div>;
 
   return (
     <HelmetProvider>
@@ -62,24 +62,18 @@ export default function App() {
             <PageTransition>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-
-                {/* Category pages: /kitchens, /bathrooms, etc. */}
                 <Route path="/kitchens" element={<CategoryPage />} />
                 <Route path="/full-house-remodeling" element={<CategoryPage />} />
                 <Route path="/bathrooms" element={<CategoryPage />} />
                 <Route path="/adu1" element={<CategoryPage />} />
                 <Route path="/projects-before-and-after" element={<BeforeAfterPage />} />
                 <Route path="/fireplaces" element={<CategoryPage />} />
-
-                {/* Project pages: /kitchens/modern-kitchen, /bathrooms/relax-oasis, etc. */}
                 <Route path="/kitchens/:slug" element={<ProjectPage />} />
                 <Route path="/full-house-remodeling/:slug" element={<ProjectPage />} />
                 <Route path="/bathrooms/:slug" element={<ProjectPage />} />
                 <Route path="/adu1/:slug" element={<ProjectPage />} />
                 <Route path="/projects-before-and-after/:slug" element={<ProjectPage />} />
                 <Route path="/fireplaces/:slug" element={<ProjectPage />} />
-
-                {/* Static pages */}
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/video-series" element={<VideoSeriesPage />} />
                 <Route path="/process" element={<ServicesPage serviceType="process" />} />
@@ -88,14 +82,9 @@ export default function App() {
                 <Route path="/press" element={<AboutPage aboutType="press" />} />
                 <Route path="/testimonials" element={<AboutPage aboutType="testimonials" />} />
                 <Route path="/aboutme" element={<AboutPage aboutType="aboutme" />} />
-
-                {/* Blog */}
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
-
-                {/* Admin */}
                 <Route path="/admin" element={<AdminWrapper />} />
-
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </PageTransition>
@@ -108,9 +97,9 @@ export default function App() {
 
 function VideoSeriesPage() {
   return (
-    <motion.main className="container" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '120px 15px 60px', textAlign: 'center' }}>
-      <h1 style={{ color: '#fff' }}>Video Series</h1>
-      <p style={{ color: 'rgba(255,255,255,0.7)' }}>Coming soon — video content showcasing our design process.</p>
+    <motion.main className="container video-series-page" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <h1 className="text-white">Video Series</h1>
+      <p className="text-secondary">Coming soon — video content showcasing our design process.</p>
     </motion.main>
   );
 }

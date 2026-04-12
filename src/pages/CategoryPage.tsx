@@ -17,7 +17,6 @@ export default function CategoryPage() {
   const location = useLocation();
   const { projects, site } = useAppStore();
 
-  // Extract category from path: /kitchens, /bathrooms, etc.
   const catSlug = location.pathname.split('/')[1];
   const category = useAppStore.getState().categories.find((c) => c.slug === catSlug || c.id === catSlug);
   const name = CATEGORY_NAMES[catSlug] || category?.name || catSlug;
@@ -31,8 +30,8 @@ export default function CategoryPage() {
 
   if (!catProjects.length) {
     return (
-      <main className="container" style={{ padding: '120px 15px 60px' }}>
-        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: '#fff' }}>Section not found</motion.h1>
+      <main className="container page-pad wide">
+        <motion.h1 className="text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Section not found</motion.h1>
       </main>
     );
   }
@@ -43,10 +42,10 @@ export default function CategoryPage() {
         <title>{name} — {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content={`${name} projects by Alexandra Diz`} />
       </Helmet>
-      <main className="container page-pad wide" style={{ paddingTop: '120px' }}>
+      <main className="container page-pad wide">
         <motion.header className="page-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 style={{ color: '#fff' }}>{name}</h1>
-          {category?.description && <p style={{ color: 'rgba(255,255,255,0.7)' }}>{category.description}</p>}
+          <h1 className="text-white">{name}</h1>
+          {category?.description && <p className="text-secondary">{category.description}</p>}
         </motion.header>
         <div className="cards-grid category-grid">
           {catProjects.map((project, i) => (

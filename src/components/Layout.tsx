@@ -14,7 +14,7 @@ export default function Layout({ children, isAdmin }: LayoutProps) {
 
   return (
     <>
-      {site ? <Header sections={sections} /> : <div className="site-header" style={{ height: '60px' }} />}
+      {site ? <Header sections={sections} /> : <div className="site-header placeholder" />}
       {children}
       {site ? <Footer site={site} /> : null}
     </>

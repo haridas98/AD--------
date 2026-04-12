@@ -15,18 +15,15 @@ export default function Lightbox({
   onNavigate,
 }: LightboxProps) {
   const handlePrev = useCallback(() => {
-    const newIndex =
-      currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+    const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
     onNavigate(newIndex);
   }, [currentIndex, images.length, onNavigate]);
 
   const handleNext = useCallback(() => {
-    const newIndex =
-      currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+    const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
     onNavigate(newIndex);
   }, [currentIndex, images.length, onNavigate]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -45,58 +42,20 @@ export default function Lightbox({
 
   return (
     <AnimatePresence>
-      <motion.div
-        className="lightbox-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        <button className="lightbox-close" onClick={onClose}>
-          ✕
-        </button>
+      <motion.div className="lightbox-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+        <button className="lightbox-close" onClick={onClose}>✕</button>
 
         {images.length > 1 && (
           <>
-            <button
-              className="lightbox-nav lightbox-prev"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePrev();
-              }}
-            >
-              ‹
-            </button>
-            <button
-              className="lightbox-nav lightbox-next"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNext();
-              }}
-            >
-              ›
-            </button>
+            <button className="lightbox-nav lightbox-prev" onClick={(e) => { e.stopPropagation(); handlePrev(); }}>‹</button>
+            <button className="lightbox-nav lightbox-next" onClick={(e) => { e.stopPropagation(); handleNext(); }}>›</button>
           </>
         )}
 
-        <div
-          className="lightbox-content"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <img
-            src={images[currentIndex]}
-            alt={`Image ${currentIndex + 1} of ${images.length}`}
-          />
+        <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+          <img src={images[currentIndex]} alt={`Image ${currentIndex + 1} of ${images.length}`} />
           {images.length > 1 && (
-            <div
-              style={{
-                textAlign: 'center',
-                color: '#fff',
-                marginTop: '1rem',
-                fontSize: '0.9rem',
-                opacity: 0.7,
-              }}
-            >
+            <div className="lightbox-counter">
               {currentIndex + 1} / {images.length}
             </div>
           )}

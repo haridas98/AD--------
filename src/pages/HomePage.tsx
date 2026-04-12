@@ -45,14 +45,14 @@ export default function HomePage() {
       </Helmet>
 
       {/* Hero Slider */}
-      <section className="hero-slider" style={{ position: 'relative', height: '70vh', overflow: 'hidden', background: '#141414' }}>
+      <section className="hero-slider">
         <AnimatePresence mode="wait">
           {featured.length > 0 && (
-            <motion.div key={slide} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} style={{ position: 'absolute', inset: 0 }}>
-              <img src={getCover(featured[slide])} alt={featured[slide].title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(20,20,20,0.3) 0%, rgba(20,20,20,0.7) 100%)' }} />
-              <div className="container" style={{ position: 'absolute', bottom: '50px', left: 0, right: 0, zIndex: 2, color: '#fff' }}>
-                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ fontFamily: "'GilroyExtraBold', sans-serif", fontSize: 'clamp(24px, 3.5vw, 42px)', fontWeight: 800, margin: '0 0 8px' }}>{featured[slide].title}</motion.h1>
+            <motion.div key={slide} className="hero-slider-slide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
+              <img src={getCover(featured[slide])} alt={featured[slide].title} />
+              <div className="hero-slider-overlay" />
+              <div className="container hero-slider-content">
+                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>{featured[slide].title}</motion.h1>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
                   <Link to={getProjectLink(featured[slide])} className="btn-primary">View Project</Link>
                 </motion.div>
@@ -63,29 +63,29 @@ export default function HomePage() {
 
         {featured.length > 1 && (
           <>
-            <div style={{ position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', zIndex: 3 }}>
+            <div className="hero-slider-dots">
               {featured.map((_, i) => (
-                <button key={i} onClick={() => setSlide(i)} style={{ width: slide === i ? '24px' : '8px', height: '8px', borderRadius: '4px', background: slide === i ? '#fff' : 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease' }} />
+                <button key={i} className={`hero-slider-dot${slide === i ? ' active' : ''}`} onClick={() => setSlide(i)} />
               ))}
             </div>
-            <button onClick={() => setSlide((s) => (s - 1 + featured.length) % featured.length)} style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
-            <button onClick={() => setSlide((s) => (s + 1) % featured.length)} style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', zIndex: 3, width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+            <button className="hero-slider-arrow hero-slider-arrow--prev" onClick={() => setSlide((s) => (s - 1 + featured.length) % featured.length)}>‹</button>
+            <button className="hero-slider-arrow hero-slider-arrow--next" onClick={() => setSlide((s) => (s + 1) % featured.length)}>›</button>
           </>
         )}
       </section>
 
       {/* Category Sections — Project Cards */}
-      <section className="container home-sections" style={{ padding: '60px 15px' }}>
+      <section className="container home-sections">
         {categories.map((category) => {
           const catProjects = projects.filter((p) => p.categoryId === category.id && p.isPublished);
           if (!catProjects.length) return null;
           return (
             <motion.div key={category.id} className="section-block" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <div className="section-head">
-                <h2 style={{ color: '#fff', fontFamily: "'GilroyExtraBold', sans-serif", fontSize: '20px', fontWeight: 700, margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{category.name}</h2>
+                <h2>{category.name}</h2>
                 <Link to={getCategorySlug(category.id)} className="btn-see-more">
                   <span>See more {category.name.toLowerCase()}</span>
-                  <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </Link>
               </div>
               <div className="cards-grid">

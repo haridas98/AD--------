@@ -32,24 +32,11 @@ export default class ErrorBoundary extends Component<Props, State> {
             <h2>Something went wrong</h2>
             <p>We're sorry, but an unexpected error occurred.</p>
             {this.state.error && (
-              <pre
-                style={{
-                  background: '#f5f5f5',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  overflow: 'auto',
-                  fontSize: '0.85rem',
-                  marginTop: '1rem',
-                }}
-              >
+              <pre className="error-boundary-details">
                 {this.state.error.message}
               </pre>
             )}
-            <button
-              className="btn-primary"
-              style={{ marginTop: '1rem' }}
-              onClick={() => window.location.reload()}
-            >
+            <button className="btn-primary" onClick={() => window.location.reload()}>
               Reload page
             </button>
           </div>

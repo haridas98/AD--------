@@ -21,34 +21,22 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
   return (
     <>
       <motion.section
+        className={`block-image-grid block-image-grid--${cols}`}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: cols === 1 ? '1fr' : cols === 2 ? '1fr 1fr' : '1fr 1fr 1fr',
-          gap: '8px',
-          padding: '0 15px 60px',
-          maxWidth: 'var(--content-max-width)',
-          margin: '0 auto',
-        }}
       >
         {data.images.map((img, i) => (
           <motion.div
             key={i}
+            className="block-image-grid-item"
             onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
-            style={{ cursor: 'pointer', overflow: 'hidden', borderRadius: '4px', position: 'relative' }}
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <img
-              src={img.url}
-              alt={img.alt || ''}
-              loading="lazy"
-              style={{ width: '100%', height: cols === 1 ? 'auto' : '400px', objectFit: 'cover', display: 'block' }}
-            />
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0)', transition: 'background 0.2s' }} onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')} onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0)')} />
+            <img src={img.url} alt={img.alt || ''} loading="lazy" className={cols === 1 ? 'block-image-grid-item--full' : ''} />
+            <div className="block-image-grid-item-overlay" />
           </motion.div>
         ))}
       </motion.section>

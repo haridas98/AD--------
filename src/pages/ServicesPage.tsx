@@ -6,10 +6,9 @@ import { useAppStore } from '../store/useAppStore';
 
 interface ServicesPageProps { serviceType: string; }
 
-// Real content from original HTML files
 const servicesData: Record<string, {
   title: string;
-  sections: { heading: string; text: string; images?: string[] }[];
+  sections: { heading: string; subheading: string; text?: string; items?: { num: string; text: string }[]; images?: string[] }[];
 }> = {
   process: {
     title: 'Full Service Interior Design',
@@ -133,51 +132,46 @@ export default function ServicesPage({ serviceType }: ServicesPageProps) {
         <title>{service.title} — {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content={service.title} />
       </Helmet>
-      <motion.main className="container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '100px 15px 60px', maxWidth: '900px' }}>
+      <motion.main className="container services-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         {/* Sub-nav */}
-        <nav style={{ marginBottom: '40px', display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <nav className="services-nav">
           {[
             { id: 'process', name: 'Full Service Interior Design' },
             { id: 'process_bath', name: 'Bathroom Remodeling' },
             { id: 'process_kitchen', name: 'Kitchen Remodeling' },
           ].map((s) => (
-            <Link key={s.id} to={`/${s.id}`} style={{
-              color: serviceType === s.id ? 'rgba(198,164,123,1)' : 'rgba(255,255,255,0.5)',
-              fontSize: '12px', textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.08em',
-              borderBottom: serviceType === s.id ? '1px solid rgba(198,164,123,1)' : '1px solid transparent',
-              paddingBottom: '4px', transition: 'all 0.2s'
-            }}>
+            <Link key={s.id} to={`/${s.id}`} className={`about-nav-link${serviceType === s.id ? ' active' : ''}`}>
               {s.name}
             </Link>
           ))}
         </nav>
 
-        <h1 style={{ color: '#fff', fontFamily: "'Playfair Display', serif", fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 400, margin: '0 0 50px', textAlign: 'center' }}>{service.title}</h1>
+        <h1 className="services-title">{service.title}</h1>
 
         {/* Sections */}
-        <div style={{ display: 'grid', gap: '50px' }}>
+        <div className="services-sections">
           {service.sections.map((section, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '25px', marginBottom: '15px' }}>
-                <p style={{ color: 'rgba(198,164,123,1)', fontSize: '24px', fontWeight: 700, margin: '0 0 5px', fontFamily: "'GilroyLight', sans-serif" }}>{section.heading}</p>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 15px' }}>{section.subheading}</p>
+            <motion.div key={i} className="service-section" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+              <div className="service-section-card">
+                <p className="service-section-heading">{section.heading}</p>
+                <p className="service-section-subheading">{section.subheading}</p>
                 {section.items ? (
-                  <div style={{ display: 'grid', gap: '12px' }}>
+                  <div className="service-items">
                     {section.items.map((item, j) => (
-                      <p key={j} style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', lineHeight: 1.7, margin: 0 }}>
-                        <span style={{ color: 'rgba(198,164,123,0.6)', marginRight: '8px', fontWeight: 600 }}>{item.num}</span>
+                      <p key={j} className="service-item">
+                        <span className="service-item-num">{item.num}</span>
                         {item.text}
                       </p>
                     ))}
                   </div>
                 ) : (
-                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', lineHeight: 1.7, margin: 0 }}>{section.text}</p>
+                  <p className="service-section-text">{section.text}</p>
                 )}
               </div>
               {section.images && (
-                <div style={{ display: 'grid', gridTemplateColumns: section.images.length > 1 ? '1fr 1fr' : '1fr', gap: '4px', marginTop: '10px' }}>
+                <div className={`service-section-images ${section.images.length > 1 ? 'service-section-images--multi' : 'service-section-images--single'}`}>
                   {section.images.map((img, j) => (
-                    <img key={j} src={img} alt="" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '4px' }} />
+                    <img key={j} src={img} alt="" />
                   ))}
                 </div>
               )}
