@@ -33,6 +33,13 @@ export default function AdminPage({ data, refresh }: any) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Before & After toggles
+  const [baToggles, setBaToggles] = useState<Record<string, boolean>>({});
+
+  // Category CRUD
+  const [catForm, setCatForm] = useState<any>(null);
+  const [catSelId, setCatSelId] = useState('');
+
   // Project
   const [selId, setSelId] = useState('');
   const [form, setForm] = useState<any>(null);
@@ -63,7 +70,50 @@ export default function AdminPage({ data, refresh }: any) {
     finally { setSaving(false); }
   }
 
-  async function logout() { await api.logout(); setAuthed(false); setSelId(''); setForm(null); setBlogSelId(''); setBlogForm(null); }
+  async function logout() { await api.logout(); setAuthed(false); setSelId(''); setForm(null); setBlogSelId(''); setBlogForm(null); setCatSelId(''); setCatForm(null); }
+
+  // ===== CATEGORY CRUD =====
+  function newCategory() { setCatSelId(''); setCatForm({ name: '', slug: '', description: '', showInHeader: true, sortOrder: 0 }); }
+  function editCategory(c: any) { setCatSelId(c.id); setCatForm({ name: c.name, slug: c.slug, description: c.description || '', showInHeader: c.showInHeader, sortOrder: c.sortOrder || 0 }); }
+  function setCatF(field: string, value: any) { setCatForm((prev: any) => ({ ...prev, [field]: value })); }
+  async function saveCategory(e: any) {
+    e.preventDefault(); setSaving(true);
+    try {
+      if (catSelId) await api.updateCategory(catSelId, catForm); else await api.createCategory(catForm);
+      await sync(); setCatSelId(''); setCatForm(null);
+    } catch (err: any) { alert('Error: ' + err.message); }
+    finally { setSaving(false); }
+  }
+  async function deleteCategory() {
+    if (!catSelId || !confirm('Delete this category?')) return;
+    setSaving(true);
+    try { await api.deleteCategory(catSelId); await sync(); setCatSelId(''); setCatForm(null); }
+    finally { setSaving(false); }
+  }
+
+  // ===== BEFORE & AFTER TOGGLES =====
+  function getBaProjects() {
+    return adminData.projects.filter((p: any) => {
+      const c = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
+      return c.some((b: any) => b.type === 'beforeAfter');
+    });
+  }
+  function initBaToggles() {
+    const toggles: Record<string, boolean> = {};
+    getBaProjects().forEach((p: any) => { toggles[p.id] = p.isPublished !== false; });
+    setBaToggles(toggles);
+  }
+  async function saveBaToggles() {
+    setSaving(true);
+    try {
+      for (const [id, show] of Object.entries(baToggles)) {
+        await api.updateProject(id, { isPublished: show });
+      }
+      await sync();
+      alert('Before & After settings saved!');
+    } catch (err: any) { alert('Error: ' + err.message); }
+    finally { setSaving(false); }
+  }
 
   // ===== PROJECT =====
   function newProject() {
@@ -187,8 +237,9 @@ export default function AdminPage({ data, refresh }: any) {
   const tabs = [
     { id: 'dashboard', label: '📊 Dashboard' },
     { id: 'projects', label: '🏠 Projects' },
-    { id: 'blog', label: '📝 Blog' },
     { id: 'categories', label: '📁 Categories' },
+    { id: 'beforeafter', label: '🔄 Before & After' },
+    { id: 'blog', label: '📝 Blog' },
   ];
 
   return (
@@ -416,17 +467,68 @@ export default function AdminPage({ data, refresh }: any) {
 
       {/* ========== CATEGORIES ========== */}
       {tab === 'categories' && (
-        <div style={cardStyle}>
-          <h3 style={{ color: '#fff', margin: '0 0 20px' }}>Categories</h3>
-          {adminData.categories?.map((c: any) => (
-            <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px' }}>
-              <div><div style={{ color: '#fff', fontSize: '15px' }}>{c.name}</div><div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>/{c.slug}</div></div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>
-                <input type="checkbox" checked={c.showInHeader} onChange={async (e) => { try { await api.updateCategory(c.id, { showInHeader: e.target.checked }); await sync(); } catch (err: any) { alert(err.message); } }} />
-                Show in header
-              </label>
+        <div style={{ display: 'grid', gridTemplateColumns: catForm ? '300px 1fr' : '1fr', gap: '20px' }}>
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Categories</h3>
+              <button onClick={newCategory} style={miniBtn}>+ New</button>
             </div>
-          ))}
+            {adminData.categories?.map((c: any) => (
+              <div key={c.id} onClick={() => editCategory(c)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderRadius: '8px', cursor: 'pointer', background: catSelId === c.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '4px', transition: 'background 0.2s' }}>
+                <div><div style={{ color: '#fff', fontSize: '14px' }}>{c.name}</div><div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>/{c.slug}</div></div>
+                <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: c.showInHeader ? 'rgba(39,174,96,0.2)' : 'rgba(255,255,255,0.1)', color: c.showInHeader ? '#27ae60' : 'rgba(255,255,255,0.4)' }}>{c.showInHeader ? 'Visible' : 'Hidden'}</span>
+              </div>
+            ))}
+          </div>
+          {catForm && (
+            <div style={cardStyle}>
+              <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{catSelId ? 'Edit Category' : 'New Category'}</h3>
+              <form onSubmit={saveCategory} style={{ display: 'grid', gap: '12px' }}>
+                <label style={labelStyle}>Name<input value={catForm.name} onChange={(e) => setCatF('name', e.target.value)} required style={inputStyle} /></label>
+                <label style={labelStyle}>Slug<input value={catForm.slug} onChange={(e) => setCatF('slug', e.target.value)} style={inputStyle} placeholder="auto-generated" /></label>
+                <label style={labelStyle}>Description<textarea rows={2} value={catForm.description} onChange={(e) => setCatF('description', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={catForm.showInHeader} onChange={(e) => setCatF('showInHeader', e.target.checked)} /> Show in header</label>
+                <label style={labelStyle}>Sort Order<input type="number" value={catForm.sortOrder} onChange={(e) => setCatF('sortOrder', Number(e.target.value))} style={inputStyle} /></label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save'}</button>
+                  {catSelId && <button type="button" onClick={deleteCategory} style={{ ...miniBtn, padding: '8px 16px', background: '#e74c3c', border: 'none' }}>Delete</button>}
+                </div>
+              </form>
+            </div>
+          )}
+          {!catForm && <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '40px' }}><p>Select a category or click + New</p></div>}
+        </div>
+      )}
+
+      {/* ========== BEFORE & AFTER ========== */}
+      {tab === 'beforeafter' && (
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div>
+              <h3 style={{ color: '#fff', margin: '0 0 5px', fontSize: '16px' }}>Before & After Projects</h3>
+              <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '13px' }}>Toggle which projects appear on the Before & After page</p>
+            </div>
+            <button onClick={saveBaToggles} className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Settings'}</button>
+          </div>
+          {(() => {
+            const baProjects = getBaProjects();
+            if (!baProjects.length) return <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '40px' }}>No projects with Before/After blocks found.</p>;
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                {baProjects.map((p: any) => (
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1 }}>
+                      <input type="checkbox" checked={baToggles[p.id] !== false} onChange={(e) => setBaToggles((prev) => ({ ...prev, [p.id]: e.target.checked }))} />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ color: '#fff', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</div>
+                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{adminData.categories?.find((c: any) => c.id === p.categoryId)?.name || ''}</div>
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
 

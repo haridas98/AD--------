@@ -12,6 +12,7 @@ import ProjectPage from './pages/ProjectPage';
 import ServicesPage from './pages/ServicesPage';
 import AboutPage from './pages/AboutPage';
 import BeforeAfterPage from './pages/BeforeAfterPage';
+import ContactPage from './pages/ContactPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import AdminPage from './pages/AdminPage';

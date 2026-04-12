@@ -3,13 +3,9 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
-import Lightbox from '../components/Lightbox';
 
 export default function HomePage() {
   const { categories, projects, site } = useAppStore();
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [slide, setSlide] = useState(0);
 
   const featured = projects.filter((p) => p.isFeatured && p.isPublished);
@@ -23,21 +19,6 @@ export default function HomePage() {
   function getCover(p: any) {
     const c = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
     return c?.find((b: any) => b.type === 'heroImage')?.data?.image || '';
-  }
-
-  function getAllImages(p: any) {
-    const c = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
-    const imgs: string[] = [];
-    c.forEach((b: any) => {
-      if (b.type === 'heroImage' && b.data?.image) imgs.push(b.data.image);
-      if (b.type === 'imageGrid' && b.data?.images) {
-        b.data.images.forEach((img: any) => {
-          const url = typeof img === 'string' ? img : img.url;
-          if (url) imgs.push(url);
-        });
-      }
-    });
-    return imgs;
   }
 
   function getCategorySlug(catId: string) {
@@ -55,12 +36,6 @@ export default function HomePage() {
   function getProjectLink(project: any) {
     return `${getCategorySlug(project.categoryId)}/${project.slug}`;
   }
-
-  const openLightbox = (imgs: string[], idx: number) => {
-    setLightboxImages(imgs);
-    setLightboxIndex(idx);
-    setLightboxOpen(true);
-  };
 
   return (
     <>
@@ -99,71 +74,39 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* Category Sections — Masonry Grid */}
-      <section style={{ padding: '50px 15px 80px' }}>
+      {/* Category Sections — Project Cards */}
+      <section className="container home-sections" style={{ padding: '60px 15px' }}>
         {categories.map((category) => {
           const catProjects = projects.filter((p) => p.categoryId === category.id && p.isPublished);
           if (!catProjects.length) return null;
-
-          // Collect all images from projects in this category for masonry
-          const masonryImages: { url: string; projectId: string; projectTitle: string }[] = [];
-          catProjects.slice(0, 6).forEach((p) => {
-            const imgs = getAllImages(p);
-            imgs.forEach((img) => masonryImages.push({ url: img, projectId: p.id, projectTitle: p.title }));
-          });
-
           return (
-            <motion.div key={category.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} style={{ marginBottom: '60px' }}>
-              {/* Section header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', padding: '0 5px' }}>
-                <h2 style={{ color: '#fff', fontFamily: "'GilroyExtraBold', sans-serif", fontSize: '20px', fontWeight: 700, margin: 0, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{category.name}</h2>
+            <motion.div key={category.id} className="section-block" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+              <div className="section-head">
+                <h2 style={{ color: '#fff', fontFamily: "'GilroyExtraBold', sans-serif", fontSize: '20px', fontWeight: 700, margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{category.name}</h2>
                 <Link to={getCategorySlug(category.id)} className="btn-see-more">
                   <span>See more {category.name.toLowerCase()}</span>
-                  <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M1 5h18M15 1l4 4-4 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </Link>
               </div>
-
-              {/* Masonry Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-                {masonryImages.slice(0, 6).map((img, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.05 }}
-                    style={{ cursor: 'pointer', overflow: 'hidden', position: 'relative' }}
-                    onClick={() => openLightbox(masonryImages.slice(0, 6).map(x => x.url), i)}
-                  >
-                    <img
-                      src={img.url}
-                      alt={img.projectTitle}
-                      loading="lazy"
-                      style={{ width: '100%', height: i < 2 ? '350px' : '280px', objectFit: 'cover', display: 'block', transition: 'transform 0.5s ease' }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    />
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)', transition: 'background 0.3s', display: 'flex', alignItems: 'flex-end', padding: '15px' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.3)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0)'}
-                    >
-                      <span style={{ color: '#fff', fontSize: '13px', fontWeight: 600, opacity: 0, transition: 'opacity 0.3s' }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
-                      >{img.projectTitle}</span>
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+                {catProjects.slice(0, 6).map((project, idx) => {
+                  const cover = getCover(project);
+                  return (
+                    <motion.article key={project.id} className="project-card" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} whileHover={{ y: -4 }}>
+                      <Link to={getProjectLink(project)} className="project-image-wrap" style={{ aspectRatio: '4/5' }}>
+                        {cover && <img src={cover} alt={project.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                      </Link>
+                      <div className="project-body" style={{ padding: '12px 0 0' }}>
+                        <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{project.title}</h3>
+                      </div>
+                    </motion.article>
+                  );
+                })}
               </div>
             </motion.div>
           );
         })}
       </section>
-
-      {/* Lightbox */}
-      {lightboxOpen && (
-        <Lightbox images={lightboxImages} currentIndex={lightboxIndex} onClose={() => setLightboxOpen(false)} onNavigate={setLightboxIndex} />
-      )}
     </>
   );
 }
