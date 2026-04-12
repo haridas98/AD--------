@@ -17,7 +17,16 @@ export interface Section {
 export interface Category {
   id: string;
   name: string;
-  homeTitle?: string;
+  slug: string;
+  description?: string;
+  showInHeader: boolean;
+  sortOrder: number;
+}
+
+export interface BlockItem {
+  type: string;
+  data: Record<string, any>;
+  id?: string;
 }
 
 export interface Project {
@@ -25,14 +34,15 @@ export interface Project {
   title: string;
   slug: string;
   categoryId: string;
-  location?: string;
-  year?: string;
-  coverImage: string;
-  gallery: string[];
-  summary: string;
-  workDone?: string;
-  featuredOnHome: boolean;
-  published: boolean;
+  isFeatured: boolean;
+  isPublished: boolean;
+  sortOrder: number;
+  content: string | BlockItem[]; // JSON string or parsed array
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface StaticPage {
@@ -44,6 +54,6 @@ export interface ContentData {
   site: SiteInfo;
   sections: Section[];
   categories: Category[];
-  pages: Record<string, StaticPage>;
   projects: Project[];
+  pages: Record<string, StaticPage>;
 }

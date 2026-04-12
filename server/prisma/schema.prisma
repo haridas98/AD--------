@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  showInHeader Boolean @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   String    @default("")
+  updatedAt   String    @default("")
+  
+  projects    Project[]
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  categoryId  String
+  isFeatured  Boolean   @default(false)
+  isPublished Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   String    @default("")
+  updatedAt   String    @default("")
+  
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  content     String    @default("[]")
+  
+  seoTitle    String?
+  seoDescription String?
+  seoKeywords String?
+  
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([isPublished])
+}

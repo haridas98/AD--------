@@ -1,5 +1,3 @@
-import type { ContentData, Project } from '../types';
-
 const API_BASE = 'http://localhost:8787';
 const TOKEN_KEY = 'ad_admin_token';
 
@@ -24,10 +22,7 @@ async function request(path: string, options: RequestInit = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers
-  });
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!response.ok) {
     const text = await response.text();
@@ -38,33 +33,43 @@ async function request(path: string, options: RequestInit = {}) {
 }
 
 export const api = {
-  getContent: (): Promise<ContentData> => request('/api/content'),
-  getAdminContent: (): Promise<ContentData> => request('/api/admin/content'),
-  createProject: (payload: Partial<Project>): Promise<Project> => request('/api/admin/projects', { method: 'POST', body: JSON.stringify(payload) }),
-  updateProject: (id: string, payload: Partial<Project>): Promise<Project> => request(`/api/admin/projects/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
-  deleteProject: (id: string): Promise<{ ok: boolean }> => request(`/api/admin/projects/${id}`, { method: 'DELETE' }),
-  saveHomeFeatured: (projectIds: string[]): Promise<{ ok: boolean }> => request('/api/admin/home-featured', { method: 'PUT', body: JSON.stringify({ projectIds }) }),
+  getContent: () => request('/api/content'),
+  getAdminContent: () => request('/api/admin/content'),
 
-  login: async (username: string, password: string): Promise<{ token: string }> => {
+  // Categories
+  createCategory: (payload: any) => request('/api/admin/categories', { method: 'POST', body: JSON.stringify(payload) }),
+  updateCategory: (id: string, payload: any) => request(`/api/admin/categories/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+  deleteCategory: (id: string) => request(`/api/admin/categories/${id}`, { method: 'DELETE' }),
+
+  // Projects
+  createProject: (payload: any) => request('/api/admin/projects', { method: 'POST', body: JSON.stringify(payload) }),
+  updateProject: (id: string, payload: any) => request(`/api/admin/projects/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+  deleteProject: (id: string) => request(`/api/admin/projects/${id}`, { method: 'DELETE' }),
+
+  // Auth
+  login: async (username: string, password: string) => {
     const result = await request('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
     setToken(result.token);
     return result;
   },
-  logout: async (): Promise<void> => {
+  logout: async () => {
     try {
       await request('/api/auth/logout', { method: 'POST' });
     } finally {
       setToken('');
     }
   },
-  me: (): Promise<{ ok: boolean; user: string }> => request('/api/auth/me'),
+  me: () => request('/api/auth/me'),
 
-  uploadImage: async (file: File): Promise<{ url: string; filename: string }> => {
+  // Images
+  uploadImage: async (file: File, projectName?: string, imageIndex?: number) => {
     const formData = new FormData();
     formData.append('image', file);
+    if (projectName) formData.append('projectName', projectName);
+    if (imageIndex !== undefined) formData.append('imageIndex', String(imageIndex));
     return request('/api/admin/upload-image', { method: 'POST', body: formData });
   },
 
-  getStoredToken: (): string => getToken(),
-  clearToken: () => setToken('')
+  getStoredToken: () => getToken(),
+  clearToken: () => setToken(''),
 };

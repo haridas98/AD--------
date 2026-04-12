@@ -376,6 +376,62 @@ img, video, iframe {
   color: var(--text-primary);
 }
 
+/* See more button — rectangular, animated */
+.btn-see-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 28px;
+  font-family: 'GilroyLight', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s ease, border-color 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-see-more::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(198, 164, 123, 0.15);
+  transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 0;
+}
+
+.btn-see-more:hover::before {
+  left: 0;
+}
+
+.btn-see-more:hover {
+  border-color: var(--link-hover);
+  color: var(--link-hover);
+}
+
+.btn-see-more svg {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.btn-see-more:hover svg {
+  transform: translateX(4px);
+}
+
+.btn-see-more span {
+  position: relative;
+  z-index: 1;
+}
+
 /* ============================================
    Buttons (original style)
    ============================================ */

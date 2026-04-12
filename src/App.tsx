@@ -12,7 +12,6 @@ import ProjectPage from './pages/ProjectPage';
 import StaticPage from './pages/StaticPage';
 import AdminPage from './pages/AdminPage';
 
-// Wrapper component for page transitions
 function PageTransition({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
@@ -26,31 +25,6 @@ function PageTransition({ children }: { children: React.ReactNode }) {
     >
       {children}
     </motion.div>
-  );
-}
-
-// Loading component
-function LoadingScreen() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        background: '#141414',
-      }}
-    >
-      <div
-        style={{
-          color: '#fff',
-          fontFamily: 'sans-serif',
-          fontSize: '18px',
-        }}
-      >
-        Loading...
-      </div>
-    </div>
   );
 }
 
@@ -69,7 +43,13 @@ export default function App() {
 
       try {
         const data = await api.getContent();
-        setContent(data);
+        setContent({
+          site: data.site,
+          sections: data.sections || [],
+          categories: data.categories || [],
+          projects: data.projects || [],
+          pages: data.pages || {},
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load content');
         console.error('Failed to load content:', err);
@@ -82,26 +62,19 @@ export default function App() {
   }, [setContent, setLoading, setError]);
 
   if (loading && !site) {
-    return <LoadingScreen />;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#141414' }}>
+        <div style={{ color: '#fff', fontFamily: 'sans-serif', fontSize: '18px' }}>Loading...</div>
+      </div>
+    );
   }
 
   if (error && !site) {
     return (
-      <main
-        className="error-boundary"
-        style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
-      >
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', marginBottom: '1rem' }}>
-          Load error
-        </h1>
+      <main className="error-boundary" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', marginBottom: '1rem' }}>Load error</h1>
         <p style={{ color: 'var(--color-text-secondary)' }}>{error}</p>
-        <button
-          className="btn-primary"
-          style={{ marginTop: '1rem' }}
-          onClick={() => window.location.reload()}
-        >
-          Reload page
-        </button>
+        <button className="btn-primary" style={{ marginTop: '1rem' }} onClick={() => window.location.reload()}>Reload page</button>
       </main>
     );
   }
@@ -114,7 +87,7 @@ export default function App() {
             <PageTransition>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/section/:categoryId" element={<CategoryPage />} />
+                <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/project/:slug" element={<ProjectPage />} />
                 <Route path="/:pageId" element={<StaticPage />} />
                 <Route path="/admin" element={<AdminPageWrapper />} />
@@ -128,7 +101,6 @@ export default function App() {
   );
 }
 
-// Wrapper for AdminPage to provide store context
 function AdminPageWrapper() {
   const { projects, categories, setContent } = useAppStore();
   const [data, setData] = useState({ projects, categories });
@@ -138,7 +110,13 @@ function AdminPageWrapper() {
     setRefreshing(true);
     try {
       const payload = await api.getContent();
-      setContent(payload);
+      setContent({
+        site: payload.site,
+        sections: payload.sections || [],
+        categories: payload.categories || [],
+        projects: payload.projects || [],
+        pages: payload.pages || {},
+      });
       setData({ projects: payload.projects || [], categories: payload.categories || [] });
     } catch (err) {
       console.error('Failed to refresh:', err);
