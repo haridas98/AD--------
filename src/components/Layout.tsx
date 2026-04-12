@@ -10,15 +10,15 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { site, sections } = useAppStore();
 
-  if (!site || !sections.length) {
-    return null;
-  }
-
   return (
     <>
-      <Header sections={sections} />
+      {site && sections.length > 0 ? (
+        <Header sections={sections} />
+      ) : null}
       {children}
-      <Footer site={site} sections={sections} />
+      {site && sections.length > 0 ? (
+        <Footer site={site} sections={sections} />
+      ) : null}
     </>
   );
 }

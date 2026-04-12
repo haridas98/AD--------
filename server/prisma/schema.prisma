@@ -16,30 +16,73 @@ model Category {
   sortOrder   Int       @default(0)
   createdAt   String    @default("")
   updatedAt   String    @default("")
-  
+
   projects    Project[]
 }
 
+model Location {
+  id        String   @id @default(uuid())
+  city      String
+  state     String?
+  country   String   @default("USA")
+  isActive  Boolean  @default(true)
+  createdAt String   @default("")
+
+  @@unique([city, state])
+}
+
 model Project {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   title       String
-  slug        String    @unique
+  slug        String   @unique
   categoryId  String
-  isFeatured  Boolean   @default(false)
-  isPublished Boolean   @default(true)
-  sortOrder   Int       @default(0)
-  createdAt   String    @default("")
-  updatedAt   String    @default("")
-  
-  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  content     String    @default("[]")
-  
-  seoTitle    String?
+  locationId  String?
+  cityName    String?
+  year        Int?
+  isFeatured  Boolean  @default(false)
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   String   @default("")
+  updatedAt   String   @default("")
+
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Dynamic content blocks (JSON string)
+  content     String   @default("[]")
+
+  // SEO
+  seoTitle       String?
   seoDescription String?
-  seoKeywords String?
-  
+  seoKeywords    String?
+  canonicalUrl   String?
+
   @@index([categoryId])
   @@index([isFeatured])
   @@index([isPublished])
+  @@index([cityName])
+  @@index([year])
+}
+
+model BlogPost {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  coverImage  String?
+  content     String   @default("")
+  isPublished Boolean  @default(false)
+  publishedAt String?
+  createdAt   String   @default("")
+  updatedAt   String   @default("")
+
+  // SEO
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+
+  // Tags & categories
+  tags        String?
+
+  @@index([isPublished])
+  @@index([publishedAt])
 }

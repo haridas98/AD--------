@@ -1093,16 +1093,17 @@ img, video, iframe {
 }
 
 @media (max-width: 768px) {
-  .hero {
-    min-height: 50vh;
-  }
-
-  .project-hero {
-    min-height: 50vh;
-  }
-
-  .project-meta {
-    flex-direction: column;
-    gap: 10px;
-  }
+  .hero { min-height: 50vh; }
+  .project-hero { min-height: 50vh; }
+  .project-meta { flex-direction: column; gap: 10px; }
 }
+
+/* ============================================
+   Admin Dark Theme
+   ============================================ */
+body { background: #141414; }
+input, select, textarea { background: rgba(255,255,255,0.05) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.2) !important; }
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3) !important; }
+summary { color: rgba(255,255,255,0.6) !important; }
+.admin-page h1, .admin-page h2, .admin-page h3, .admin-page h4 { color: #fff !important; }
+.btn-see-more { color: rgba(255,255,255,0.8) !important; border-color: rgba(255,255,255,0.3) !important; }

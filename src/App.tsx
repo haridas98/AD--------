@@ -10,74 +10,39 @@ import HomePage from './pages/HomePage';
 import CategoryPage from './pages/CategoryPage';
 import ProjectPage from './pages/ProjectPage';
 import StaticPage from './pages/StaticPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import AdminPage from './pages/AdminPage';
 
 function PageTransition({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-
   return (
-    <motion.div
-      key={location.pathname}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-    >
-      {children}
-    </motion.div>
+    <motion.div key={location.pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: 'easeOut' }}>{children}</motion.div>
   );
 }
 
 export default function App() {
-  const setContent = useAppStore((state) => state.setContent);
-  const setLoading = useAppStore((state) => state.setLoading);
-  const setError = useAppStore((state) => state.setError);
-  const loading = useAppStore((state) => state.loading);
-  const error = useAppStore((state) => state.error);
-  const site = useAppStore((state) => state.site);
+  const setContent = useAppStore((s) => s.setContent);
+  const setLoading = useAppStore((s) => s.setLoading);
+  const setError = useAppStore((s) => s.setError);
+  const loading = useAppStore((s) => s.loading);
+  const error = useAppStore((s) => s.error);
+  const site = useAppStore((s) => s.site);
 
   useEffect(() => {
-    async function loadContent() {
-      setLoading(true);
-      setError(null);
-
+    async function load() {
+      setLoading(true); setError(null);
       try {
         const data = await api.getContent();
-        setContent({
-          site: data.site,
-          sections: data.sections || [],
-          categories: data.categories || [],
-          projects: data.projects || [],
-          pages: data.pages || {},
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load content');
-        console.error('Failed to load content:', err);
-      } finally {
-        setLoading(false);
-      }
+        setContent({ site: { name: 'Alexandra Diz Architecture', phone: '+1 415 769 8563', email: 'alexandra@alexandradiz.com', instagram: data.site?.instagram || '', facebook: data.site?.facebook || '', houzz: data.site?.houzz || '' }, sections: data.sections || [], categories: data.categories || [], projects: data.projects || [], blogPosts: data.blogPosts || [], pages: data.pages || {} });
+      } catch (err: any) { setError(err.message); }
+      finally { setLoading(false); }
     }
+    load();
+  }, []);
 
-    loadContent();
-  }, [setContent, setLoading, setError]);
-
-  if (loading && !site) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#141414' }}>
-        <div style={{ color: '#fff', fontFamily: 'sans-serif', fontSize: '18px' }}>Loading...</div>
-      </div>
-    );
-  }
-
-  if (error && !site) {
-    return (
-      <main className="error-boundary" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', marginBottom: '1rem' }}>Load error</h1>
-        <p style={{ color: 'var(--color-text-secondary)' }}>{error}</p>
-        <button className="btn-primary" style={{ marginTop: '1rem' }} onClick={() => window.location.reload()}>Reload page</button>
-      </main>
-    );
-  }
+  if (loading && !site) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#141414', color: '#fff' }}>Loading...</div>;
+  if (error && !site) return <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#141414', color: '#fff' }}><h1>Error</h1><p>{error}</p><button className="btn-primary" onClick={() => window.location.reload()}>Reload</button></div>;
 
   return (
     <HelmetProvider>
@@ -89,8 +54,10 @@ export default function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/project/:slug" element={<ProjectPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/blog/:slug" element={<BlogPostPage />} />
                 <Route path="/:pageId" element={<StaticPage />} />
-                <Route path="/admin" element={<AdminPageWrapper />} />
+                <Route path="/admin" element={<AdminWrapper />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </PageTransition>
@@ -101,33 +68,16 @@ export default function App() {
   );
 }
 
-function AdminPageWrapper() {
-  const { projects, categories, setContent } = useAppStore();
-  const [data, setData] = useState({ projects, categories });
-  const [refreshing, setRefreshing] = useState(false);
-
+function AdminWrapper() {
+  const { projects, categories, blogPosts, setContent } = useAppStore();
+  const [data, setData] = useState({ projects, categories, blogPosts });
   const refresh = async () => {
-    setRefreshing(true);
     try {
-      const payload = await api.getContent();
-      setContent({
-        site: payload.site,
-        sections: payload.sections || [],
-        categories: payload.categories || [],
-        projects: payload.projects || [],
-        pages: payload.pages || {},
-      });
-      setData({ projects: payload.projects || [], categories: payload.categories || [] });
-    } catch (err) {
-      console.error('Failed to refresh:', err);
-    } finally {
-      setRefreshing(false);
-    }
+      const d = await api.getAdminContent();
+      setContent({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts });
+      setData({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts });
+    } catch (e) { console.error(e); }
   };
-
-  useEffect(() => {
-    setData({ projects, categories });
-  }, [projects, categories]);
-
+  useEffect(() => { setData({ projects, categories, blogPosts }); }, [projects, categories, blogPosts]);
   return <AdminPage data={data} refresh={refresh} />;
 }
