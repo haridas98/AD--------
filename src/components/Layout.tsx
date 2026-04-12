@@ -3,8 +3,14 @@ import Header from './Header';
 import Footer from './Footer';
 import { useAppStore } from '../store/useAppStore';
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+interface LayoutProps { children: React.ReactNode; isAdmin?: boolean; }
+
+export default function Layout({ children, isAdmin }: LayoutProps) {
   const { site, sections } = useAppStore();
+
+  if (isAdmin) {
+    return <div className="admin-layout">{children}</div>;
+  }
 
   return (
     <>

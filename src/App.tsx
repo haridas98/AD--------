@@ -54,7 +54,7 @@ export default function App() {
   return (
     <HelmetProvider>
       <ErrorBoundary>
-        <Layout>
+        <Layout isAdmin={location.pathname.startsWith('/admin')}>
           <AnimatePresence mode="wait">
             <PageTransition>
               <Routes>

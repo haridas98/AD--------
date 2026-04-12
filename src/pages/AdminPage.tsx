@@ -194,13 +194,15 @@ export default function AdminPage({ data, refresh }: any) {
   return (
     <main className="container" style={{ padding: '100px 15px 60px', maxWidth: '1400px' }}>
       {/* Tabs */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {tabs.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '10px 18px', borderRadius: '8px', border: tab === t.id ? '1px solid rgba(198,164,123,1)' : '1px solid rgba(255,255,255,0.15)', background: tab === t.id ? 'rgba(198,164,123,0.15)' : 'transparent', color: tab === t.id ? 'rgba(198,164,123,1)' : 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s' }}>{t.label}</button>
-          ))}
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#141414', paddingBottom: '20px', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {tabs.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '10px 18px', borderRadius: '8px', border: tab === t.id ? '1px solid rgba(198,164,123,1)' : '1px solid rgba(255,255,255,0.15)', background: tab === t.id ? 'rgba(198,164,123,0.15)' : 'transparent', color: tab === t.id ? 'rgba(198,164,123,1)' : 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', fontWeight: tab === t.id ? 600 : 400 }}>{t.label}</button>
+            ))}
+          </div>
+          <button onClick={logout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
         </div>
-        <button onClick={logout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
       </div>
 
       {/* ========== DASHBOARD ========== */}
