@@ -45,7 +45,13 @@ export default function HomePage() {
       </Helmet>
 
       {/* Hero Slider */}
-      <section className="hero-slider">
+      <section className="hero-slider" onClick={(e) => {
+        if (featured.length < 2) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        if (x < rect.width * 0.3) setSlide((s) => (s - 1 + featured.length) % featured.length);
+        else if (x > rect.width * 0.7) setSlide((s) => (s + 1) % featured.length);
+      }}>
         <AnimatePresence mode="wait">
           {featured.length > 0 && (
             <motion.div key={slide} className="hero-slider-slide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
@@ -54,7 +60,7 @@ export default function HomePage() {
               <div className="container hero-slider-content">
                 <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>{featured[slide].title}</motion.h1>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                  <Link to={getProjectLink(featured[slide])} className="btn-primary">View Project</Link>
+                  <Link to={getProjectLink(featured[slide])} className="btn-primary" onClick={(e) => e.stopPropagation()}>View Project</Link>
                 </motion.div>
               </div>
             </motion.div>
@@ -62,15 +68,11 @@ export default function HomePage() {
         </AnimatePresence>
 
         {featured.length > 1 && (
-          <>
-            <div className="hero-slider-dots">
-              {featured.map((_, i) => (
-                <button key={i} className={`hero-slider-dot${slide === i ? ' active' : ''}`} onClick={() => setSlide(i)} />
-              ))}
-            </div>
-            <button className="hero-slider-arrow hero-slider-arrow--prev" onClick={() => setSlide((s) => (s - 1 + featured.length) % featured.length)}>‹</button>
-            <button className="hero-slider-arrow hero-slider-arrow--next" onClick={() => setSlide((s) => (s + 1) % featured.length)}>›</button>
-          </>
+          <div className="hero-slider-dots">
+            {featured.map((_, i) => (
+              <button key={i} className={`hero-slider-dot${slide === i ? ' active' : ''}`} onClick={(e) => { e.stopPropagation(); setSlide(i); }} />
+            ))}
+          </div>
         )}
       </section>
 

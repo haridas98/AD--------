@@ -380,33 +380,7 @@ img, video, iframe {
 }
 
 .hero-slider-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 3;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-slider-arrow:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.hero-slider-arrow--prev {
-  left: 15px;
-}
-
-.hero-slider-arrow--next {
-  right: 15px;
+  display: none;
 }
 
 /* Original hero */
@@ -2002,7 +1976,7 @@ summary { color: rgba(255,255,255,0.6) !important; }
   display: grid;
   gap: 16px;
   margin: 40px 0;
-  padding: 0 15px;
+  padding: 0;
 }
 
 .block-image-grid--1 { grid-template-columns: 1fr; }
