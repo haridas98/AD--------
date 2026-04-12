@@ -1107,3 +1107,20 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3) !import
 summary { color: rgba(255,255,255,0.6) !important; }
 .admin-page h1, .admin-page h2, .admin-page h3, .admin-page h4 { color: #fff !important; }
 .btn-see-more { color: rgba(255,255,255,0.8) !important; border-color: rgba(255,255,255,0.3) !important; }
+
+/* React Quill Dark Theme */
+.quill-wrapper .ql-toolbar { border-color: rgba(255,255,255,0.2) !important; background: rgba(255,255,255,0.03) !important; }
+.quill-wrapper .ql-container { border-color: rgba(255,255,255,0.2) !important; }
+.quill-wrapper .ql-editor { color: #fff !important; font-size: 15px !important; min-height: 300px; }
+.quill-wrapper .ql-editor.ql-blank::before { color: rgba(255,255,255,0.3) !important; }
+.quill-wrapper .ql-stroke { stroke: rgba(255,255,255,0.7) !important; }
+.quill-wrapper .ql-fill { fill: rgba(255,255,255,0.7) !important; }
+.quill-wrapper .ql-picker-label { color: rgba(255,255,255,0.7) !important; }
+.quill-wrapper .ql-picker-options { background: #2a2a2a !important; border-color: rgba(255,255,255,0.2) !important; }
+.quill-wrapper .ql-picker-options .ql-picker-item { color: #fff !important; }
+.quill-wrapper .ql-picker-options .ql-picker-item:hover { background: rgba(255,255,255,0.1) !important; }
+.quill-wrapper .ql-active .ql-stroke { stroke: rgba(198,164,123,1) !important; }
+.quill-wrapper .ql-active .ql-fill { fill: rgba(198,164,123,1) !important; }
+.quill-wrapper .ql-active .ql-picker-label { color: rgba(198,164,123,1) !important; }
+.quill-wrapper button:hover .ql-stroke { stroke: rgba(198,164,123,1) !important; }
+.quill-wrapper button:hover .ql-fill { fill: rgba(198,164,123,1) !important; }

@@ -233,14 +233,18 @@ app.post('/api/admin/upload-image', requireAuth, upload.single('image'), async (
   let filename;
   if (projectName) {
     const slug = normalizeSlug(projectName);
-    filename = `${slug}-${imageIndex || Date.now()}${ext}`;
+    const idx = imageIndex ? `-${imageIndex}` : `-${Date.now()}`;
+    filename = `${slug}${idx}${ext}`;
   } else {
     filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
   }
+  // Remove existing file with same name if exists
+  const outPath = path.join(UPLOADS_DIR, filename);
+  if (fs.existsSync(outPath)) fs.unlinkSync(outPath);
   try {
-    await sharp(req.file.buffer).rotate().toFormat(ext === '.png' ? 'png' : ext === '.webp' ? 'webp' : 'jpeg', { quality: ext === '.png' ? undefined : 88 }).toFile(path.join(UPLOADS_DIR, filename));
+    await sharp(req.file.buffer).rotate().toFormat(ext === '.png' ? 'png' : ext === '.webp' ? 'webp' : 'jpeg', { quality: ext === '.png' ? undefined : 88 }).toFile(outPath);
     res.json({ url: fileUrl(req, filename), filename });
-  } catch (err) { res.status(500).json({ error: 'Failed to process image' }); }
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Failed to process image' }); }
 });
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));

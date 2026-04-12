@@ -3,22 +3,14 @@ import Header from './Header';
 import Footer from './Footer';
 import { useAppStore } from '../store/useAppStore';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const { site, sections } = useAppStore();
 
   return (
     <>
-      {site && sections.length > 0 ? (
-        <Header sections={sections} />
-      ) : null}
+      {site ? <Header sections={sections} /> : <div className="site-header" style={{ height: '60px' }} />}
       {children}
-      {site && sections.length > 0 ? (
-        <Footer site={site} sections={sections} />
-      ) : null}
+      {site ? <Footer site={site} sections={sections} /> : null}
     </>
   );
 }
