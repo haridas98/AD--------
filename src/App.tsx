@@ -106,21 +106,6 @@ export default function App() {
   );
 }
 
-function ContactPage() {
-  const { site } = useAppStore();
-  return (
-    <motion.main className="container contact-page" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '120px 15px 60px' }}>
-      <h1 style={{ color: '#fff' }}>Contact</h1>
-      <p style={{ color: 'rgba(255,255,255,0.7)' }}>For project inquiries, use the contacts below or reach out through social channels.</p>
-      <div className="contact-info">
-        {site?.email && <div className="contact-item"><strong style={{ color: '#fff' }}>Email:</strong> <a href={`mailto:${site.email}`}>{site.email}</a></div>}
-        {site?.phone && <div className="contact-item"><strong style={{ color: '#fff' }}>Phone:</strong> <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a></div>}
-        {site?.instagram && <div className="contact-item"><strong style={{ color: '#fff' }}>Instagram:</strong> <a href={site.instagram} target="_blank" rel="noopener noreferrer">@alexandra_diz</a></div>}
-      </div>
-    </motion.main>
-  );
-}
-
 function VideoSeriesPage() {
   return (
     <motion.main className="container" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '120px 15px 60px', textAlign: 'center' }}>
