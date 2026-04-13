@@ -50,7 +50,7 @@ export default function CategoryPage() {
         <div className="cards-grid category-grid">
           {catProjects.map((project, i) => (
             <motion.article key={project.id} className="project-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} whileHover={{ y: -4 }}>
-              <Link to={`/${catSlug}/${project.slug}`} className="project-image-wrap">
+              <Link to={`/${catSlug}/${project.slug}`} className="project-image-wrap" style={{ display: 'block' }}>
                 {getCover(project) && <img src={getCover(project)} alt={project.title} loading="lazy" />}
               </Link>
               <div className="project-body"><h3>{project.title}</h3></div>

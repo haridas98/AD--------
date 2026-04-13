@@ -114,8 +114,9 @@
 .block-image-grid {
   display: grid;
   gap: 16px;
-  margin: 40px 0;
-  padding: 0;
+  margin: 40px auto;
+  padding: 0 40px;
+  max-width: 1600px;
 }
 
 .block-image-grid--1 { grid-template-columns: 1fr; }
@@ -127,14 +128,19 @@
   overflow: hidden;
   border-radius: 4px;
   position: relative;
+  width: 100%;
 }
 
 .block-image-grid-item img {
   width: 100%;
-  height: 400px;
+  height: 500px;
   object-fit: cover;
   display: block;
   transition: opacity 0.3s;
+}
+
+.block-image-grid-item--full {
+  grid-column: 1 / -1;
 }
 
 .block-image-grid-item--full img {

@@ -21,7 +21,7 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
   return (
     <>
       <motion.section
-        className={`container block-image-grid block-image-grid--${cols}`}
+        className={`block-image-grid block-image-grid--${cols}`}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
