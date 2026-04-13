@@ -9,6 +9,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Additional global scss variables/mixins
+      }
+    }
+  },
   server: {
     host: true,
     port: 3000

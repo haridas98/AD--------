@@ -1,0 +1,60 @@
+/* ============================================
+   Variables
+   ============================================ */
+
+// Colors
+$bg-site: #141414;
+$bg-menu-mobile: #000000;
+$bg-submenu: rgba(20, 20, 20, 1);
+
+$text-primary: rgba(255, 255, 255, 1);
+$text-secondary: rgba(255, 255, 255, 0.7);
+$text-copyright: #787878;
+
+$link-hover: rgba(198, 164, 123, 1);
+$accent: rgba(198, 164, 123, 1);
+
+// Menu
+$menu-font: 'Proba Pro', 'GilroyLight', sans-serif;
+$menu-font-size: 13px;
+$menu-line-height: 16px;
+$menu-color: rgba(255, 255, 255, 1);
+$menu-color-hover: rgba(255, 255, 255, 1);
+$menu-letter-spacing: 0.1em;
+$menu-item-padding: 30px;
+$submenu-font-size: 10px;
+$submenu-color: rgba(255, 255, 255, 1);
+$submenu-color-active: rgba(204, 204, 204, 1);
+
+// Logo
+$logo-font-size: 16px;
+$logo-color: rgba(255, 255, 255, 1);
+
+// Social icons
+$social-icon-size: 16px;
+$social-icon-color: rgba(255, 255, 255, 1);
+$social-icon-hover: rgba(198, 164, 123, 1);
+
+// Slider
+$slider-element-color: rgba(255, 255, 255, 1);
+$slider-element-hover: rgba(255, 255, 255, 1);
+
+// Container
+$container-max: 100%;
+$content-max-width: 900px;
+$container-wide: 1600px;
+$container-padding: 15px;
+$container-padding-wide: 40px;
+
+// Spacing
+$section-spacing: 60px;
+
+// Transitions
+$transition-fast: all 0.2s ease;
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Breakpoints
+$breakpoint-desktop: 1600px;
+$breakpoint-tablet: 1024px;
+$breakpoint-mobile: 768px;
+$breakpoint-nav: 1100px;
