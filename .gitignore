@@ -21,32 +21,46 @@ build/
 .DS_Store
 Thumbs.db
 
+# All hidden directories (except .git)
+.*/
+!.git/
+
+# Hidden files
+.env
+.env.local
+.env.*.local
+
+# Generated files (if they are auto-generated)
+# src/generated/
+
+# Additional patterns for unrelated files/projects
+# Build artifacts and caches
+.cache/
+.temp/
+tmp/
+temp/
+
+# Test coverage
+coverage/
+.nyc_output/
+
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Server data
-server/data/content.json
-server/prisma/dev.db
-server/prisma/dev.db-journal
-server/prisma/migrations/
-server/.env
-server/data/
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# AI agents
-.agents/
-.qwen/
-.claude/
-.superpowers/
-.gstack/
+# TypeScript build info
+*.tsbuildinfo
 
-# Uploads (optional, uncomment if needed)
-# public/uploads/
+# OS and editor artifacts
+*.sublime-*
+*.code-workspace
 
-# Vite
-.vite/
-
-# Generated files (if they are auto-generated)
-# src/generated/
+# All dot-prefixed directories except .git
+# This excludes: .qwen/, .claude/, .agents/, .github/, .vscode/, .idea/, etc.
