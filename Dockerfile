@@ -44,6 +44,9 @@ COPY server/ ./server/
 # Copy Prisma schema
 COPY server/prisma/ ./server/prisma/
 
+# Default DB location inside the container; can be overridden at runtime.
+ENV DATABASE_URL="file:/data/dev.db"
+
 # Generate Prisma client
 RUN npx prisma generate --schema=./server/prisma/schema.prisma
 
@@ -51,7 +54,11 @@ RUN npx prisma generate --schema=./server/prisma/schema.prisma
 COPY --from=frontend-builder /app/dist ./public
 
 # Copy uploads directory structure
-RUN mkdir -p public/uploads && chown -R nodejs:nodejs /app
+RUN mkdir -p public/uploads /data && chown -R nodejs:nodejs /app /data
+
+# Copy entrypoint
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 # Switch to non-root user
 USER nodejs
@@ -64,4 +71,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8787/api/health || exit 1
 
 # Start server with dumb-init for proper signal handling
-CMD ["dumb-init", "node", "server/index.js"]
+CMD ["dumb-init", "./docker-entrypoint.sh"]

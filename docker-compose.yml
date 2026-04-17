@@ -1,97 +1,49 @@
 # ===================================================
-# Docker Compose - Development & Production
+# Docker Compose - Production
 # ===================================================
-# Usage:
-#   Development:  docker compose -f docker-compose.yml --profile dev up
-#   Production:   docker compose -f docker-compose.yml --profile prod up
+# Usage: docker compose up -d
 # ===================================================
 
 services:
   # ============================
-  # DATABASE (SQLite - file-based)
+  # NODE.JS BACKEND + REACT FRONTEND
   # ============================
-  # Note: Using SQLite, no separate DB container needed
-  # For PostgreSQL, uncomment the service below and update .env
-
-  # database:
-  #   image: postgres:16-alpine
-  #   container_name: ad-database
-  #   restart: unless-stopped
-  #   environment:
-  #     POSTGRES_DB: ${DB_NAME:-alexandradiz}
-  #     POSTGRES_USER: ${DB_USER:-alexandra}
-  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   profiles:
-  #     - dev
-  #     - prod
-
-  # ============================
-  # DEVELOPMENT SERVER
-  # ============================
-  dev-server:
-    image: node:20-alpine
-    container_name: ad-dev-server
-    restart: unless-stopped
-    working_dir: /app
-    command: sh -c "npm install && npm run dev"
-    ports:
-      - "3000:3000"   # Vite frontend
-      - "8787:8787"   # Express backend
-    volumes:
-      - .:/app
-      - /app/node_modules  # Prevent overwriting
-    environment:
-      - NODE_ENV=development
-      - PORT=8787
-      - ADMIN_USER=${ADMIN_USER:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
-    env_file:
-      - .env
-    profiles:
-      - dev
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8787/api/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
-  # ============================
-  # PRODUCTION SERVER
-  # ============================
-  prod-server:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
       target: production
-    container_name: ad-prod-server
+    container_name: ad-app
     restart: unless-stopped
     ports:
       - "8787:8787"
     volumes:
       - uploads_data:/app/public/uploads
-      - ./server/prisma/dev.db:/app/server/prisma/dev.db:ro
+      - sqlite_data:/data
     environment:
       - NODE_ENV=production
       - PORT=8787
       - ADMIN_USER=${ADMIN_USER:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - DATABASE_URL=file:/data/dev.db
     env_file:
       - .env
-    profiles:
-      - prod
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8787/api/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
+
+  # ============================
+  # NGINX - WEB SERVER
+  # ============================
+  nginx:
+    image: nginx:alpine
+    container_name: ad-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
 
 volumes:
-  # postgres_data:
-  #   driver: local
   uploads_data:
     driver: local
   sqlite_data:

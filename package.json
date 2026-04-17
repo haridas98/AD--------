@@ -8,6 +8,7 @@
     "dev:client": "vite",
     "dev:server": "node server/index.js",
     "build": "vite build",
+    "test:smoke": "node scripts/smoke-test.mjs",
     "preview": "vite preview",
     "start:server": "node server/index.js",
     "sync:images": "node scripts/mirror-legacy-images.mjs",

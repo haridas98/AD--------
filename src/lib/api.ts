@@ -1,4 +1,7 @@
-const API_BASE = 'http://localhost:8787';
+const rawBase =
+  (import.meta as any).env?.VITE_API_BASE_URL ??
+  ((import.meta as any).env?.DEV ? 'http://localhost:8787' : '');
+const API_BASE = String(rawBase || '').replace(/\/+$/, '');
 const TOKEN_KEY = 'ad_admin_token';
 function getToken(): string { return localStorage.getItem(TOKEN_KEY) || ''; }
 function setToken(token: string) { if (token) localStorage.setItem(TOKEN_KEY, token); else localStorage.removeItem(TOKEN_KEY); }

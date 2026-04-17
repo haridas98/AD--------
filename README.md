@@ -27,7 +27,7 @@ You can change them via environment variables before running server:
 
 - Full SPA navigation with React Router (no full page reload).
 - Responsive public site with improved contrast, buttons, and smooth reveal animations.
-- Node.js + Express backend with JSON persistence (`server/data/content.json`).
+- Node.js + Express backend with Prisma + SQLite (persisted in Docker via volume).
 - Admin UI for:
   - signing in/out,
   - adding/editing/deleting projects,
@@ -43,8 +43,6 @@ You can change them via environment variables before running server:
 
 ## Data
 
-All content is stored in:
+Prisma schema and dev SQLite file live in `server/prisma/`.
 
-- `server/data/content.json`
-
-This file can be backed up or migrated later to a database.
+For frontend API base URL in non-docker dev, set `VITE_API_BASE_URL` (optional). In production it defaults to same-origin (`/api/...`).

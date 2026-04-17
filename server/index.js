@@ -17,6 +17,9 @@ const TOKEN_TTL_MS = 1000 * 60 * 60 * 12;
 const prisma = new PrismaClient();
 const sessions = new Map();
 
+// When running behind a reverse proxy (nginx, cloud LB), trust X-Forwarded-* headers.
+app.set('trust proxy', 1);
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 15 * 1024 * 1024 },
@@ -32,16 +35,6 @@ fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 app.use(cors());
 app.use(express.json({ limit: '8mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
-
-// Serve static frontend files (production) - MUST be after /uploads
-const FRONTEND_DIST = path.resolve('public');
-app.use(express.static(FRONTEND_DIST));
-
-// SPA fallback: serve index.html for non-API/non-static routes
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
-});
 
 // ============ Helpers ============
 
@@ -258,4 +251,18 @@ app.post('/api/admin/upload-image', requireAuth, upload.single('image'), async (
 });
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// ============ Frontend (production) ============
+
+// Serve built frontend files - MUST be after /uploads and after /api routes.
+const FRONTEND_DIST = path.resolve('public');
+app.use(express.static(FRONTEND_DIST));
+
+// SPA fallback: serve index.html for non-API/non-static routes.
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  if (req.path.startsWith('/uploads')) return next();
+  res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
+});
+
 app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));

@@ -30,12 +30,12 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
         {data.images.map((img, i) => (
           <motion.div
             key={i}
-            className="block-image-grid-item"
+            className={`block-image-grid-item${cols === 1 ? ' block-image-grid-item--full' : ''}`}
             onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <img src={img.url} alt={img.alt || ''} loading="lazy" className={cols === 1 ? 'block-image-grid-item--full' : ''} />
+            <img src={img.url} alt={img.alt || ''} loading="lazy" />
             <div className="block-image-grid-item-overlay" />
           </motion.div>
         ))}

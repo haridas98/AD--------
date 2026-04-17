@@ -44,7 +44,16 @@ export default {
           ],
           // Keep all CSS variables
           deep: [/^--/],
-          greedy: [/^admin-shell/, /^quill-wrapper/, /^ql-/, /^site-header/, /^desktop-nav/, /^nav-/],
+          greedy: [
+            /^admin-shell/,
+            /^quill-wrapper/,
+            /^ql-/,
+            /^site-header/,
+            /^desktop-nav/,
+            /^nav-/,
+            // Dynamic variant class generated via template literal in ImageGridBlock
+            /^block-image-grid--/,
+          ],
         },
         // CSS variables are used by JS
         variables: true,
