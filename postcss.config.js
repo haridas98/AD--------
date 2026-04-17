@@ -19,6 +19,20 @@ export default {
             // Admin panel styles
             /^admin-/,
             /^ql-/,
+            // Navigation classes
+            'site-header',
+            'header-inner',
+            'desktop-nav',
+            'nav-item-wrap',
+            'nav-link',
+            'submenu',
+            'submenu-link',
+            'submenu-group',
+            'top-nav',
+            'top-nav-close',
+            'mobile-overlay',
+            'menu-toggle',
+            'brand',
             // Utility classes that might be dynamically applied
             'text-white',
             'text-secondary',
@@ -30,7 +44,7 @@ export default {
           ],
           // Keep all CSS variables
           deep: [/^--/],
-          greedy: [/^admin-shell/, /^quill-wrapper/, /^ql-/],
+          greedy: [/^admin-shell/, /^quill-wrapper/, /^ql-/, /^site-header/, /^desktop-nav/, /^nav-/],
         },
         // CSS variables are used by JS
         variables: true,

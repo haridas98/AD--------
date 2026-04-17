@@ -10,7 +10,14 @@
     "build": "vite build",
     "preview": "vite preview",
     "start:server": "node server/index.js",
-    "sync:images": "node scripts/mirror-legacy-images.mjs"
+    "sync:images": "node scripts/mirror-legacy-images.mjs",
+    "docker:dev": "docker compose --profile dev up",
+    "docker:dev:build": "docker compose --profile dev up --build",
+    "docker:prod": "docker compose --profile prod up --build",
+    "docker:down": "docker compose --profile dev --profile prod down",
+    "docker:clean": "docker compose --profile dev --profile prod down -v",
+    "docker:logs": "docker compose logs -f",
+    "docker:shell": "docker compose run --rm dev-server sh"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

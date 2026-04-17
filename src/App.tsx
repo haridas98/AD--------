@@ -11,6 +11,7 @@ import CategoryPage from './pages/CategoryPage';
 import ProjectPage from './pages/ProjectPage';
 import ServicesPage from './pages/ServicesPage';
 import AboutPage from './pages/AboutPage';
+import VideoSeriesPage from './pages/VideoSeriesPage';
 import BeforeAfterPage from './pages/BeforeAfterPage';
 import ContactPage from './pages/ContactPage';
 import BlogPage from './pages/BlogPage';
@@ -92,15 +93,6 @@ export default function App() {
         </Layout>
       </ErrorBoundary>
     </HelmetProvider>
-  );
-}
-
-function VideoSeriesPage() {
-  return (
-    <motion.main className="container video-series-page" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <h1 className="text-white">Video Series</h1>
-      <p className="text-secondary">Coming soon — video content showcasing our design process.</p>
-    </motion.main>
   );
 }
 

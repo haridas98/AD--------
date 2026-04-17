@@ -52,9 +52,15 @@ img, video, iframe {
 
 .container {
   width: 100%;
-  max-width: $content-max-width;
+  max-width: $container-wide;
   margin: 0 auto;
-  padding: 0 $container-padding;
+  padding: 0 $container-padding-wide;
+}
+
+.container.narrow {
+  max-width: $content-max-width !important;
+  padding-left: $container-padding !important;
+  padding-right: $container-padding !important;
 }
 
 .container.wide,

@@ -33,6 +33,16 @@ app.use(cors());
 app.use(express.json({ limit: '8mb' }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// Serve static frontend files (production) - MUST be after /uploads
+const FRONTEND_DIST = path.resolve('public');
+app.use(express.static(FRONTEND_DIST));
+
+// SPA fallback: serve index.html for non-API/non-static routes
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
+});
+
 // ============ Helpers ============
 
 function normalizeSlug(input) {
