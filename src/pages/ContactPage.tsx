@@ -21,8 +21,9 @@ export default function ContactPage() {
         <title>Contact — {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content="Contact Alexandra Diz for interior design inquiries" />
       </Helmet>
-      <motion.main className="container contact-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h1 className="contact-title">Contacts</h1>
+      <motion.main className="page-shell page-shell--offset contact-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="page-shell__text">
+          <h1 className="contact-title">Contacts</h1>
 
         {/* Contact info */}
         <div className="contact-info">
@@ -50,19 +51,20 @@ export default function ContactPage() {
         </div>
 
         {/* Contact form */}
-        <form onSubmit={handleSubmit} className="contact-form">
-          {submitted && (
-            <div className="contact-form-success">
-              <p>Thank you! Your message has been sent.</p>
+          <form onSubmit={handleSubmit} className="contact-form">
+            {submitted && (
+              <div className="contact-form-success">
+                <p>Thank you! Your message has been sent.</p>
+              </div>
+            )}
+            <div className="contact-form-grid">
+              <input type="text" placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+              <input type="email" placeholder="Your e-mail *" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+              <textarea placeholder="Your message" rows={5} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} />
+              <button type="submit" className="btn-primary">Send Message</button>
             </div>
-          )}
-          <div className="contact-form-grid">
-            <input type="text" placeholder="Your name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-            <input type="email" placeholder="Your e-mail *" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-            <textarea placeholder="Your message" rows={5} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} />
-            <button type="submit" className="btn-primary">Send Message</button>
-          </div>
-        </form>
+          </form>
+        </div>
       </motion.main>
     </>
   );

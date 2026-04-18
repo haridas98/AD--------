@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { BlockRenderer } from '../components/blocks';
 import { useAppStore } from '../store/useAppStore';
+import styles from './ProjectPage.module.scss';
 
 export default function ProjectPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -31,7 +32,7 @@ export default function ProjectPage() {
         {project.seoDescription && <meta property="og:description" content={project.seoDescription} />}
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "CreativeWork", "name": project.title, "description": project.seoDescription, "category": category?.name, "author": { "@type": "Organization", "name": site?.name } })}</script>
       </Helmet>
-      <motion.main className="project-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+      <motion.main className={`${styles.page} project-page`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <BlockRenderer blocks={content} />
       </motion.main>
     </>

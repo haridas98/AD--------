@@ -155,52 +155,52 @@ export default function ServicesPage({ serviceType }: ServicesPageProps) {
         <title>{service.title} — {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content={service.title} />
       </Helmet>
-      <motion.main className="container services-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        {/* Sub-nav */}
-        <nav className="services-nav">
-          {[
-            { id: 'process', name: 'Full Service Interior Design' },
-            { id: 'process_bath', name: 'Bathroom Remodeling' },
-            { id: 'process_kitchen', name: 'Kitchen Remodeling' },
-          ].map((s) => (
-            <Link key={s.id} to={`/${s.id}`} className={`about-nav-link${serviceType === s.id ? ' active' : ''}`}>
-              {s.name}
-            </Link>
-          ))}
-        </nav>
+      <motion.main className="page-shell page-shell--offset services-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="page-shell__portfolio">
+          <nav className="services-nav">
+            {[
+              { id: 'process', name: 'Full Service Interior Design' },
+              { id: 'process_bath', name: 'Bathroom Remodeling' },
+              { id: 'process_kitchen', name: 'Kitchen Remodeling' },
+            ].map((s) => (
+              <Link key={s.id} to={`/${s.id}`} className={`about-nav-link${serviceType === s.id ? ' active' : ''}`}>
+                {s.name}
+              </Link>
+            ))}
+          </nav>
 
-        <h1 className="services-title">{service.title}</h1>
-        {service.intro && <p className="services-intro">{service.intro}</p>}
+          <h1 className="services-title">{service.title}</h1>
+          {service.intro && <p className="services-intro">{service.intro}</p>}
 
-        {/* Sections */}
-        <div className="services-sections">
-          {service.sections.map((section, i) => (
-            <motion.div key={i} className="service-section" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-              <div className="service-section-card">
-                <p className="service-section-heading">{section.heading}</p>
-                <p className="service-section-subheading">{section.subheading}</p>
-                {section.items ? (
-                  <div className="service-items">
-                    {section.items.map((item, j) => (
-                      <p key={j} className="service-item">
-                        <span className="service-item-num">{item.num}</span>
-                        {item.text}
-                      </p>
+          <div className="services-sections">
+            {service.sections.map((section, i) => (
+              <motion.div key={i} className="service-section" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                <div className="service-section-card">
+                  <p className="service-section-heading">{section.heading}</p>
+                  <p className="service-section-subheading">{section.subheading}</p>
+                  {section.items ? (
+                    <div className="service-items">
+                      {section.items.map((item, j) => (
+                        <p key={j} className="service-item">
+                          <span className="service-item-num">{item.num}</span>
+                          {item.text}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="service-section-text">{section.text}</p>
+                  )}
+                </div>
+                {section.images && (
+                  <div className={`service-section-images ${section.images.length > 1 ? 'service-section-images--multi' : 'service-section-images--single'}`}>
+                    {section.images.map((img, j) => (
+                      <img key={j} src={img} alt="" className="service-img" />
                     ))}
                   </div>
-                ) : (
-                  <p className="service-section-text">{section.text}</p>
                 )}
-              </div>
-              {section.images && (
-                <div className={`service-section-images ${section.images.length > 1 ? 'service-section-images--multi' : 'service-section-images--single'}`}>
-                  {section.images.map((img, j) => (
-                    <img key={j} src={img} alt="" className="service-img" />
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </motion.main>
     </>

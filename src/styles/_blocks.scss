@@ -7,10 +7,10 @@
 /* Hero Image Block */
 .project-hero {
   position: relative;
-  min-height: 70vh;
+  min-height: clamp(420px, 68svh, 920px);
   display: flex;
   align-items: flex-end;
-  margin-bottom: 40px;
+  margin-bottom: clamp(40px, 7vw, 88px);
 }
 
 .project-hero-image {
@@ -32,10 +32,9 @@
   position: relative;
   z-index: 2;
   color: $text-primary;
-  width: 100%;
-  max-width: 900px;
+  width: min(100%, 1040px);
   margin: 0 auto;
-  padding: 0 $container-padding-wide 60px;
+  padding: 0 var(--page-gutter) clamp(40px, 6vw, 72px);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -72,10 +71,12 @@
 /* Project Meta Block */
 .block-meta-info {
   display: flex;
-  gap: 40px;
+  flex-wrap: wrap;
+  gap: clamp(16px, 3vw, 40px);
   padding: 20px 0;
-  margin-bottom: 30px;
+  margin: 0 auto clamp(32px, 6vw, 56px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: min(100%, var(--text-max-width));
 }
 
 .block-meta-info-item {
@@ -92,7 +93,8 @@
 
 /* Typography Block */
 .block-typography {
-  padding: 0 0 40px;
+  max-width: min(100%, var(--text-max-width));
+  padding: 0 0 clamp(32px, 6vw, 56px);
 }
 
 .block-typography h2 {
@@ -113,10 +115,10 @@
 /* Image Grid Block */
 .block-image-grid {
   display: grid;
-  gap: 16px;
-  margin: 40px auto;
-  padding: 0 40px;
-  max-width: 1600px;
+  gap: clamp(12px, 2vw, 24px);
+  margin: 0 auto clamp(32px, 6vw, 64px);
+  padding-inline: var(--page-gutter);
+  width: min(100%, var(--portfolio-max-width));
 }
 
 .block-image-grid--1 { grid-template-columns: 1fr; }
@@ -133,7 +135,7 @@
 
 .block-image-grid-item img {
   width: 100%;
-  height: 500px;
+  height: clamp(320px, 42vw, 680px);
   object-fit: cover;
   display: block;
   transition: opacity 0.3s;
@@ -161,10 +163,11 @@
 /* Side by Side Block */
 .block-side-by-side {
   display: flex;
-  gap: 40px;
-  align-items: center;
-  margin-bottom: 40px;
-  padding: 40px 0;
+  gap: clamp(20px, 4vw, 56px);
+  align-items: stretch;
+  margin: 0 auto clamp(32px, 6vw, 64px);
+  padding: 0 var(--page-gutter);
+  width: min(100%, var(--portfolio-max-width));
 }
 
 .block-side-by-side--reverse {
@@ -178,9 +181,11 @@
 
 .block-side-by-side-image img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  min-height: clamp(320px, 44vw, 720px);
   display: block;
   border-radius: 4px;
+  object-fit: cover;
 }
 
 .block-side-by-side-content h3 {
@@ -199,6 +204,12 @@
   white-space: pre-wrap;
 }
 
+.block-side-by-side-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 @media (max-width: $breakpoint-mobile) {
   .block-side-by-side {
     flex-direction: column !important;
@@ -213,8 +224,9 @@
 /* CTA Section Block */
 .block-cta {
   text-align: center;
-  padding: 60px 0;
-  margin: 40px 0;
+  max-width: min(100%, var(--text-max-width));
+  padding: clamp(32px, 5vw, 56px) clamp(24px, 4vw, 40px);
+  margin: 0 auto clamp(32px, 6vw, 64px);
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -243,14 +255,18 @@
 
 /* Before/After Block (in project page) */
 .block-before-after {
-  margin-bottom: 40px;
-  padding: 40px 0;
+  width: min(100%, var(--portfolio-max-width));
+  margin: 0 auto clamp(32px, 6vw, 64px);
+  padding-inline: var(--page-gutter);
 }
 
 .block-before-after-slider {
   position: relative;
   aspect-ratio: 16/9;
+  min-height: clamp(320px, 52vw, 760px);
   cursor: col-resize;
+  overflow: hidden;
+  border-radius: 10px;
 }
 
 .block-before-after-slider img {
@@ -280,14 +296,14 @@
 
 /* Project Page wrapper */
 .project-page {
-  padding-top: 100px;
+  padding-top: var(--header-offset);
 }
 
 .project-content {
   width: 100%;
-  max-width: $content-max-width;
+  max-width: var(--text-max-width);
   margin: 0 auto;
-  padding: 0 $container-padding 60px;
+  padding: 0 var(--page-gutter) 60px;
 }
 
 .project-meta {
@@ -330,6 +346,25 @@
    Responsive helpers
    ============================================ */
 
+@media (max-width: $breakpoint-tablet) {
+  .block-image-grid--3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .block-side-by-side {
+    gap: 24px;
+  }
+}
+
 @media (max-width: $breakpoint-mobile) {
-  .project-hero { min-height: 50vh; }
+  .project-hero { min-height: 52svh; }
+
+  .block-image-grid--2,
+  .block-image-grid--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .block-meta-info {
+    gap: 12px;
+  }
 }

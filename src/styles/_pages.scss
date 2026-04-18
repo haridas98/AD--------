@@ -336,9 +336,7 @@
    ============================================ */
 
 .static-page {
-  max-width: $content-max-width;
-  margin: 0 auto;
-  padding: 120px $container-padding 60px;
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 
 .static-page h1 {
@@ -362,8 +360,7 @@
    ============================================ */
 
 .blog-post-page {
-  padding: 120px $container-padding 60px;
-  max-width: 800px;
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 
 .blog-post-page .post-cover {
@@ -418,6 +415,10 @@
 /* ============================================
    About Page
    ============================================ */
+
+.about-page {
+  padding-bottom: clamp(56px, 8vw, 96px);
+}
 
 .about-nav {
   margin-bottom: 40px;
@@ -525,7 +526,7 @@
    ============================================ */
 
 .contact-page {
-  padding: 100px 0 60px;
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 
 .contact-title {
@@ -619,7 +620,7 @@
    ============================================ */
 
 .services-page {
-  padding: 100px 0 60px;
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 
 .services-nav {
@@ -738,7 +739,7 @@
    ============================================ */
 
 .before-after-page {
-  padding: 120px 0 60px;
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 
 .before-after-item {
@@ -846,7 +847,7 @@
    ============================================ */
 
 .video-series-page {
-  padding: 100px 0 60px;
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 
 .video-series-page .page-title {
@@ -1273,5 +1274,14 @@
 
   .service-section-images--multi {
     grid-template-columns: 1fr;
+  }
+
+  .contact-form {
+    padding: 20px;
+  }
+
+  .contact-form .btn-primary {
+    justify-self: stretch;
+    width: 100%;
   }
 }

@@ -45,7 +45,11 @@
   --slider-element-color: rgba(255, 255, 255, 1);
   --slider-element-hover: rgba(255, 255, 255, 1);
   --container-max: 100%;
-  --content-max-width: 900px;
+  --content-max-width: 1280px;
+  --page-gutter: clamp(12px, 2vw, 40px);
+  --portfolio-max-width: 2200px;
+  --text-max-width: 1280px;
+  --header-offset: 72px;
   --section-spacing: 60px;
   --transition-fast: all 0.2s ease;
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

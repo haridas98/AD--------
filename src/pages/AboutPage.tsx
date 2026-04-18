@@ -24,22 +24,23 @@ export default function AboutPage({ aboutType }: AboutPageProps) {
         <meta name="description" content={activeItem.name} />
       </Helmet>
       <motion.main
-        className="container contact-page"
+        className="page-shell page-shell--offset about-page"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Sub-nav */}
-        <nav className="about-nav">
-          {navItems.map((s) => (
-            <Link key={s.id} to={`/${s.id}`} className={`about-nav-link${aboutType === s.id ? ' active' : ''}`}>
-              {s.name}
-            </Link>
-          ))}
-        </nav>
+        <div className="page-shell__portfolio">
+          <nav className="about-nav">
+            {navItems.map((s) => (
+              <Link key={s.id} to={`/${s.id}`} className={`about-nav-link${aboutType === s.id ? ' active' : ''}`}>
+                {s.name}
+              </Link>
+            ))}
+          </nav>
 
-        {aboutType === 'aboutme' && <AboutMeContent />}
-        {aboutType === 'press' && <PressContent />}
-        {aboutType === 'testimonials' && <TestimonialsContent />}
+          {aboutType === 'aboutme' && <AboutMeContent />}
+          {aboutType === 'press' && <PressContent />}
+          {aboutType === 'testimonials' && <TestimonialsContent />}
+        </div>
       </motion.main>
     </>
   );

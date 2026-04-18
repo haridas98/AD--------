@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import styles from './Header.module.scss';
 
 interface MenuSection {
   name: string;
@@ -51,28 +52,26 @@ export default function Header() {
   ];
 
   return (
-    <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
-      <div className="header-inner">
-        {/* Logo */}
-        <NavLink to="/" className="brand" onClick={closeMenu}>
+    <header className={`${styles.siteHeader} ${scrolled ? styles.scrolled : ''}`}>
+      <div className={styles.inner}>
+        <NavLink to="/" className={styles.brand} onClick={closeMenu}>
           Alexandra Diz
         </NavLink>
 
-        {/* Desktop nav */}
-        <nav className="desktop-nav">
+        <nav className={styles.desktopNav}>
           {menuItems.map((item) => (
-            <div key={item.name} className="nav-item-wrap">
+            <div key={item.name} className={styles.navItemWrap}>
               <NavLink
                 to={item.href}
-                className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                className={({ isActive }) => `${styles.navLink}${isActive ? ` ${styles.active}` : ''}`}
                 onClick={closeMenu}
               >
                 {item.name}
               </NavLink>
               {item.sub && (
-                <div className="submenu">
+                <div className={styles.submenu}>
                   {item.sub.map((sub) => (
-                    <NavLink key={sub.href} to={sub.href} className="submenu-link" onClick={closeMenu}>
+                    <NavLink key={sub.href} to={sub.href} className={styles.submenuLink} onClick={closeMenu}>
                       {sub.name}
                     </NavLink>
                   ))}
@@ -82,31 +81,40 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Mobile hamburger */}
-        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
+        <button className={styles.menuToggle} onClick={() => setMenuOpen((value) => !value)} aria-label="Menu">
           {menuOpen ? '✕' : '☰'}
         </button>
       </div>
 
-      {/* Mobile overlay */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.div className="mobile-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeMenu} />
+          <motion.div
+            className={styles.mobileOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeMenu}
+          />
         )}
       </AnimatePresence>
 
-      {/* Mobile menu */}
-      <nav className={`top-nav ${menuOpen ? 'open' : ''}`}>
-        <button className="top-nav-close" onClick={closeMenu} aria-label="Close">✕</button>
+      <nav className={`${styles.topNav} ${menuOpen ? styles.open : ''}`}>
+        <button className={styles.topNavClose} onClick={closeMenu} aria-label="Close">
+          ✕
+        </button>
         {menuItems.map((item) => (
           <div key={item.name}>
-            <NavLink to={item.href} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={closeMenu}>
+            <NavLink
+              to={item.href}
+              className={({ isActive }) => `${styles.mobileNavLink}${isActive ? ` ${styles.active}` : ''}`}
+              onClick={closeMenu}
+            >
               {item.name}
             </NavLink>
             {item.sub && (
-              <div className="submenu-group">
+              <div className={styles.submenuGroup}>
                 {item.sub.map((sub) => (
-                  <NavLink key={sub.href} to={sub.href} className="submenu-link" onClick={closeMenu}>
+                  <NavLink key={sub.href} to={sub.href} className={styles.mobileSubmenuLink} onClick={closeMenu}>
                     {sub.name}
                   </NavLink>
                 ))}

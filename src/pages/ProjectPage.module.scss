@@ -1,0 +1,17 @@
+.page {
+  padding-top: calc(var(--header-offset) + 8px);
+  padding-bottom: clamp(56px, 8vw, 112px);
+}
+
+.page :global(.project-hero:first-child) {
+  margin-top: 0;
+}
+
+.page :global(.block-cta:last-child),
+.page :global(.block-before-after:last-child),
+.page :global(.block-image-grid:last-child),
+.page :global(.block-side-by-side:last-child),
+.page :global(.block-typography:last-child),
+.page :global(.block-meta-info:last-child) {
+  margin-bottom: 0;
+}

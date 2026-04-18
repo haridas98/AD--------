@@ -28,6 +28,7 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
         if (rect) {
           const x = e.clientX - rect.left;
           const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+          setSliderValue(pct);
           e.currentTarget.querySelector('.block-before-after-slider')?.style.setProperty('--slider', `${pct}%`);
         }
       }}
@@ -36,27 +37,48 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
         if (rect) {
           const x = e.touches[0].clientX - rect.left;
           const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+          setSliderValue(pct);
           e.currentTarget.querySelector('.block-before-after-slider')?.style.setProperty('--slider', `${pct}%`);
         }
       }}
     >
-      {data.title && <h3 className="text-white" style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 20px', textAlign: 'center', fontFamily: "'GilroyExtraBold', sans-serif" }}>{data.title}</h3>}
+      {data.title && (
+        <h3
+          className="text-white"
+          style={{
+            fontSize: '20px',
+            fontWeight: 800,
+            margin: '0 0 20px',
+            textAlign: 'center',
+            fontFamily: "'GilroyExtraBold', sans-serif",
+          }}
+        >
+          {data.title}
+        </h3>
+      )}
 
-      <div className="block-before-after-slider">
-        {/* After image (background) */}
+      <div className="block-before-after-slider" style={{ ['--slider' as string]: `${sliderValue}%` }}>
         <img src={data.afterImage} alt={data.afterAlt || 'After'} />
 
-        {/* Before image (clipped) */}
         <div className="before-image">
-          <img src={data.beforeImage} alt={data.beforeAlt || 'Before'} style={{ position: 'absolute', top: 0, left: 0, width: 'calc(100% / (var(--slider, 50%) / 100%))', height: '100%', objectFit: 'cover' }} />
+          <img
+            src={data.beforeImage}
+            alt={data.beforeAlt || 'Before'}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 'calc(100% / (var(--slider, 50%) / 100%))',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
         </div>
 
-        {/* Slider line */}
         <div className="slider-line">
-          <div className="slider-handle">‹›</div>
+          <div className="slider-handle">&lt;&gt;</div>
         </div>
 
-        {/* Labels */}
         <div className="before-after-label before-after-label--before">Before</div>
         <div className="before-after-label before-after-label--after">After</div>
       </div>
