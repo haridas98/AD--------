@@ -29,6 +29,11 @@
 }
 
 @media (max-width: 900px) {
+  .header p {
+    max-width: none;
+    padding-inline: 2px;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
