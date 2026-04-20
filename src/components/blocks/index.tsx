@@ -5,6 +5,10 @@ import TypographyBlock from './TypographyBlock';
 import SideBySideBlock from './SideBySideBlock';
 import CTASectionBlock from './CTASectionBlock';
 import BeforeAfterBlock from './BeforeAfterBlock';
+import RefinedSliderBlock from './RefinedSliderBlock';
+import CircleDetailBlock from './CircleDetailBlock';
+import EditorialNoteBlock from './EditorialNoteBlock';
+import MosaicPresetBlock from './MosaicPresetBlock';
 
 export const blockComponents: Record<string, React.ComponentType<any>> = {
   heroImage: HeroImageBlock,
@@ -14,6 +18,10 @@ export const blockComponents: Record<string, React.ComponentType<any>> = {
   sideBySide: SideBySideBlock,
   ctaSection: CTASectionBlock,
   beforeAfter: BeforeAfterBlock,
+  refinedSlider: RefinedSliderBlock,
+  circleDetail: CircleDetailBlock,
+  editorialNote: EditorialNoteBlock,
+  mosaicPreset: MosaicPresetBlock,
 };
 
 export interface BlockItem {

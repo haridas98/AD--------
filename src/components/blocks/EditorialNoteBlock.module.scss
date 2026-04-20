@@ -1,0 +1,56 @@
+.block {
+  width: min(100%, var(--portfolio-max-width));
+  margin: 0 auto clamp(36px, 6vw, 72px);
+  padding-inline: var(--page-gutter);
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(280px, 0.72fr);
+  gap: clamp(20px, 4vw, 48px);
+  align-items: center;
+  padding: clamp(24px, 4vw, 42px);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: rgba(198, 164, 123, 0.92);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.content h2 {
+  margin: 0 0 14px;
+  color: #fff;
+  font-family: 'GilroyExtraBold', sans-serif;
+  font-size: clamp(28px, 3.4vw, 52px);
+  line-height: 0.98;
+}
+
+.note {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(16px, 1.6vw, 20px);
+  line-height: 1.65;
+}
+
+.image {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .inner {
+    grid-template-columns: 1fr;
+  }
+}

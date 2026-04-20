@@ -3,6 +3,11 @@
   padding-bottom: clamp(56px, 8vw, 112px);
 }
 
+.content {
+  display: grid;
+  gap: 0;
+}
+
 .page :global(.project-hero:first-child) {
   margin-top: 0;
 }
@@ -12,6 +17,8 @@
 .page :global(.block-image-grid:last-child),
 .page :global(.block-side-by-side:last-child),
 .page :global(.block-typography:last-child),
-.page :global(.block-meta-info:last-child) {
+.page :global(.block-meta-info:last-child),
+.page :global([data-circle-detail]:last-child),
+.page :global([data-project-block]:last-child) {
   margin-bottom: 0;
 }
