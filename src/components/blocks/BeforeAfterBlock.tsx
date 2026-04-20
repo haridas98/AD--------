@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { CSSProperties, useCallback, useMemo, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { fadeInUp, heroBody, heroTitle, standardTransition, viewportOnce } from '../../lib/motion';
 
 interface BeforeAfterBlockProps {
   data: {
@@ -11,77 +12,103 @@ interface BeforeAfterBlockProps {
   };
 }
 
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
 export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
+  const shouldReduceMotion = useReducedMotion();
+  const sliderRef = useRef<HTMLDivElement | null>(null);
   const [sliderValue, setSliderValue] = useState(50);
+  const [isInteracting, setIsInteracting] = useState(false);
+
+  const sliderStyle = useMemo(
+    () => ({ '--slider-position': `${sliderValue}%` } as CSSProperties),
+    [sliderValue],
+  );
+
+  const updateSlider = useCallback((clientX: number) => {
+    const rect = sliderRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const nextValue = clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
+    setSliderValue(nextValue);
+  }, []);
 
   if (!data.beforeImage || !data.afterImage) return null;
 
   return (
     <motion.section
       className="container block-before-after"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.querySelector('.block-before-after-slider')?.getBoundingClientRect();
-        if (rect) {
-          const x = e.clientX - rect.left;
-          const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
-          setSliderValue(pct);
-          e.currentTarget.querySelector('.block-before-after-slider')?.style.setProperty('--slider', `${pct}%`);
-        }
-      }}
-      onTouchMove={(e) => {
-        const rect = e.currentTarget.querySelector('.block-before-after-slider')?.getBoundingClientRect();
-        if (rect) {
-          const x = e.touches[0].clientX - rect.left;
-          const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
-          setSliderValue(pct);
-          e.currentTarget.querySelector('.block-before-after-slider')?.style.setProperty('--slider', `${pct}%`);
-        }
-      }}
+      variants={fadeInUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={viewportOnce}
     >
       {data.title && (
-        <h3
-          className="text-white"
-          style={{
-            fontSize: '20px',
-            fontWeight: 800,
-            margin: '0 0 20px',
-            textAlign: 'center',
-            fontFamily: "'GilroyExtraBold', sans-serif",
-          }}
-        >
-          {data.title}
-        </h3>
+        <motion.div className="block-before-after-head" variants={fadeInUp}>
+          <motion.h3 className="block-before-after-title" variants={heroTitle}>
+            {data.title}
+          </motion.h3>
+          <motion.p className="block-before-after-intro" variants={heroBody}>
+            Drag or swipe to compare the transformation.
+          </motion.p>
+        </motion.div>
       )}
 
-      <div className="block-before-after-slider" style={{ ['--slider' as string]: `${sliderValue}%` }}>
-        <img src={data.afterImage} alt={data.afterAlt || 'After'} />
+      <motion.div
+        ref={sliderRef}
+        className={`block-before-after-slider${isInteracting ? ' is-active' : ''}`}
+        style={sliderStyle}
+        transition={standardTransition}
+        onPointerDown={(event) => {
+          setIsInteracting(true);
+          event.currentTarget.setPointerCapture(event.pointerId);
+          updateSlider(event.clientX);
+        }}
+        onPointerMove={(event) => {
+          if ((event.buttons & 1) === 1 || isInteracting) {
+            updateSlider(event.clientX);
+          }
+        }}
+        onPointerUp={(event) => {
+          setIsInteracting(false);
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }}
+        onPointerCancel={() => setIsInteracting(false)}
+        onPointerLeave={() => setIsInteracting(false)}
+        whileHover={shouldReduceMotion ? undefined : { scale: 1.002 }}
+      >
+        <img
+          src={data.afterImage}
+          alt={data.afterAlt || 'After'}
+          className="block-before-after-slider__image block-before-after-slider__image--after"
+        />
 
-        <div className="before-image">
+        <div className="block-before-after-slider__before">
           <img
             src={data.beforeImage}
             alt={data.beforeAlt || 'Before'}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: 'calc(100% / (var(--slider, 50%) / 100%))',
-              height: '100%',
-              objectFit: 'cover',
-            }}
+            className="block-before-after-slider__image block-before-after-slider__image--before"
           />
-        </div>
-
-        <div className="slider-line">
-          <div className="slider-handle">&lt;&gt;</div>
         </div>
 
         <div className="before-after-label before-after-label--before">Before</div>
         <div className="before-after-label before-after-label--after">After</div>
-      </div>
+
+        <motion.div
+          className="slider-line"
+          animate={shouldReduceMotion ? undefined : { opacity: isInteracting ? 1 : 0.92 }}
+          transition={standardTransition}
+        >
+          <motion.div
+            className="slider-handle"
+            animate={shouldReduceMotion ? undefined : { scale: isInteracting ? 1.03 : 1 }}
+            transition={standardTransition}
+          >
+            <span />
+            <span />
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </motion.section>
   );
 }

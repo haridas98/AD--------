@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { fadeIn, heroBody, heroTitle, slowTransition, staggerContainer } from '../../lib/motion';
 
 interface HeroImageBlockProps {
   data: {
@@ -11,40 +12,46 @@ interface HeroImageBlockProps {
 }
 
 export default function HeroImageBlock({ data }: HeroImageBlockProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   if (!data.image) return null;
 
   return (
     <motion.section
       className="project-hero"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
     >
-      <img
+      <motion.img
         src={data.image}
         alt={data.alt || data.title || ''}
         className="project-hero-image"
+        initial={shouldReduceMotion ? false : { scale: 1 }}
+        animate={shouldReduceMotion ? undefined : { scale: 1.05 }}
+        transition={shouldReduceMotion ? undefined : slowTransition}
       />
       <div className="project-hero-overlay" />
       {data.title && (
-        <div className="container project-hero-content">
+        <motion.div
+          className="container project-hero-content"
+          variants={staggerContainer(0.12, 0.08)}
+          initial="hidden"
+          animate="visible"
+        >
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            variants={heroTitle}
           >
             {data.title}
           </motion.h1>
           {data.subtitle && (
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              variants={heroBody}
             >
               {data.subtitle}
             </motion.p>
           )}
-        </div>
+        </motion.div>
       )}
     </motion.section>
   );

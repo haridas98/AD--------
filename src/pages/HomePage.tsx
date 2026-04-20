@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import { PortfolioLeadCard } from '../components/PortfolioLeadCard';
 import { PortfolioProjectCard } from '../components/PortfolioProjectCard';
+import { fadeInUp, heroBody, heroCta, heroTitle, slowTransition, staggerContainer, viewportOnce } from '../lib/motion';
 import styles from './HomePage.module.scss';
 
 export default function HomePage() {
   const { categories, projects, site } = useAppStore();
   const [slide, setSlide] = useState(0);
+  const shouldReduceMotion = useReducedMotion();
 
   const featured = projects.filter((p) => p.isFeatured && p.isPublished);
 
@@ -40,6 +42,10 @@ export default function HomePage() {
     return `${getCategorySlug(project.categoryId)}/${project.slug}`;
   }
 
+  function getHeroSubtitle(project: any) {
+    return [project.cityName, project.year].filter(Boolean).join(' • ') || 'Selected interior architecture project';
+  }
+
   return (
     <>
       <Helmet>
@@ -58,14 +64,28 @@ export default function HomePage() {
         <AnimatePresence mode="wait">
           {featured.length > 0 && (
             <motion.div key={slide} className="hero-slider-slide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
-              <img src={getCover(featured[slide])} alt={featured[slide].title} />
+              <motion.img
+                src={getCover(featured[slide])}
+                alt={featured[slide].title}
+                initial={shouldReduceMotion ? false : { scale: 1 }}
+                animate={shouldReduceMotion ? undefined : { scale: 1.05 }}
+                transition={shouldReduceMotion ? undefined : slowTransition}
+              />
               <div className="hero-slider-overlay" />
-              <div className="container hero-slider-content">
-                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>{featured[slide].title}</motion.h1>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <motion.div
+                className="container hero-slider-content"
+                variants={staggerContainer(0.12, 0.05)}
+                initial="hidden"
+                animate="visible"
+              >
+                <motion.h1 variants={heroTitle}>{featured[slide].title}</motion.h1>
+                <motion.p variants={heroBody} className="hero-slider-copy">
+                  {getHeroSubtitle(featured[slide])}
+                </motion.p>
+                <motion.div variants={heroCta}>
                   <Link to={getProjectLink(featured[slide])} className="btn-primary" onClick={(e) => e.stopPropagation()}>View Project</Link>
                 </motion.div>
-              </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -90,7 +110,14 @@ export default function HomePage() {
           if (!leadProject) return null;
 
           return (
-            <motion.div key={category.id} className={styles.section} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+            <motion.div
+              key={category.id}
+              className={styles.section}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               <div className="page-shell">
                 <div className="page-shell__portfolio">
                   <div className={styles.sectionHead}>
