@@ -24,6 +24,17 @@ function collectProjectImages(blocks: BlockItem[]) {
   }).filter(Boolean);
 }
 
+function buildProjectStory(project: any, categoryName: string) {
+  const place = [project.cityName, project.year].filter(Boolean).join(', ') || 'California';
+
+  return {
+    overview: `${project.title} is currently presented as a fuller case study with temporary narrative copy. The goal is to make the portfolio read like a premium project story before the final owner-approved content is entered manually.`,
+    scope: `For this ${categoryName.toLowerCase()} project in ${place}, the placeholder structure focuses on cleaner circulation, calmer visual rhythm, sharper storage logic, and a more resolved material palette.`,
+    process: 'The current layout walks through concept, practical decisions, visual accents, and the final impression of the space. This temporary story can later be replaced section by section from the admin editor.',
+    results: 'The result is a project page that feels like a real editorial case study instead of a short gallery. It gives enough context for presentation, sales, and client review while the final text is still being prepared.',
+  };
+}
+
 function enrichProjectBlocks(project: any, categoryName: string, blocks: BlockItem[]) {
   const existingTypes = new Set(blocks.map((block) => block.type));
   if (existingTypes.has('refinedSlider') || existingTypes.has('circleDetail') || existingTypes.has('editorialNote') || existingTypes.has('mosaicPreset')) {
@@ -38,8 +49,24 @@ function enrichProjectBlocks(project: any, categoryName: string, blocks: BlockIt
     url: imagePool[index] || fallbackImage,
     alt: `${project.title} ${index + 1}`,
   }));
+  const story = buildProjectStory(project, categoryName);
 
   const extraBlocks: BlockItem[] = [];
+
+  if (!existingTypes.has('metaInfo')) {
+    extraBlocks.push({
+      id: `auto-meta-${project.id}`,
+      type: 'metaInfo',
+      data: {
+        items: [
+          { label: 'Category', value: categoryName },
+          { label: 'Location', value: project.cityName || 'California' },
+          { label: 'Year', value: String(project.year || 'In progress') },
+          { label: 'Status', value: project.isPublished ? 'Published presentation' : 'Draft presentation' },
+        ],
+      },
+    });
+  }
 
   if (!existingTypes.has('editorialNote')) {
     extraBlocks.push({
@@ -48,7 +75,7 @@ function enrichProjectBlocks(project: any, categoryName: string, blocks: BlockIt
       data: {
         eyebrow: categoryName,
         title: `${project.title} overview`,
-        note: `${project.title} is currently shown with a temporary editorial structure so the portfolio reads as a fuller case study until the final project copy is filled in manually.`,
+        note: story.overview,
         image: repeated[1].url,
       },
     });
@@ -60,8 +87,21 @@ function enrichProjectBlocks(project: any, categoryName: string, blocks: BlockIt
       type: 'typography',
       data: {
         title: 'What was done',
-        content: 'Planning, composition, finish coordination, furniture rhythm, storage logic, and the final visual balance of the interior.',
+        content: `Planning, composition, finish coordination, furniture rhythm, storage logic, and the final visual balance of the interior.\n\n${story.scope}`,
         size: 'lg',
+      },
+    });
+  }
+
+  if (!existingTypes.has('sideBySide')) {
+    extraBlocks.push({
+      id: `auto-side-${project.id}`,
+      type: 'sideBySide',
+      data: {
+        title: 'Design direction',
+        text: `${story.process}\n\nThis section is intentionally verbose enough to make the project page feel complete while the permanent copy is still pending.`,
+        image: repeated[2].url,
+        imagePosition: 'right',
       },
     });
   }
@@ -72,7 +112,7 @@ function enrichProjectBlocks(project: any, categoryName: string, blocks: BlockIt
       type: 'refinedSlider',
       data: {
         title: 'Project walkthrough',
-        description: 'Temporary image sequence for portfolio presentation.',
+        description: 'Temporary image sequence for portfolio presentation, using repeated project assets until the final set is curated.',
         thumbnailPosition: 'bottom',
         images: repeated,
       },
@@ -107,6 +147,16 @@ function enrichProjectBlocks(project: any, categoryName: string, blocks: BlockIt
       },
     });
   }
+
+  extraBlocks.push({
+    id: `auto-results-${project.id}`,
+    type: 'typography',
+    data: {
+      title: 'Result',
+      content: story.results,
+      size: 'md',
+    },
+  });
 
   if (!existingTypes.has('ctaSection')) {
     extraBlocks.push({
