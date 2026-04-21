@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { api } from '../lib/api';
+import AdminAssetSourcePanel from '../components/admin/AdminAssetSourcePanel';
+import AdminImageCropModal from '../components/admin/AdminImageCropModal';
+import { normalizeEditorCrop } from '../lib/adminImageCrop';
 import { getCoverImageStyle } from '../lib/imageTransforms';
 
 const BLOCK_TYPES = [
@@ -198,11 +201,7 @@ type EditableImage = { url: string; alt?: string; crop: CropData };
 type CircleItem = { label?: string; image: string; alt?: string; crop: CropData };
 
 function ensureCrop(crop?: any): CropData {
-  return {
-    scale: Number(crop?.scale ?? 1),
-    x: Number(crop?.x ?? 0),
-    y: Number(crop?.y ?? 0),
-  };
+  return normalizeEditorCrop(crop);
 }
 
 function toEditableImage(item?: any): EditableImage {
@@ -253,12 +252,281 @@ function CoverPreview({
   );
 }
 
-function CropEditor({ crop, onChange }: { crop: CropData; onChange: (next: CropData) => void }) {
+function actionButtonStyle(isPrimary = false): React.CSSProperties {
   return (
-    <div style={{ display: 'grid', gap: '8px' }}>
-      <label style={labelStyle}>Scale<input type="range" min="1" max="2.5" step="0.01" value={crop.scale} onChange={(e) => onChange({ ...crop, scale: Number(e.target.value) })} /></label>
-      <label style={labelStyle}>Offset X<input type="range" min="-35" max="35" step="1" value={crop.x} onChange={(e) => onChange({ ...crop, x: Number(e.target.value) })} /></label>
-      <label style={labelStyle}>Offset Y<input type="range" min="-35" max="35" step="1" value={crop.y} onChange={(e) => onChange({ ...crop, y: Number(e.target.value) })} /></label>
+    {
+      padding: '8px 12px',
+      borderRadius: '999px',
+      border: isPrimary ? '1px solid rgba(198,164,123,0.5)' : '1px solid rgba(255,255,255,0.12)',
+      background: isPrimary ? 'rgba(198,164,123,0.14)' : 'rgba(255,255,255,0.03)',
+      color: '#fff',
+      cursor: 'pointer',
+      fontSize: '12px',
+      fontWeight: 600,
+    }
+  );
+}
+
+function mediaOverlayButtonStyle(tone: 'default' | 'danger' = 'default'): React.CSSProperties {
+  return {
+    width: '34px',
+    height: '34px',
+    borderRadius: '999px',
+    border: '1px solid rgba(255,255,255,0.12)',
+    background: tone === 'danger' ? 'rgba(170,46,46,0.75)' : 'rgba(15,15,15,0.75)',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: 700,
+    display: 'grid',
+    placeItems: 'center',
+    backdropFilter: 'blur(8px)',
+  };
+}
+
+function EditableCoverFieldEditor({
+  value,
+  onChange,
+  onUpload,
+  aspectRatio = '4 / 5',
+  radius = '16px',
+  cropShape = 'rect',
+  cropEnabled = true,
+}: {
+  value?: any;
+  onChange: (next: EditableImage) => void;
+  onUpload: (file: File) => Promise<any> | any;
+  aspectRatio?: string;
+  radius?: string;
+  cropShape?: 'rect' | 'round';
+  cropEnabled?: boolean;
+}) {
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [isSourceOpen, setIsSourceOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const current = toEditableImage(value);
+  const openFilePicker = () => fileInputRef.current?.click();
+
+  return (
+    <div style={{ display: 'grid', gap: '10px' }}>
+      <div style={{ position: 'relative' }}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsSourceOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setIsSourceOpen(true);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        >
+          <CoverPreview url={current.url} crop={current.crop} aspectRatio={aspectRatio} radius={radius} />
+          {!current.url ? (
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontSize: '26px', fontWeight: 700, background: 'rgba(15,15,15,0.28)', borderRadius: radius }}>
+              +
+            </div>
+          ) : null}
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={async (e) => {
+            if (!e.target.files?.[0]) return;
+            const uploaded = await onUpload(e.target.files[0]);
+            if (uploaded?.url) onChange({ ...current, url: uploaded.url, crop: ensureCrop() });
+            e.currentTarget.value = '';
+          }}
+          style={{ display: 'none' }}
+        />
+
+        {current.url ? (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
+            {cropEnabled ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsCropOpen(true);
+                }}
+                style={mediaOverlayButtonStyle()}
+              >
+                edit
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onChange({ ...current, url: '', crop: ensureCrop() });
+              }}
+              style={mediaOverlayButtonStyle('danger')}
+            >
+              x
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <AdminAssetSourcePanel
+        open={isSourceOpen}
+        title={current.url ? 'Replace image' : 'Add image'}
+        initialUrl={current.url}
+        onUploadClick={() => {
+          setIsSourceOpen(false);
+          openFilePicker();
+        }}
+        onUrlApply={(nextUrl) => {
+          onChange({ ...current, url: nextUrl, crop: ensureCrop() });
+          setIsSourceOpen(false);
+        }}
+        onClose={() => setIsSourceOpen(false)}
+      />
+
+      <AdminImageCropModal
+        open={isCropOpen}
+        title="Edit image framing"
+        imageUrl={current.url}
+        aspectRatio={aspectRatio}
+        cropShape={cropShape}
+        initialCrop={current.crop}
+        onClose={() => setIsCropOpen(false)}
+        onSave={(crop) => {
+          onChange({ ...current, crop });
+          setIsCropOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+function BasicCoverFieldEditor({
+  url,
+  crop,
+  onUrlChange,
+  onCropChange,
+  onUpload,
+  aspectRatio = '4 / 5',
+  radius = '16px',
+  cropShape = 'rect',
+  cropEnabled = true,
+}: {
+  url?: string;
+  crop?: CropData;
+  onUrlChange: (next: string) => void;
+  onCropChange: (next: CropData) => void;
+  onUpload: (file: File) => Promise<any> | any;
+  aspectRatio?: string;
+  radius?: string;
+  cropShape?: 'rect' | 'round';
+  cropEnabled?: boolean;
+}) {
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [isSourceOpen, setIsSourceOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const currentCrop = ensureCrop(crop);
+  const openFilePicker = () => fileInputRef.current?.click();
+
+  return (
+    <div style={{ display: 'grid', gap: '10px' }}>
+      <div style={{ position: 'relative' }}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsSourceOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setIsSourceOpen(true);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        >
+          <CoverPreview url={url} crop={currentCrop} aspectRatio={aspectRatio} radius={radius} />
+          {!url ? (
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontSize: '26px', fontWeight: 700, background: 'rgba(15,15,15,0.28)', borderRadius: radius }}>
+              +
+            </div>
+          ) : null}
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={async (e) => {
+            if (!e.target.files?.[0]) return;
+            const uploaded = await onUpload(e.target.files[0]);
+            if (uploaded?.url) {
+              onUrlChange(uploaded.url);
+              onCropChange(ensureCrop());
+            }
+            e.currentTarget.value = '';
+          }}
+          style={{ display: 'none' }}
+        />
+
+        {url ? (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
+            {cropEnabled ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsCropOpen(true);
+                }}
+                style={mediaOverlayButtonStyle()}
+              >
+                edit
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onUrlChange('');
+                onCropChange(ensureCrop());
+              }}
+              style={mediaOverlayButtonStyle('danger')}
+            >
+              x
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <AdminAssetSourcePanel
+        open={isSourceOpen}
+        title={url ? 'Replace image' : 'Add image'}
+        initialUrl={url || ''}
+        onUploadClick={() => {
+          setIsSourceOpen(false);
+          openFilePicker();
+        }}
+        onUrlApply={(nextUrl) => {
+          onUrlChange(nextUrl);
+          onCropChange(ensureCrop());
+          setIsSourceOpen(false);
+        }}
+        onClose={() => setIsSourceOpen(false)}
+      />
+
+      <AdminImageCropModal
+        open={isCropOpen}
+        title="Edit image framing"
+        imageUrl={url}
+        aspectRatio={aspectRatio}
+        cropShape={cropShape}
+        initialCrop={currentCrop}
+        onClose={() => setIsCropOpen(false)}
+        onSave={(nextCrop) => {
+          onCropChange(nextCrop);
+          setIsCropOpen(false);
+        }}
+      />
     </div>
   );
 }
@@ -269,16 +537,16 @@ function MosaicPresetEditor({
   onUpdate,
   onUpload,
   formTitle,
+  compact = false,
 }: {
   data: any;
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
   formTitle: string;
+  compact?: boolean;
 }) {
-  const [selected, setSelected] = useState(0);
   const images = Array.from({ length: 4 }, (_, index) => toEditableImage((data.images || [])[index]));
-  const current = images[selected];
 
   const updateImage = (imageIndex: number, nextImage: EditableImage) => {
     const next = [...images];
@@ -293,19 +561,16 @@ function MosaicPresetEditor({
         <label style={labelStyle}>Preset<select value={data.preset || 'a'} onChange={(e) => onUpdate(idx, 'preset', e.target.value)} style={inputStyle}><option value="a" style={{ background: '#141414' }}>Preset A</option><option value="b" style={{ background: '#141414' }}>Preset B</option></select></label>
       </div>
 
-      <div style={{ ...slotGridStyle, gridTemplateColumns: data.preset === 'b' ? '0.85fr 1.15fr 1.15fr' : '1.25fr 0.75fr 0.75fr' }}>
+      <div style={{ ...slotGridStyle, gridTemplateColumns: compact ? '1fr 1fr' : data.preset === 'b' ? '0.85fr 1.15fr 1.15fr' : '1.25fr 0.75fr 0.75fr' }}>
         {images.map((image, imageIndex) => (
-          <button key={imageIndex} type="button" onClick={() => setSelected(imageIndex)} style={{ padding: 0, border: imageIndex === selected ? '1px solid rgba(198,164,123,0.85)' : '1px solid rgba(255,255,255,0.08)', background: 'transparent', borderRadius: '16px', overflow: 'hidden' }}>
-            <CoverPreview url={image.url} crop={image.crop} aspectRatio={imageIndex === 0 ? '4 / 5' : '1 / 1'} />
-          </button>
+          <EditableCoverFieldEditor
+            key={imageIndex}
+            value={image}
+            aspectRatio={imageIndex === 0 ? '4 / 5' : '1 / 1'}
+            onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
+            onUpload={(file) => onUpload(idx, `mosaicUpload-${imageIndex}`, file)}
+          />
         ))}
-      </div>
-
-      <div style={panelStyle}>
-        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Selected cell {selected + 1}</div>
-        <label style={labelStyle}>Image URL<input value={current.url} onChange={(e) => updateImage(selected, { ...current, url: e.target.value, alt: current.alt || formTitle })} style={inputStyle} /></label>
-        <label style={labelStyle}>Upload image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; const uploaded = await onUpload(idx, `mosaicUpload-${selected}`, e.target.files[0]); if (uploaded?.url) updateImage(selected, { ...current, url: uploaded.url, alt: current.alt || formTitle }); }} style={{ ...inputStyle, padding: '6px' }} /></label>
-        <CropEditor crop={current.crop} onChange={(crop) => updateImage(selected, { ...current, crop })} />
       </div>
     </div>
   );
@@ -317,16 +582,16 @@ function CircleDetailEditor({
   onUpdate,
   onUpload,
   formTitle,
+  compact = false,
 }: {
   data: any;
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
   formTitle: string;
+  compact?: boolean;
 }) {
-  const [selected, setSelected] = useState(0);
   const items = Array.from({ length: Math.max((data.items || []).length, 5) }, (_, index) => toCircleItem((data.items || [])[index]));
-  const current = items[selected];
 
   const updateItem = (itemIndex: number, nextItem: CircleItem) => {
     const next = [...items];
@@ -341,23 +606,24 @@ function CircleDetailEditor({
         <label style={labelStyle}>Description<textarea rows={3} value={data.description || ''} onChange={(e) => onUpdate(idx, 'description', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
       </div>
 
-      <div style={{ ...slotGridStyle, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+      <div style={{ ...slotGridStyle, gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))' }}>
         {items.map((item, itemIndex) => (
-          <button key={itemIndex} type="button" onClick={() => setSelected(itemIndex)} style={{ padding: 0, border: 0, background: 'transparent', color: '#fff' }}>
-            <div style={{ border: itemIndex === selected ? '1px solid rgba(198,164,123,0.85)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '999px', padding: '4px' }}>
-              <CoverPreview url={item.image} crop={item.crop} radius="999px" />
-            </div>
-            <div style={{ marginTop: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.72)' }}>{item.label || `Circle ${itemIndex + 1}`}</div>
-          </button>
+          <div key={itemIndex} style={{ display: 'grid', gap: '8px' }}>
+            <EditableCoverFieldEditor
+              value={{ url: item.image, alt: item.alt || item.label || formTitle, crop: item.crop }}
+              radius="999px"
+              cropShape="round"
+              onChange={(nextImage) => updateItem(itemIndex, { ...item, image: nextImage.url, alt: nextImage.alt || item.label || formTitle, crop: nextImage.crop })}
+              onUpload={(file) => onUpload(idx, `circleUpload-${itemIndex}`, file)}
+            />
+            <input
+              value={item.label || ''}
+              onChange={(e) => updateItem(itemIndex, { ...item, label: e.target.value, alt: e.target.value || formTitle })}
+              placeholder={`Circle ${itemIndex + 1}`}
+              style={inputStyle}
+            />
+          </div>
         ))}
-      </div>
-
-      <div style={panelStyle}>
-        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Selected circle {selected + 1}</div>
-        <label style={labelStyle}>Label<input value={current.label || ''} onChange={(e) => updateItem(selected, { ...current, label: e.target.value, alt: e.target.value || formTitle })} style={inputStyle} /></label>
-        <label style={labelStyle}>Image URL<input value={current.image} onChange={(e) => updateItem(selected, { ...current, image: e.target.value, alt: current.alt || current.label || formTitle })} style={inputStyle} /></label>
-        <label style={labelStyle}>Upload image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; const uploaded = await onUpload(idx, `circleUpload-${selected}`, e.target.files[0]); if (uploaded?.url) updateItem(selected, { ...current, image: uploaded.url, alt: current.alt || current.label || formTitle }); }} style={{ ...inputStyle, padding: '6px' }} /></label>
-        <CropEditor crop={current.crop} onChange={(crop) => updateItem(selected, { ...current, crop })} />
       </div>
     </div>
   );
@@ -369,16 +635,16 @@ function RefinedSliderEditor({
   onUpdate,
   onUpload,
   formTitle,
+  compact = false,
 }: {
   data: any;
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
   formTitle: string;
+  compact?: boolean;
 }) {
-  const [selected, setSelected] = useState(0);
   const images = Array.from({ length: Math.max((data.images || []).length, 4) }, (_, index) => toEditableImage((data.images || [])[index]));
-  const current = images[selected];
 
   const updateImage = (imageIndex: number, nextImage: EditableImage) => {
     const next = [...images];
@@ -394,23 +660,17 @@ function RefinedSliderEditor({
         <label style={labelStyle}>Thumbnail Position<select value={data.thumbnailPosition || 'bottom'} onChange={(e) => onUpdate(idx, 'thumbnailPosition', e.target.value)} style={inputStyle}><option value="bottom" style={{ background: '#141414' }}>Bottom</option><option value="left" style={{ background: '#141414' }}>Left</option><option value="right" style={{ background: '#141414' }}>Right</option></select></label>
       </div>
 
-      <div style={{ ...panelStyle, gap: '10px' }}>
-        <div style={{ aspectRatio: '16 / 10', borderRadius: '18px', overflow: 'hidden', background: 'radial-gradient(circle at center, rgba(255,255,255,0.08), rgba(20,20,20,0.88))', border: '1px solid rgba(255,255,255,0.08)' }}>
-          {current.url ? <img src={current.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'rgba(255,255,255,0.28)', fontSize: '12px' }}>Empty slide</div>}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '10px' }}>
-          {images.map((image, imageIndex) => (
-            <button key={imageIndex} type="button" onClick={() => setSelected(imageIndex)} style={{ padding: 0, border: imageIndex === selected ? '1px solid rgba(198,164,123,0.85)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', background: 'transparent' }}>
-              <CoverPreview url={image.url} aspectRatio="4 / 5" />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={panelStyle}>
-        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Selected slide {selected + 1}</div>
-        <label style={labelStyle}>Image URL<input value={current.url} onChange={(e) => updateImage(selected, { ...current, url: e.target.value, alt: current.alt || formTitle })} style={inputStyle} /></label>
-        <label style={labelStyle}>Upload image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; const uploaded = await onUpload(idx, `sliderUpload-${selected}`, e.target.files[0]); if (uploaded?.url) updateImage(selected, { ...current, url: uploaded.url, alt: current.alt || formTitle }); }} style={{ ...inputStyle, padding: '6px' }} /></label>
+      <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: '10px' }}>
+        {images.map((image, imageIndex) => (
+          <EditableCoverFieldEditor
+            key={imageIndex}
+            value={image}
+            aspectRatio="4 / 5"
+            cropEnabled={false}
+            onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
+            onUpload={(file) => onUpload(idx, `sliderUpload-${imageIndex}`, file)}
+          />
+        ))}
       </div>
     </div>
   );
@@ -434,11 +694,20 @@ export default function AdminPage({ data, refresh }: any) {
   const [blogSelId, setBlogSelId] = useState('');
   const [blogForm, setBlogForm] = useState<any>(null);
   const [blogContent, setBlogContent] = useState('');
+  const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
 
   const categoryName = useMemo(
     () => adminData.categories?.find((category: any) => category.id === form?.categoryId)?.name || 'Project',
     [adminData.categories, form?.categoryId],
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onResize = () => setIsCompact(window.innerWidth <= 960);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   async function sync() {
     setLoading(true);
@@ -565,6 +834,11 @@ export default function AdminPage({ data, refresh }: any) {
     });
   }
 
+  function closeProjectEditor() {
+    setSelId('');
+    setForm(null);
+  }
+
   function editProject(project: any) {
     setSelId(project.id);
     setForm({
@@ -646,7 +920,7 @@ export default function AdminPage({ data, refresh }: any) {
       else await api.createProject(payload);
       await sync();
       await refresh();
-      newProject();
+      closeProjectEditor();
     } catch (err: any) {
       alert(`Error: ${err.message}`);
     } finally {
@@ -661,7 +935,7 @@ export default function AdminPage({ data, refresh }: any) {
       await api.deleteProject(selId);
       await sync();
       await refresh();
-      newProject();
+      closeProjectEditor();
     } finally {
       setSaving(false);
     }
@@ -795,7 +1069,7 @@ export default function AdminPage({ data, refresh }: any) {
   ];
 
   return (
-    <main className="container" style={{ padding: '100px 15px 60px', maxWidth: '1400px' }}>
+    <main className="container" style={{ padding: isCompact ? '92px 0 40px' : '100px 15px 60px', maxWidth: '1400px' }}>
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#141414', paddingBottom: '20px', marginBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -843,7 +1117,7 @@ export default function AdminPage({ data, refresh }: any) {
             <h3 style={{ color: '#fff', margin: 0, fontSize: '18px' }}>{form ? 'Editing Project' : 'Projects'}</h3>
             <div style={{ display: 'flex', gap: '10px' }}>
               {form ? (
-                <button onClick={() => { setSelId(''); setForm(null); }} style={{ ...miniBtn, padding: '8px 16px', background: 'rgba(255,255,255,0.1)' }}>
+                <button onClick={closeProjectEditor} style={{ ...miniBtn, padding: '8px 16px', background: 'rgba(255,255,255,0.1)' }}>
                   Back to List
                 </button>
               ) : null}
@@ -872,19 +1146,19 @@ export default function AdminPage({ data, refresh }: any) {
               ))}
             </div>
           ) : (
-            <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
+            <div style={{ ...cardStyle, maxHeight: isCompact ? 'none' : '80vh', overflow: isCompact ? 'visible' : 'auto' }}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{selId ? 'Edit Project' : 'New Project'}</h3>
               <form onSubmit={saveProject} style={{ display: 'grid', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <label style={labelStyle}>Title<input value={form.title} onChange={(e) => setF('title', e.target.value)} required style={inputStyle} /></label>
                   <label style={labelStyle}>Slug<input value={form.slug} onChange={(e) => setF('slug', e.target.value)} style={inputStyle} placeholder="auto-generated" /></label>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr 1fr', gap: '12px' }}>
                   <label style={labelStyle}>Category<select value={form.categoryId} onChange={(e) => setF('categoryId', e.target.value)} required style={inputStyle}>{adminData.categories?.map((category: any) => <option key={category.id} value={category.id} style={{ background: '#141414' }}>{category.name}</option>)}</select></label>
                   <label style={labelStyle}>City<input value={form.cityName} onChange={(e) => setF('cityName', e.target.value)} placeholder="San Francisco" style={inputStyle} /></label>
                   <label style={labelStyle}>Year<input type="number" value={form.year} onChange={(e) => setF('year', e.target.value)} placeholder="2024" style={inputStyle} /></label>
                 </div>
-                <div style={{ display: 'flex', gap: '20px' }}>
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={form.isFeatured} onChange={(e) => setF('isFeatured', e.target.checked)} /> Featured</label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={form.isPublished} onChange={(e) => setF('isPublished', e.target.checked)} /> Published</label>
                 </div>
@@ -914,7 +1188,7 @@ export default function AdminPage({ data, refresh }: any) {
                   </div>
                   {(form.content || []).map((block: any, index: number) => (
                     <div key={block.id || index} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ color: '#fff', fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>{block.type}</span>
                         <div style={{ display: 'flex', gap: '4px' }}>
                           <button type="button" onClick={() => moveBlock(index, -1)} disabled={index === 0} style={miniBtn}>↑</button>
@@ -922,13 +1196,13 @@ export default function AdminPage({ data, refresh }: any) {
                           <button type="button" onClick={() => removeBlock(index)} style={{ ...miniBtn, color: '#e74c3c' }}>✕</button>
                         </div>
                       </div>
-                      <BlockEditor block={block} idx={index} onUpdate={setBlock} onUpload={uploadBlockImg} formTitle={form.title} />
+                      <BlockEditor block={block} idx={index} onUpdate={setBlock} onUpload={uploadBlockImg} formTitle={form.title} compact={isCompact} />
                     </div>
                   ))}
                   {(!form.content || !form.content.length) ? <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', textAlign: 'center', padding: '15px', margin: 0 }}>Click a block type above to start building</p> : null}
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save Project'}</button>
                   {selId ? <button type="button" onClick={deleteProject} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Delete</button> : null}
                 </div>
@@ -939,8 +1213,8 @@ export default function AdminPage({ data, refresh }: any) {
       ) : null}
 
       {tab === 'blog' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: blogSelId ? '300px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
-          <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: blogSelId && !isCompact ? '300px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+          <div style={{ ...cardStyle, maxHeight: isCompact ? 'none' : '80vh', overflow: isCompact ? 'visible' : 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Blog Posts</h3>
               <button onClick={newBlog} style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>+ New</button>
@@ -953,10 +1227,10 @@ export default function AdminPage({ data, refresh }: any) {
             ))}
           </div>
           {blogForm ? (
-            <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
+            <div style={{ ...cardStyle, maxHeight: isCompact ? 'none' : '80vh', overflow: isCompact ? 'visible' : 'auto' }}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{blogSelId ? 'Edit Post' : 'New Post'}</h3>
               <form onSubmit={saveBlog} style={{ display: 'grid', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <label style={labelStyle}>Title<input value={blogForm.title} onChange={(e) => setBF('title', e.target.value)} required style={inputStyle} /></label>
                   <label style={labelStyle}>Slug<input value={blogForm.slug} onChange={(e) => setBF('slug', e.target.value)} style={inputStyle} placeholder="auto" /></label>
                 </div>
@@ -987,8 +1261,28 @@ export default function AdminPage({ data, refresh }: any) {
                   </div>
                 </div>
 
-                <label style={labelStyle}>Cover Image URL<input value={blogForm.coverImage} onChange={(e) => setBF('coverImage', e.target.value)} style={inputStyle} /></label>
-                <label style={labelStyle}>Upload Cover<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; setSaving(true); try { const uploaded = await api.uploadImage(e.target.files[0], blogForm.title); setBF('coverImage', uploaded.url); } catch (err: any) { alert(err.message); } finally { setSaving(false); } }} style={{ ...inputStyle, padding: '6px' }} /></label>
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>Cover image</div>
+                  <BasicCoverFieldEditor
+                    url={blogForm.coverImage}
+                    crop={ensureCrop()}
+                    aspectRatio="16 / 10"
+                    cropEnabled={false}
+                    onUrlChange={(next) => setBF('coverImage', next)}
+                    onCropChange={() => {}}
+                    onUpload={async (file) => {
+                      setSaving(true);
+                      try {
+                        return await api.uploadImage(file, blogForm.title);
+                      } catch (err: any) {
+                        alert(err.message);
+                        return null;
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  />
+                </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={blogForm.isPublished} onChange={(e) => setBF('isPublished', e.target.checked)} /> Published</label>
 
                 <details style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px' }}>
@@ -1000,7 +1294,7 @@ export default function AdminPage({ data, refresh }: any) {
                   </div>
                 </details>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save Post'}</button>
                   {blogSelId ? <button type="button" onClick={deleteBlog} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Delete</button> : null}
                 </div>
@@ -1011,7 +1305,7 @@ export default function AdminPage({ data, refresh }: any) {
       ) : null}
 
       {tab === 'categories' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: catForm ? '300px 1fr' : '1fr', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: catForm && !isCompact ? '300px 1fr' : '1fr', gap: '20px' }}>
           <div style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Categories</h3>
@@ -1083,17 +1377,16 @@ function BlockEditor({
   onUpdate,
   onUpload,
   formTitle,
+  compact = false,
 }: {
   block: any;
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
   formTitle: string;
+  compact?: boolean;
 }) {
   const { data } = block;
-
-  const mediaValues = (items: any[] = [], key = 'url') =>
-    items.map((item: any) => typeof item === 'string' ? item : item[key] || item.url || item.image || '').filter(Boolean);
 
   const field = (label: string, fieldName: string, opts: any = {}) => (
     <label style={labelStyle}>
@@ -1115,52 +1408,115 @@ function BlockEditor({
     </label>
   );
 
-  const uploadField = (label: string, fieldName: string) => (
-    <label style={labelStyle}>
-      {label}
-      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { if (e.target.files?.[0]) onUpload(idx, fieldName, e.target.files[0]); }} style={{ ...inputStyle, padding: '6px' }} />
-    </label>
+  if (block.type === 'heroImage') return (
+    <>
+      {field('Title', 'title')}
+      {field('Subtitle', 'subtitle')}
+      {field('Alt Text', 'alt')}
+      <BasicCoverFieldEditor
+        url={data.image}
+        crop={data.crop}
+        aspectRatio="16 / 10"
+        onUrlChange={(next) => onUpdate(idx, 'image', next)}
+        onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onUpload={(file) => onUpload(idx, 'image', file)}
+      />
+    </>
   );
-
-  if (block.type === 'heroImage') return <>{field('Title', 'title')}{field('Subtitle', 'subtitle')}{field('Image URL', 'image')}{uploadField('Upload Image', 'image')}{field('Alt Text', 'alt')}</>;
 
   if (block.type === 'imageGrid') return (
     <>
-      <div style={{ display: 'grid', gap: '6px', marginBottom: '8px' }}>
-        {((data.images || []) as any[]).map((img: any, imageIndex: number) => (
-          <div key={imageIndex} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            {(typeof img === 'object' ? img.url : img) ? <img src={typeof img === 'object' ? img.url : img} alt="" style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} /> : null}
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{typeof img === 'string' ? img : img.url}</span>
-            <button type="button" onClick={() => { const next = [...(data.images || [])]; next.splice(imageIndex, 1); onUpdate(idx, 'images', next); }} style={miniBtn}>✕</button>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '8px' }}>
+        {Array.from({ length: Math.max(((data.images || []) as any[]).length + 1, 4) }, (_, imageIndex) => toEditableImage((data.images || [])[imageIndex])).map((image, imageIndex) => (
+          <EditableCoverFieldEditor
+            key={imageIndex}
+            value={image}
+            aspectRatio="4 / 3"
+            cropEnabled={false}
+            onChange={(nextImage) => {
+              const next = Array.from(
+                { length: Math.max(((data.images || []) as any[]).length + 1, imageIndex + 1) },
+                (_, nextIndex) => toEditableImage((data.images || [])[nextIndex]),
+              );
+              next[imageIndex] = { ...nextImage, alt: nextImage.alt || formTitle };
+              onUpdate(idx, 'images', next.filter((item) => item.url).map((item) => ({ url: item.url, alt: item.alt || formTitle, crop: item.crop })));
+            }}
+            onUpload={(file) => onUpload(idx, `imageGridUpload-${imageIndex}`, file)}
+          />
         ))}
       </div>
-      <label style={labelStyle}>
-        Image URLs (one per line)
-        <textarea rows={3} value={mediaValues(data.images).join('\n')} onChange={(e) => { const urls = e.target.value.split('\n').filter(Boolean); onUpdate(idx, 'images', urls.map((url) => ({ url, alt: formTitle }))); }} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }} />
-      </label>
-      <label style={labelStyle}>
-        Upload Images
-        <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={async (e) => { if (!e.target.files?.length) return; const next = [...(data.images || [])]; for (const file of Array.from(e.target.files)) { const uploaded = await onUpload(idx, 'imageGridUpload', file as File); if (uploaded?.url) next.push({ url: uploaded.url, alt: formTitle }); } onUpdate(idx, 'images', next); }} style={{ ...inputStyle, padding: '6px' }} />
-      </label>
       {field('Columns', 'columns', { select: true, options: [{ value: 1, label: '1' }, { value: 2, label: '2' }, { value: 3, label: '3' }], default: 2 })}
     </>
   );
 
   if (block.type === 'metaInfo') return <>{field('Items (label: value, one per line)', 'metaText', { textarea: true })}</>;
   if (block.type === 'typography') return <>{field('Title', 'title')}{field('Content', 'content', { textarea: true, rows: 5 })}{field('Size', 'size', { select: true, options: [{ value: 'sm', label: 'Small' }, { value: 'md', label: 'Medium' }, { value: 'lg', label: 'Large' }], default: 'md' })}</>;
-  if (block.type === 'sideBySide') return <>{field('Title', 'title')}{field('Text', 'text', { textarea: true, rows: 4 })}{field('Image URL', 'image')}{uploadField('Upload', 'image')}{field('Position', 'imagePosition', { select: true, options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], default: 'left' })}</>;
+  if (block.type === 'sideBySide') return (
+    <>
+      {field('Title', 'title')}
+      {field('Text', 'text', { textarea: true, rows: 4 })}
+      {field('Position', 'imagePosition', { select: true, options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], default: 'left' })}
+      <BasicCoverFieldEditor
+        url={data.image}
+        crop={data.crop}
+        aspectRatio="4 / 5"
+        onUrlChange={(next) => onUpdate(idx, 'image', next)}
+        onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onUpload={(file) => onUpload(idx, 'image', file)}
+      />
+    </>
+  );
   if (block.type === 'ctaSection') return <>{field('Title', 'title')}{field('Text', 'text', { textarea: true })}{field('Button Text', 'buttonText')}{field('Button Link', 'buttonLink')}</>;
-  if (block.type === 'beforeAfter') return <>{field('Title', 'title')}{field('Before URL', 'beforeImage')}{uploadField('Upload Before', 'beforeImage')}{field('After URL', 'afterImage')}{uploadField('Upload After', 'afterImage')}</>;
+  if (block.type === 'beforeAfter') return (
+    <>
+      {field('Title', 'title')}
+      <div style={{ ...panelStyle, gap: '14px' }}>
+        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Before image</div>
+        <BasicCoverFieldEditor
+          url={data.beforeImage}
+          crop={data.beforeCrop}
+          aspectRatio="16 / 9"
+          onUrlChange={(next) => onUpdate(idx, 'beforeImage', next)}
+          onCropChange={(next) => onUpdate(idx, 'beforeCrop', next)}
+          onUpload={(file) => onUpload(idx, 'beforeImage', file)}
+        />
+      </div>
+      <div style={{ ...panelStyle, gap: '14px' }}>
+        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>After image</div>
+        <BasicCoverFieldEditor
+          url={data.afterImage}
+          crop={data.afterCrop}
+          aspectRatio="16 / 9"
+          onUrlChange={(next) => onUpdate(idx, 'afterImage', next)}
+          onCropChange={(next) => onUpdate(idx, 'afterCrop', next)}
+          onUpload={(file) => onUpload(idx, 'afterImage', file)}
+        />
+      </div>
+    </>
+  );
   if (block.type === 'refinedSlider') return (
-    <RefinedSliderEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} />
+    <RefinedSliderEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
   );
   if (block.type === 'circleDetail') return (
-    <CircleDetailEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} />
+    <CircleDetailEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
   );
-  if (block.type === 'editorialNote') return <>{field('Eyebrow', 'eyebrow')}{field('Title', 'title')}{field('Note', 'note', { textarea: true, rows: 5 })}{field('Image URL', 'image')}{uploadField('Upload Image', 'image')}</>;
+  if (block.type === 'editorialNote') return (
+    <>
+      {field('Eyebrow', 'eyebrow')}
+      {field('Title', 'title')}
+      {field('Note', 'note', { textarea: true, rows: 5 })}
+      <BasicCoverFieldEditor
+        url={data.image}
+        crop={data.crop}
+        aspectRatio="4 / 5"
+        onUrlChange={(next) => onUpdate(idx, 'image', next)}
+        onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onUpload={(file) => onUpload(idx, 'image', file)}
+      />
+    </>
+  );
   if (block.type === 'mosaicPreset') return (
-    <MosaicPresetEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} />
+    <MosaicPresetEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
   );
 
   return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No fields</p>;

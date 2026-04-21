@@ -12,7 +12,15 @@ async function request(path: string, options: RequestInit = {}) {
   if (!(options.body instanceof FormData)) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  if (!response.ok) { const text = await response.text(); throw new Error(text || `Request failed: ${response.status}`); }
+  if (!response.ok) {
+    const text = await response.text();
+    try {
+      const parsed = JSON.parse(text);
+      throw new Error(parsed?.error || `Request failed: ${response.status}`);
+    } catch {
+      throw new Error(text || `Request failed: ${response.status}`);
+    }
+  }
   return response.json();
 }
 

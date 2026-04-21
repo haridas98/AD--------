@@ -1,20 +1,33 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
 
 interface BeforeAfterBlockProps {
   data: {
-    beforeImage: string;
-    afterImage: string;
+    beforeImage: any;
+    afterImage: any;
     beforeAlt?: string;
     afterAlt?: string;
     title?: string;
+    beforeCrop?: {
+      scale?: number;
+      x?: number;
+      y?: number;
+    };
+    afterCrop?: {
+      scale?: number;
+      x?: number;
+      y?: number;
+    };
   };
 }
 
 export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
   const [sliderValue, setSliderValue] = useState(50);
+  const beforeAsset = normalizeImageAsset(typeof data.beforeImage === 'string' ? { url: data.beforeImage, alt: data.beforeAlt, crop: data.beforeCrop } : data.beforeImage);
+  const afterAsset = normalizeImageAsset(typeof data.afterImage === 'string' ? { url: data.afterImage, alt: data.afterAlt, crop: data.afterCrop } : data.afterImage);
 
-  if (!data.beforeImage || !data.afterImage) return null;
+  if (!beforeAsset?.url || !afterAsset?.url) return null;
 
   return (
     <motion.section
@@ -58,12 +71,12 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
       )}
 
       <div className="block-before-after-slider" style={{ ['--slider' as string]: `${sliderValue}%` }}>
-        <img src={data.afterImage} alt={data.afterAlt || 'After'} />
+        <img src={afterAsset.url} alt={afterAsset.alt || data.afterAlt || 'After'} style={getCoverImageStyle(afterAsset.crop)} />
 
         <div className="before-image">
           <img
-            src={data.beforeImage}
-            alt={data.beforeAlt || 'Before'}
+            src={beforeAsset.url}
+            alt={beforeAsset.alt || data.beforeAlt || 'Before'}
             style={{
               position: 'absolute',
               top: 0,
@@ -71,6 +84,7 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
               width: 'calc(100% / (var(--slider, 50%) / 100%))',
               height: '100%',
               objectFit: 'cover',
+              ...getCoverImageStyle(beforeAsset.crop),
             }}
           />
         </div>

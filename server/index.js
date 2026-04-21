@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
+import { normalizeSqliteDatabaseUrl } from './database-url.mjs';
 
 const app = express();
 const PORT = process.env.PORT || 8787;
@@ -13,6 +14,10 @@ const UPLOADS_DIR = path.resolve('public/uploads');
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 12;
+
+if (process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = normalizeSqliteDatabaseUrl(process.env.DATABASE_URL, process.cwd());
+}
 
 const prisma = new PrismaClient();
 const sessions = new Map();
@@ -22,7 +27,7 @@ app.set('trust proxy', 1);
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) cb(null, true);
@@ -67,6 +72,18 @@ function parseContent(content) {
   if (!content) return [];
   if (typeof content === 'string') { try { return JSON.parse(content); } catch { return []; } }
   return content;
+}
+
+function runImageUpload(req, res, next) {
+  upload.single('image')(req, res, (error) => {
+    if (!error) return next();
+
+    if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Image is too large. Max 50 MB' });
+    }
+
+    return res.status(400).json({ error: error.message || 'Image upload failed' });
+  });
 }
 
 // ============ Public API ============
@@ -229,7 +246,7 @@ app.delete('/api/admin/blog/:id', requireAuth, async (req, res) => {
 });
 
 // Image upload
-app.post('/api/admin/upload-image', requireAuth, upload.single('image'), async (req, res) => {
+app.post('/api/admin/upload-image', requireAuth, runImageUpload, async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Image required' });
   const { projectName, imageIndex } = req.body;
   const ext = path.extname(req.file.originalname).toLowerCase();
