@@ -1,10 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import Lightbox from '../Lightbox';
 import styles from './MosaicPresetBlock.module.scss';
+import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
 
 type MosaicImage = {
   url: string;
   alt?: string;
+  crop?: {
+    scale?: number;
+    x?: number;
+    y?: number;
+  };
 };
 
 interface MosaicPresetBlockProps {
@@ -22,7 +28,7 @@ const presetClassMap: Record<string, string> = {
 
 function normalizeImages(images: Array<string | MosaicImage> = []): MosaicImage[] {
   return images
-    .map((image) => (typeof image === 'string' ? { url: image, alt: '' } : image))
+    .map((image) => normalizeImageAsset(image))
     .filter((image) => image?.url);
 }
 
@@ -45,7 +51,7 @@ export default function MosaicPresetBlock({ data }: MosaicPresetBlockProps) {
               className={styles.cell}
               onClick={() => setLightboxIndex(index)}
             >
-              <img src={image.url} alt={image.alt || data.title || ''} />
+              <img src={image.url} alt={image.alt || data.title || ''} style={getCoverImageStyle(image.crop)} />
             </button>
           ))}
         </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { api } from '../lib/api';
+import { getCoverImageStyle } from '../lib/imageTransforms';
 
 const BLOCK_TYPES = [
   { value: 'heroImage', label: 'Hero Image' },
@@ -179,6 +180,241 @@ const labelStyle: React.CSSProperties = {
   color: 'rgba(255,255,255,0.6)',
   fontSize: '13px',
 };
+const panelStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '12px',
+  padding: '12px',
+  borderRadius: '10px',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.08)',
+};
+const slotGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '10px',
+};
+
+type CropData = { scale: number; x: number; y: number };
+type EditableImage = { url: string; alt?: string; crop: CropData };
+type CircleItem = { label?: string; image: string; alt?: string; crop: CropData };
+
+function ensureCrop(crop?: any): CropData {
+  return {
+    scale: Number(crop?.scale ?? 1),
+    x: Number(crop?.x ?? 0),
+    y: Number(crop?.y ?? 0),
+  };
+}
+
+function toEditableImage(item?: any): EditableImage {
+  if (!item) return { url: '', alt: '', crop: ensureCrop() };
+  if (typeof item === 'string') return { url: item, alt: '', crop: ensureCrop() };
+  return { url: item.url || '', alt: item.alt || '', crop: ensureCrop(item.crop) };
+}
+
+function toCircleItem(item?: any): CircleItem {
+  if (!item) return { label: '', image: '', alt: '', crop: ensureCrop() };
+  return {
+    label: item.label || '',
+    image: item.image || '',
+    alt: item.alt || '',
+    crop: ensureCrop(item.crop),
+  };
+}
+
+function CoverPreview({
+  url,
+  crop,
+  aspectRatio = '1 / 1',
+  radius = '16px',
+}: {
+  url?: string;
+  crop?: CropData;
+  aspectRatio?: string;
+  radius?: string;
+}) {
+  return (
+    <div style={{ aspectRatio, borderRadius: radius, overflow: 'hidden', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', position: 'relative' }}>
+      {url ? (
+        <img
+          src={url}
+          alt=""
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+            ...getCoverImageStyle(crop),
+          }}
+        />
+      ) : (
+        <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'rgba(255,255,255,0.28)', fontSize: '12px' }}>Empty</div>
+      )}
+    </div>
+  );
+}
+
+function CropEditor({ crop, onChange }: { crop: CropData; onChange: (next: CropData) => void }) {
+  return (
+    <div style={{ display: 'grid', gap: '8px' }}>
+      <label style={labelStyle}>Scale<input type="range" min="1" max="2.5" step="0.01" value={crop.scale} onChange={(e) => onChange({ ...crop, scale: Number(e.target.value) })} /></label>
+      <label style={labelStyle}>Offset X<input type="range" min="-35" max="35" step="1" value={crop.x} onChange={(e) => onChange({ ...crop, x: Number(e.target.value) })} /></label>
+      <label style={labelStyle}>Offset Y<input type="range" min="-35" max="35" step="1" value={crop.y} onChange={(e) => onChange({ ...crop, y: Number(e.target.value) })} /></label>
+    </div>
+  );
+}
+
+function MosaicPresetEditor({
+  data,
+  idx,
+  onUpdate,
+  onUpload,
+  formTitle,
+}: {
+  data: any;
+  idx: number;
+  onUpdate: (i: number, f: string, v: any) => void;
+  onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  formTitle: string;
+}) {
+  const [selected, setSelected] = useState(0);
+  const images = Array.from({ length: 4 }, (_, index) => toEditableImage((data.images || [])[index]));
+  const current = images[selected];
+
+  const updateImage = (imageIndex: number, nextImage: EditableImage) => {
+    const next = [...images];
+    next[imageIndex] = nextImage;
+    onUpdate(idx, 'images', next.filter((item) => item.url));
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: '12px' }}>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        <label style={labelStyle}>Title<input value={data.title || ''} onChange={(e) => onUpdate(idx, 'title', e.target.value)} style={inputStyle} /></label>
+        <label style={labelStyle}>Preset<select value={data.preset || 'a'} onChange={(e) => onUpdate(idx, 'preset', e.target.value)} style={inputStyle}><option value="a" style={{ background: '#141414' }}>Preset A</option><option value="b" style={{ background: '#141414' }}>Preset B</option></select></label>
+      </div>
+
+      <div style={{ ...slotGridStyle, gridTemplateColumns: data.preset === 'b' ? '0.85fr 1.15fr 1.15fr' : '1.25fr 0.75fr 0.75fr' }}>
+        {images.map((image, imageIndex) => (
+          <button key={imageIndex} type="button" onClick={() => setSelected(imageIndex)} style={{ padding: 0, border: imageIndex === selected ? '1px solid rgba(198,164,123,0.85)' : '1px solid rgba(255,255,255,0.08)', background: 'transparent', borderRadius: '16px', overflow: 'hidden' }}>
+            <CoverPreview url={image.url} crop={image.crop} aspectRatio={imageIndex === 0 ? '4 / 5' : '1 / 1'} />
+          </button>
+        ))}
+      </div>
+
+      <div style={panelStyle}>
+        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Selected cell {selected + 1}</div>
+        <label style={labelStyle}>Image URL<input value={current.url} onChange={(e) => updateImage(selected, { ...current, url: e.target.value, alt: current.alt || formTitle })} style={inputStyle} /></label>
+        <label style={labelStyle}>Upload image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; const uploaded = await onUpload(idx, `mosaicUpload-${selected}`, e.target.files[0]); if (uploaded?.url) updateImage(selected, { ...current, url: uploaded.url, alt: current.alt || formTitle }); }} style={{ ...inputStyle, padding: '6px' }} /></label>
+        <CropEditor crop={current.crop} onChange={(crop) => updateImage(selected, { ...current, crop })} />
+      </div>
+    </div>
+  );
+}
+
+function CircleDetailEditor({
+  data,
+  idx,
+  onUpdate,
+  onUpload,
+  formTitle,
+}: {
+  data: any;
+  idx: number;
+  onUpdate: (i: number, f: string, v: any) => void;
+  onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  formTitle: string;
+}) {
+  const [selected, setSelected] = useState(0);
+  const items = Array.from({ length: Math.max((data.items || []).length, 5) }, (_, index) => toCircleItem((data.items || [])[index]));
+  const current = items[selected];
+
+  const updateItem = (itemIndex: number, nextItem: CircleItem) => {
+    const next = [...items];
+    next[itemIndex] = nextItem;
+    onUpdate(idx, 'items', next.filter((item) => item.image || item.label));
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: '12px' }}>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        <label style={labelStyle}>Title<input value={data.title || ''} onChange={(e) => onUpdate(idx, 'title', e.target.value)} style={inputStyle} /></label>
+        <label style={labelStyle}>Description<textarea rows={3} value={data.description || ''} onChange={(e) => onUpdate(idx, 'description', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+      </div>
+
+      <div style={{ ...slotGridStyle, gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+        {items.map((item, itemIndex) => (
+          <button key={itemIndex} type="button" onClick={() => setSelected(itemIndex)} style={{ padding: 0, border: 0, background: 'transparent', color: '#fff' }}>
+            <div style={{ border: itemIndex === selected ? '1px solid rgba(198,164,123,0.85)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '999px', padding: '4px' }}>
+              <CoverPreview url={item.image} crop={item.crop} radius="999px" />
+            </div>
+            <div style={{ marginTop: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.72)' }}>{item.label || `Circle ${itemIndex + 1}`}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={panelStyle}>
+        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Selected circle {selected + 1}</div>
+        <label style={labelStyle}>Label<input value={current.label || ''} onChange={(e) => updateItem(selected, { ...current, label: e.target.value, alt: e.target.value || formTitle })} style={inputStyle} /></label>
+        <label style={labelStyle}>Image URL<input value={current.image} onChange={(e) => updateItem(selected, { ...current, image: e.target.value, alt: current.alt || current.label || formTitle })} style={inputStyle} /></label>
+        <label style={labelStyle}>Upload image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; const uploaded = await onUpload(idx, `circleUpload-${selected}`, e.target.files[0]); if (uploaded?.url) updateItem(selected, { ...current, image: uploaded.url, alt: current.alt || current.label || formTitle }); }} style={{ ...inputStyle, padding: '6px' }} /></label>
+        <CropEditor crop={current.crop} onChange={(crop) => updateItem(selected, { ...current, crop })} />
+      </div>
+    </div>
+  );
+}
+
+function RefinedSliderEditor({
+  data,
+  idx,
+  onUpdate,
+  onUpload,
+  formTitle,
+}: {
+  data: any;
+  idx: number;
+  onUpdate: (i: number, f: string, v: any) => void;
+  onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  formTitle: string;
+}) {
+  const [selected, setSelected] = useState(0);
+  const images = Array.from({ length: Math.max((data.images || []).length, 4) }, (_, index) => toEditableImage((data.images || [])[index]));
+  const current = images[selected];
+
+  const updateImage = (imageIndex: number, nextImage: EditableImage) => {
+    const next = [...images];
+    next[imageIndex] = nextImage;
+    onUpdate(idx, 'images', next.filter((item) => item.url));
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: '12px' }}>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        <label style={labelStyle}>Title<input value={data.title || ''} onChange={(e) => onUpdate(idx, 'title', e.target.value)} style={inputStyle} /></label>
+        <label style={labelStyle}>Description<textarea rows={3} value={data.description || ''} onChange={(e) => onUpdate(idx, 'description', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+        <label style={labelStyle}>Thumbnail Position<select value={data.thumbnailPosition || 'bottom'} onChange={(e) => onUpdate(idx, 'thumbnailPosition', e.target.value)} style={inputStyle}><option value="bottom" style={{ background: '#141414' }}>Bottom</option><option value="left" style={{ background: '#141414' }}>Left</option><option value="right" style={{ background: '#141414' }}>Right</option></select></label>
+      </div>
+
+      <div style={{ ...panelStyle, gap: '10px' }}>
+        <div style={{ aspectRatio: '16 / 10', borderRadius: '18px', overflow: 'hidden', background: 'radial-gradient(circle at center, rgba(255,255,255,0.08), rgba(20,20,20,0.88))', border: '1px solid rgba(255,255,255,0.08)' }}>
+          {current.url ? <img src={current.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} /> : <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'rgba(255,255,255,0.28)', fontSize: '12px' }}>Empty slide</div>}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '10px' }}>
+          {images.map((image, imageIndex) => (
+            <button key={imageIndex} type="button" onClick={() => setSelected(imageIndex)} style={{ padding: 0, border: imageIndex === selected ? '1px solid rgba(198,164,123,0.85)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', background: 'transparent' }}>
+              <CoverPreview url={image.url} aspectRatio="4 / 5" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={panelStyle}>
+        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Selected slide {selected + 1}</div>
+        <label style={labelStyle}>Image URL<input value={current.url} onChange={(e) => updateImage(selected, { ...current, url: e.target.value, alt: current.alt || formTitle })} style={inputStyle} /></label>
+        <label style={labelStyle}>Upload image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; const uploaded = await onUpload(idx, `sliderUpload-${selected}`, e.target.files[0]); if (uploaded?.url) updateImage(selected, { ...current, url: uploaded.url, alt: current.alt || formTitle }); }} style={{ ...inputStyle, padding: '6px' }} /></label>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminPage({ data, refresh }: any) {
   const [authed, setAuthed] = useState(!!api.getStoredToken());
@@ -917,44 +1153,14 @@ function BlockEditor({
   if (block.type === 'ctaSection') return <>{field('Title', 'title')}{field('Text', 'text', { textarea: true })}{field('Button Text', 'buttonText')}{field('Button Link', 'buttonLink')}</>;
   if (block.type === 'beforeAfter') return <>{field('Title', 'title')}{field('Before URL', 'beforeImage')}{uploadField('Upload Before', 'beforeImage')}{field('After URL', 'afterImage')}{uploadField('Upload After', 'afterImage')}</>;
   if (block.type === 'refinedSlider') return (
-    <>
-      {field('Title', 'title')}
-      {field('Description', 'description', { textarea: true, rows: 3 })}
-      {field('Thumbnail Position', 'thumbnailPosition', { select: true, options: [{ value: 'bottom', label: 'Bottom' }, { value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], default: 'bottom' })}
-      <label style={labelStyle}>
-        Image URLs (one per line)
-        <textarea rows={4} value={mediaValues(data.images).join('\n')} onChange={(e) => { const urls = e.target.value.split('\n').map((value) => value.trim()).filter(Boolean); onUpdate(idx, 'images', urls.map((url) => ({ url, alt: formTitle }))); }} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }} />
-      </label>
-      <label style={labelStyle}>
-        Upload Images
-        <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={async (e) => { if (!e.target.files?.length) return; const next = [...(data.images || [])]; for (const file of Array.from(e.target.files)) { const uploaded = await onUpload(idx, 'sliderUpload', file as File); if (uploaded?.url) next.push({ url: uploaded.url, alt: formTitle }); } onUpdate(idx, 'images', next); }} style={{ ...inputStyle, padding: '6px' }} />
-      </label>
-    </>
+    <RefinedSliderEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} />
   );
   if (block.type === 'circleDetail') return (
-    <>
-      {field('Title', 'title')}
-      {field('Description', 'description', { textarea: true, rows: 3 })}
-      <label style={labelStyle}>
-        Items (label|imageUrl, one per line)
-        <textarea rows={5} value={((data.items || []) as any[]).map((item: any) => `${item.label || ''}|${item.image || ''}`).join('\n')} onChange={(e) => { const items = e.target.value.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => { const [label, image] = line.split('|'); return { label: (label || '').trim(), image: (image || '').trim(), alt: (label || '').trim() }; }).filter((item) => item.image); onUpdate(idx, 'items', items); }} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }} />
-      </label>
-    </>
+    <CircleDetailEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} />
   );
   if (block.type === 'editorialNote') return <>{field('Eyebrow', 'eyebrow')}{field('Title', 'title')}{field('Note', 'note', { textarea: true, rows: 5 })}{field('Image URL', 'image')}{uploadField('Upload Image', 'image')}</>;
   if (block.type === 'mosaicPreset') return (
-    <>
-      {field('Title', 'title')}
-      {field('Preset', 'preset', { select: true, options: [{ value: 'a', label: 'Preset A' }, { value: 'b', label: 'Preset B' }], default: 'a' })}
-      <label style={labelStyle}>
-        Image URLs (up to 4, one per line)
-        <textarea rows={4} value={mediaValues(data.images).join('\n')} onChange={(e) => { const urls = e.target.value.split('\n').map((value) => value.trim()).filter(Boolean).slice(0, 4); onUpdate(idx, 'images', urls.map((url) => ({ url, alt: formTitle }))); }} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }} />
-      </label>
-      <label style={labelStyle}>
-        Upload Images
-        <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={async (e) => { if (!e.target.files?.length) return; const next = [...(data.images || [])]; for (const file of Array.from(e.target.files).slice(0, 4)) { const uploaded = await onUpload(idx, 'mosaicUpload', file as File); if (uploaded?.url) next.push({ url: uploaded.url, alt: formTitle }); } onUpdate(idx, 'images', next.slice(0, 4)); }} style={{ ...inputStyle, padding: '6px' }} />
-      </label>
-    </>
+    <MosaicPresetEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} />
   );
 
   return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No fields</p>;

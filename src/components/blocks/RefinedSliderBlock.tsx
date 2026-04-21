@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import styles from './RefinedSliderBlock.module.scss';
+import { normalizeImageAsset } from '../../lib/imageTransforms';
 
 type SliderImage = {
   url: string;
@@ -18,7 +19,7 @@ interface RefinedSliderBlockProps {
 
 function normalizeImages(images: Array<string | SliderImage> = []): SliderImage[] {
   return images
-    .map((image) => (typeof image === 'string' ? { url: image, alt: '' } : image))
+    .map((image) => normalizeImageAsset(image))
     .filter((image) => image?.url);
 }
 

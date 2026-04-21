@@ -1,10 +1,16 @@
 import React from 'react';
 import styles from './CircleDetailBlock.module.scss';
+import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
 
 type CircleItem = {
   image: string;
   alt?: string;
   label?: string;
+  crop?: {
+    scale?: number;
+    x?: number;
+    y?: number;
+  };
 };
 
 interface CircleDetailBlockProps {
@@ -32,7 +38,11 @@ export default function CircleDetailBlock({ data }: CircleDetailBlockProps) {
         {items.map((item, index) => (
           <figure key={`${item.image}-${index}`} className={styles.item}>
             <div className={styles.media}>
-              <img src={item.image} alt={item.alt || item.label || ''} />
+              {(() => {
+                const image = normalizeImageAsset({ url: item.image, alt: item.alt, crop: item.crop });
+                if (!image) return null;
+                return <img src={image.url} alt={image.alt || item.label || ''} style={getCoverImageStyle(image.crop)} />;
+              })()}
             </div>
             {item.label ? <figcaption>{item.label}</figcaption> : null}
           </figure>
