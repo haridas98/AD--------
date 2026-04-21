@@ -7,7 +7,7 @@
 /* Hero Image Block */
 .project-hero {
   position: relative;
-  min-height: clamp(420px, 68svh, 920px);
+  min-height: clamp(320px, 50svh, 620px);
   display: flex;
   align-items: flex-end;
   margin-bottom: clamp(40px, 7vw, 88px);
@@ -116,10 +116,10 @@
 /* Image Grid Block */
 .block-image-grid {
   display: grid;
-  gap: clamp(12px, 2vw, 24px);
+  gap: clamp(14px, 1.8vw, 28px);
   margin: 0 auto clamp(32px, 6vw, 64px);
   padding-inline: var(--page-gutter);
-  width: min(100%, var(--portfolio-max-width));
+  width: min(100%, 1680px);
 }
 
 .block-image-grid--1 { grid-template-columns: 1fr; }
@@ -136,10 +136,23 @@
 
 .block-image-grid-item img {
   width: 100%;
-  height: clamp(320px, 42vw, 680px);
+  height: auto;
+  aspect-ratio: 4 / 3;
+  min-height: clamp(320px, 26vw, 560px);
   object-fit: cover;
   display: block;
   transition: opacity 0.3s;
+}
+
+.block-image-grid--1 .block-image-grid-item img,
+.block-image-grid-item--full img {
+  aspect-ratio: 16 / 10;
+  min-height: clamp(340px, 34vw, 700px);
+}
+
+.block-image-grid--3 .block-image-grid-item img {
+  aspect-ratio: 4 / 5;
+  min-height: clamp(260px, 22vw, 440px);
 }
 
 .block-image-grid-item--full {
@@ -163,27 +176,42 @@
 
 /* Side by Side Block */
 .block-side-by-side {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   gap: clamp(20px, 4vw, 56px);
-  align-items: stretch;
+  align-items: center;
   margin: 0 auto clamp(32px, 6vw, 64px);
   padding: 0 var(--page-gutter);
-  width: min(100%, var(--portfolio-max-width));
+  width: min(100%, 1320px);
 }
 
 .block-side-by-side--reverse {
-  flex-direction: row-reverse !important;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+}
+
+.block-side-by-side--reverse .block-side-by-side-image {
+  order: 2;
+}
+
+.block-side-by-side--reverse .block-side-by-side-content {
+  order: 1;
 }
 
 .block-side-by-side-image,
 .block-side-by-side-content {
-  flex: 0 0 50%;
+  min-width: 0;
+}
+
+.block-side-by-side-image {
+  width: 100%;
 }
 
 .block-side-by-side-image img {
   width: 100%;
-  height: 100%;
-  min-height: clamp(320px, 44vw, 720px);
+  height: auto;
+  aspect-ratio: 4 / 5;
+  min-height: clamp(300px, 34vw, 560px);
+  max-height: min(56vh, 560px);
   display: block;
   border-radius: 4px;
   object-fit: cover;
@@ -203,29 +231,40 @@
   color: $text-secondary;
   margin: 0;
   white-space: pre-wrap;
+  max-width: 44ch;
 }
 
 .block-side-by-side-content {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: min(100%, 520px);
 }
 
-@media (max-width: $breakpoint-mobile) {
+@media (max-width: 900px) {
   .block-side-by-side {
-    flex-direction: column !important;
+    grid-template-columns: 1fr;
   }
 
   .block-side-by-side-image,
   .block-side-by-side-content {
-    flex: 0 0 100%;
+    width: 100%;
+  }
+
+  .block-side-by-side--reverse .block-side-by-side-image,
+  .block-side-by-side--reverse .block-side-by-side-content {
+    order: initial;
+  }
+
+  .block-side-by-side-content {
+    max-width: none;
   }
 }
 
 /* CTA Section Block */
 .block-cta {
   text-align: center;
-  max-width: min(100%, var(--text-max-width));
+  width: min(100%, var(--text-max-width));
   padding: clamp(32px, 5vw, 56px) clamp(24px, 4vw, 40px);
   margin: 0 auto clamp(32px, 6vw, 64px);
   background: rgba(255, 255, 255, 0.03);
@@ -264,16 +303,111 @@
 .block-before-after-slider {
   position: relative;
   aspect-ratio: 16/9;
-  min-height: clamp(320px, 52vw, 760px);
+  min-height: clamp(220px, 30vw, 420px);
+  max-height: 48vh;
   cursor: col-resize;
   overflow: hidden;
   border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  touch-action: none;
+  user-select: none;
 }
 
-.block-before-after-slider img {
+.block-before-after-slider img,
+.block-before-after-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+.before-image {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.before-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.slider-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.slider-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateX(-50%);
+}
+
+.slider-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 12, 12, 0.74);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.24);
+}
+
+.slider-handle span {
+  width: 2px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.before-after-label {
+  position: absolute;
+  top: 16px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(12, 12, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.before-after-label--before {
+  left: 16px;
+}
+
+.before-after-label--after {
+  right: 16px;
+}
+
+.block-before-after-range {
+  width: min(100%, 380px);
+  margin: 14px auto 0;
+  display: block;
+  accent-color: rgba(198, 164, 123, 1);
 }
 
 /* Gallery Grid (project detail) */
@@ -365,7 +499,35 @@
     grid-template-columns: 1fr;
   }
 
+  .block-image-grid-item img,
+  .block-image-grid-item--full img {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+
   .block-meta-info {
     gap: 12px;
+  }
+
+  .block-cta {
+    width: calc(100% - (var(--page-gutter) * 2));
+    padding: 28px 20px;
+  }
+
+  .block-before-after-slider {
+    min-height: clamp(220px, 62vw, 320px);
+    max-height: none;
+  }
+
+  .slider-handle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .before-after-label {
+    top: 12px;
+    padding: 6px 9px;
+    font-size: 10px;
   }
 }

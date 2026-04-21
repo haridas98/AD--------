@@ -1,0 +1,112 @@
+.block {
+  width: min(100%, 1120px);
+  margin: 0 auto clamp(32px, 6vw, 64px);
+  padding-inline: var(--page-gutter);
+}
+
+.title {
+  margin: 0 0 20px;
+  color: #fff;
+  font-family: 'GilroyExtraBold', sans-serif;
+  font-size: clamp(24px, 3vw, 40px);
+  text-align: center;
+}
+
+.sliderShell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sliderShell :global(.react-compare-slider) {
+  width: 100%;
+  height: min(56vh, 540px);
+  min-height: clamp(220px, 32vw, 420px);
+  cursor: ew-resize;
+}
+
+.sliderShell :global(.react-compare-slider-handle) {
+  box-shadow: none;
+}
+
+.sliderShell :global(.react-compare-slider-line) {
+  background: rgba(255, 255, 255, 0.86);
+  width: 2px;
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.label {
+  position: absolute;
+  top: 16px;
+  z-index: 2;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(12, 12, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.labelBefore {
+  left: 16px;
+}
+
+.labelAfter {
+  right: 16px;
+}
+
+.handle {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 12, 12, 0.74);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.24);
+}
+
+.handle span {
+  width: 2px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+@media (max-width: 768px) {
+  .sliderShell :global(.react-compare-slider) {
+    height: clamp(220px, 54vw, 290px);
+    min-height: 0;
+  }
+
+  .label {
+    top: 12px;
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+
+  .handle {
+    width: 40px;
+    height: 40px;
+  }
+}

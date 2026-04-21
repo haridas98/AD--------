@@ -36,7 +36,7 @@
 .desktopNav {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 2px;
   margin-left: auto;
 }
 
@@ -54,11 +54,13 @@
   min-height: var(--header-offset);
   display: inline-flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 clamp(6px, 0.65vw, 10px);
   font-family: 'GilroyLight', sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: clamp(9px, 0.7vw, 11px);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navLink:hover,
@@ -118,6 +120,45 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+.menuToggleIcon {
+  position: relative;
+  width: 18px;
+  height: 12px;
+  display: block;
+}
+
+.menuToggleIcon::before,
+.menuToggleIcon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 0.2s ease, top 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menuToggleIcon::before {
+  top: 1px;
+  box-shadow: 0 5px 0 currentColor;
+}
+
+.menuToggleIcon::after {
+  top: 11px;
+}
+
+.menuToggleIconOpen::before {
+  top: 6px;
+  transform: rotate(45deg);
+  box-shadow: none;
+}
+
+.menuToggleIconOpen::after {
+  top: 6px;
+  transform: rotate(-45deg);
+}
+
 .mobileOverlay {
   position: fixed;
   inset: 0;
@@ -142,19 +183,6 @@
 
 .open {
   transform: translateX(0);
-}
-
-.topNavClose {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  margin-left: auto;
-  margin-bottom: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  color: #fff;
 }
 
 .mobileNavLink {

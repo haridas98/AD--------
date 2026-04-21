@@ -5,6 +5,7 @@ import styles from './Header.module.scss';
 
 interface MenuSection {
   name: string;
+  desktopName?: string;
   href: string;
   sub?: { name: string; href: string }[];
 }
@@ -24,11 +25,11 @@ export default function Header() {
   const menuItems: MenuSection[] = [
     { name: 'Projects', href: '/' },
     { name: 'Kitchens', href: '/kitchens' },
-    { name: 'Full house remodeling', href: '/full-house-remodeling' },
+    { name: 'Full house remodeling', desktopName: 'Full House', href: '/full-house-remodeling' },
     { name: 'Bathroom', href: '/bathrooms' },
     { name: 'ADU', href: '/adu1' },
-    { name: 'Projects before and after', href: '/projects-before-and-after' },
-    { name: 'Video Series', href: '/video-series' },
+    { name: 'Projects before and after', desktopName: 'Before & After', href: '/projects-before-and-after' },
+    { name: 'Video Series', desktopName: 'Video', href: '/video-series' },
     {
       name: 'Services',
       href: '/process',
@@ -40,6 +41,7 @@ export default function Header() {
     },
     {
       name: 'About me',
+      desktopName: 'About',
       href: '/aboutme',
       sub: [
         { name: 'Press | Media', href: '/press' },
@@ -66,7 +68,7 @@ export default function Header() {
                 className={({ isActive }) => `${styles.navLink}${isActive ? ` ${styles.active}` : ''}`}
                 onClick={closeMenu}
               >
-                {item.name}
+                {item.desktopName || item.name}
               </NavLink>
               {item.sub && (
                 <div className={styles.submenu}>
@@ -81,8 +83,12 @@ export default function Header() {
           ))}
         </nav>
 
-        <button className={styles.menuToggle} onClick={() => setMenuOpen((value) => !value)} aria-label="Menu">
-          {menuOpen ? '✕' : '☰'}
+        <button
+          className={styles.menuToggle}
+          onClick={() => setMenuOpen((value) => !value)}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        >
+          <span className={`${styles.menuToggleIcon} ${menuOpen ? styles.menuToggleIconOpen : ''}`} aria-hidden="true" />
         </button>
       </div>
 
@@ -99,9 +105,6 @@ export default function Header() {
       </AnimatePresence>
 
       <nav className={`${styles.topNav} ${menuOpen ? styles.open : ''}`}>
-        <button className={styles.topNavClose} onClick={closeMenu} aria-label="Close">
-          ✕
-        </button>
         {menuItems.map((item) => (
           <div key={item.name}>
             <NavLink

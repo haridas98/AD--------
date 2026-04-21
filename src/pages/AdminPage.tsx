@@ -4,8 +4,10 @@ import 'react-quill/dist/quill.snow.css';
 import { api } from '../lib/api';
 import AdminAssetSourcePanel from '../components/admin/AdminAssetSourcePanel';
 import AdminImageCropModal from '../components/admin/AdminImageCropModal';
+import AdminProjectMiniMap from '../components/admin/AdminProjectMiniMap';
 import { normalizeEditorCrop } from '../lib/adminImageCrop';
 import { getCoverImageStyle } from '../lib/imageTransforms';
+import { appendBeforeAfterBlocks, buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
 
 const BLOCK_TYPES = [
   { value: 'heroImage', label: 'Hero Image' },
@@ -26,130 +28,8 @@ function toSlug(t: string) {
   return t.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
 }
 
-function parseContent(content: any) {
-  if (!content) return [];
-  if (typeof content === 'string') {
-    try { return JSON.parse(content); } catch { return []; }
-  }
-  return Array.isArray(content) ? content : [];
-}
-
 function getHeroImage(content: any[]) {
   return content.find((block: any) => block.type === 'heroImage')?.data?.image || '';
-}
-
-function getProjectImages(content: any[]) {
-  const hero = getHeroImage(content);
-  const gridImages = content
-    .flatMap((block: any) => {
-      if (block.type === 'imageGrid') return block.data?.images || [];
-      if (block.type === 'refinedSlider') return block.data?.images || [];
-      if (block.type === 'mosaicPreset') return block.data?.images || [];
-      return [];
-    })
-    .map((item: any) => typeof item === 'string' ? item : item?.url)
-    .filter(Boolean);
-
-  const base = [hero, ...gridImages].filter(Boolean);
-  return base.length ? base : [''];
-}
-
-function buildDemoProjectBlocks(project: any, categoryName: string) {
-  const current = parseContent(project.content);
-  const baseImages = getProjectImages(current);
-  const fallbackImage = baseImages[0] || '';
-  if (!fallbackImage) return current;
-
-  const repeated = Array.from({ length: 4 }, (_, index) => ({
-    url: baseImages[index] || fallbackImage,
-    alt: `${project.title} ${index + 1}`,
-  }));
-
-  const existingHero = current.find((block: any) => block.type === 'heroImage');
-
-  return [
-    existingHero || {
-      id: `hero-${Date.now()}`,
-      type: 'heroImage',
-      data: {
-        title: project.title,
-        subtitle: `${categoryName} project in ${project.cityName || 'California'} with a cleaner, more intentional presentation.`,
-        image: fallbackImage,
-        alt: project.title,
-      },
-    },
-    {
-      id: `editorial-${Date.now()}`,
-      type: 'editorialNote',
-      data: {
-        eyebrow: categoryName,
-        title: 'Project overview',
-        note: `${project.title} is presented as a richer portfolio story: concept, material rhythm, day-to-day function, and the final visual atmosphere.`,
-        image: repeated[1]?.url || fallbackImage,
-      },
-    },
-    {
-      id: `typography-${Date.now()}`,
-      type: 'typography',
-      data: {
-        title: 'What was done',
-        content: 'Space planning, storage logic, material coordination, finish selection, lighting balance, and a calmer visual composition for daily use.',
-        size: 'lg',
-      },
-    },
-    {
-      id: `slider-${Date.now()}`,
-      type: 'refinedSlider',
-      data: {
-        title: 'Walkthrough highlights',
-        description: 'A cleaner image sequence for key moments of the project.',
-        thumbnailPosition: 'bottom',
-        images: repeated,
-      },
-    },
-    {
-      id: `circle-${Date.now()}`,
-      type: 'circleDetail',
-      data: {
-        title: 'Key details',
-        description: 'A quick visual summary of accents and focal points.',
-        items: [
-          { label: 'Cabinet lines', image: repeated[0].url, alt: 'Cabinet lines' },
-          { label: 'Finish palette', image: repeated[1].url, alt: 'Finish palette' },
-          { label: 'Lighting mood', image: repeated[2].url, alt: 'Lighting mood' },
-          { label: 'Material balance', image: repeated[3].url, alt: 'Material balance' },
-        ],
-      },
-    },
-    {
-      id: `mosaic-${Date.now()}`,
-      type: 'mosaicPreset',
-      data: {
-        title: 'Project composition',
-        preset: 'a',
-        images: repeated,
-      },
-    },
-    {
-      id: `before-${Date.now()}`,
-      type: 'beforeAfter',
-      data: {
-        title: 'Before / After',
-        beforeImage: repeated[0].url,
-        afterImage: repeated[1].url || repeated[0].url,
-      },
-    },
-    {
-      id: `cta-${Date.now()}`,
-      type: 'ctaSection',
-      data: {
-        title: 'Discuss a similar project',
-        text: 'Use this section as a placeholder until the final client-facing copy is ready.',
-        buttonText: 'Contact us',
-        buttonLink: '/contact',
-      },
-    },
-  ];
 }
 
 const inputStyle: React.CSSProperties = {
@@ -292,6 +172,7 @@ function EditableCoverFieldEditor({
   radius = '16px',
   cropShape = 'rect',
   cropEnabled = true,
+  previewMaxWidth = 'min(100%, 420px)',
 }: {
   value?: any;
   onChange: (next: EditableImage) => void;
@@ -300,6 +181,7 @@ function EditableCoverFieldEditor({
   radius?: string;
   cropShape?: 'rect' | 'round';
   cropEnabled?: boolean;
+  previewMaxWidth?: string;
 }) {
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [isSourceOpen, setIsSourceOpen] = useState(false);
@@ -308,7 +190,7 @@ function EditableCoverFieldEditor({
   const openFilePicker = () => fileInputRef.current?.click();
 
   return (
-    <div style={{ display: 'grid', gap: '10px' }}>
+    <div style={{ display: 'grid', gap: '10px', width: '100%', maxWidth: previewMaxWidth }}>
       <div style={{ position: 'relative' }}>
         <div
           role="button"
@@ -413,6 +295,7 @@ function BasicCoverFieldEditor({
   radius = '16px',
   cropShape = 'rect',
   cropEnabled = true,
+  previewMaxWidth = 'min(100%, 420px)',
 }: {
   url?: string;
   crop?: CropData;
@@ -423,6 +306,7 @@ function BasicCoverFieldEditor({
   radius?: string;
   cropShape?: 'rect' | 'round';
   cropEnabled?: boolean;
+  previewMaxWidth?: string;
 }) {
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [isSourceOpen, setIsSourceOpen] = useState(false);
@@ -431,7 +315,7 @@ function BasicCoverFieldEditor({
   const openFilePicker = () => fileInputRef.current?.click();
 
   return (
-    <div style={{ display: 'grid', gap: '10px' }}>
+    <div style={{ display: 'grid', gap: '10px', width: '100%', maxWidth: previewMaxWidth }}>
       <div style={{ position: 'relative' }}>
         <div
           role="button"
@@ -567,6 +451,7 @@ function MosaicPresetEditor({
             key={imageIndex}
             value={image}
             aspectRatio={imageIndex === 0 ? '4 / 5' : '1 / 1'}
+            previewMaxWidth="100%"
             onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
             onUpload={(file) => onUpload(idx, `mosaicUpload-${imageIndex}`, file)}
           />
@@ -591,7 +476,10 @@ function CircleDetailEditor({
   formTitle: string;
   compact?: boolean;
 }) {
-  const items = Array.from({ length: Math.max((data.items || []).length, 5) }, (_, index) => toCircleItem((data.items || [])[index]));
+  const items = Array.from(
+    { length: Math.min(Math.max((data.items || []).length + 1, 5), 10) },
+    (_, index) => toCircleItem((data.items || [])[index]),
+  );
 
   const updateItem = (itemIndex: number, nextItem: CircleItem) => {
     const next = [...items];
@@ -604,15 +492,17 @@ function CircleDetailEditor({
       <div style={{ display: 'grid', gap: '8px' }}>
         <label style={labelStyle}>Title<input value={data.title || ''} onChange={(e) => onUpdate(idx, 'title', e.target.value)} style={inputStyle} /></label>
         <label style={labelStyle}>Description<textarea rows={3} value={data.description || ''} onChange={(e) => onUpdate(idx, 'description', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+        <div style={{ color: 'rgba(255,255,255,0.42)', fontSize: '12px' }}>The next dimmed slot appears automatically. Up to 10 circles.</div>
       </div>
 
       <div style={{ ...slotGridStyle, gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))' }}>
         {items.map((item, itemIndex) => (
-          <div key={itemIndex} style={{ display: 'grid', gap: '8px' }}>
+          <div key={itemIndex} style={{ display: 'grid', gap: '8px', opacity: item.image || item.label ? 1 : 0.62 }}>
             <EditableCoverFieldEditor
               value={{ url: item.image, alt: item.alt || item.label || formTitle, crop: item.crop }}
               radius="999px"
               cropShape="round"
+              previewMaxWidth="100%"
               onChange={(nextImage) => updateItem(itemIndex, { ...item, image: nextImage.url, alt: nextImage.alt || item.label || formTitle, crop: nextImage.crop })}
               onUpload={(file) => onUpload(idx, `circleUpload-${itemIndex}`, file)}
             />
@@ -667,6 +557,7 @@ function RefinedSliderEditor({
             value={image}
             aspectRatio="4 / 5"
             cropEnabled={false}
+            previewMaxWidth="100%"
             onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
             onUpload={(file) => onUpload(idx, `sliderUpload-${imageIndex}`, file)}
           />
@@ -695,6 +586,8 @@ export default function AdminPage({ data, refresh }: any) {
   const [blogForm, setBlogForm] = useState<any>(null);
   const [blogContent, setBlogContent] = useState('');
   const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const categoryName = useMemo(
     () => adminData.categories?.find((category: any) => category.id === form?.categoryId)?.name || 'Project',
@@ -733,7 +626,7 @@ export default function AdminPage({ data, refresh }: any) {
     if (tab !== 'beforeafter') return;
     const toggles: Record<string, boolean> = {};
     adminData.projects
-      .filter((project: any) => parseContent(project.content).some((block: any) => block.type === 'beforeAfter'))
+      .filter((project: any) => parseProjectContent(project.content).some((block: any) => block.type === 'beforeAfter'))
       .forEach((project: any) => {
         toggles[project.id] = project.isPublished !== false;
       });
@@ -818,12 +711,10 @@ export default function AdminPage({ data, refresh }: any) {
 
   function newProject() {
     const firstCategory = adminData.categories?.[0];
-    setSelId('');
-    setForm({
+    const nextProject = {
       title: '',
       slug: '',
       categoryId: firstCategory?.id || '',
-      content: [],
       isFeatured: false,
       isPublished: true,
       seoTitle: '',
@@ -831,21 +722,30 @@ export default function AdminPage({ data, refresh }: any) {
       seoKeywords: '',
       cityName: '',
       year: '',
+    };
+    setSelId('');
+    setForm({
+      ...nextProject,
+      content: buildProjectBaseBlocks(nextProject, firstCategory?.name || 'Project', 1),
     });
+    setActiveBlockId('base-hero-image');
   }
 
   function closeProjectEditor() {
     setSelId('');
     setForm(null);
+    setActiveBlockId(null);
   }
 
   function editProject(project: any) {
+    const projectCategoryName = adminData.categories?.find((category: any) => category.id === project.categoryId)?.name || 'Project';
+    const projectBlocks = parseProjectContent(project.content);
     setSelId(project.id);
     setForm({
       title: project.title || '',
       slug: project.slug || '',
       categoryId: project.categoryId || '',
-      content: parseContent(project.content),
+      content: projectBlocks.length ? projectBlocks : buildProjectBaseBlocks(project, projectCategoryName, 1),
       isFeatured: !!project.isFeatured,
       isPublished: project.isPublished !== false,
       seoTitle: project.seoTitle || '',
@@ -854,6 +754,7 @@ export default function AdminPage({ data, refresh }: any) {
       cityName: project.cityName || '',
       year: project.year || '',
     });
+    setActiveBlockId((projectBlocks[0]?.id as string) || 'base-hero-image');
   }
 
   function setF(field: string, value: any) {
@@ -867,7 +768,7 @@ export default function AdminPage({ data, refresh }: any) {
   function addBlock(type: string) {
     setForm((prev: any) => ({
       ...prev,
-      content: [...(prev.content || []), { type, data: {}, id: Date.now().toString() }],
+      content: [...(prev.content || []), { type, data: {}, id: `custom-${type}-${Date.now()}` }],
     }));
   }
 
@@ -876,6 +777,16 @@ export default function AdminPage({ data, refresh }: any) {
       ...prev,
       content: (prev.content || []).filter((_: any, i: number) => i !== index),
     }));
+  }
+
+  function moveBlockToIndex(fromIndex: number, toIndex: number) {
+    setForm((prev: any) => {
+      const content = [...(prev.content || [])];
+      if (fromIndex < 0 || toIndex < 0 || fromIndex >= content.length || toIndex >= content.length) return prev;
+      const [moved] = content.splice(fromIndex, 1);
+      content.splice(toIndex, 0, moved);
+      return { ...prev, content };
+    });
   }
 
   function moveBlock(index: number, direction: number) {
@@ -941,11 +852,48 @@ export default function AdminPage({ data, refresh }: any) {
     }
   }
 
-  function applyDemoLayout() {
+  function applyBaseStructure() {
     setForm((prev: any) => ({
       ...prev,
-      content: buildDemoProjectBlocks(prev, categoryName),
+      content: buildProjectBaseBlocks(prev, categoryName, 1),
     }));
+    setActiveBlockId('base-hero-image');
+  }
+
+  function addBeforeAfterSeries() {
+    setForm((prev: any) => ({
+      ...prev,
+      content: appendBeforeAfterBlocks(prev, prev.content || [], 10),
+    }));
+  }
+
+  async function applyBaseStructureToAllProjects() {
+    if (!confirm('Apply the base project structure to all projects? This will replace current block layouts.')) return;
+    setSaving(true);
+    try {
+      for (const project of adminData.projects || []) {
+        const nextCategoryName = adminData.categories?.find((category: any) => category.id === project.categoryId)?.name || 'Project';
+        await api.updateProject(project.id, {
+          title: project.title,
+          slug: project.slug,
+          categoryId: project.categoryId,
+          isFeatured: !!project.isFeatured,
+          isPublished: project.isPublished !== false,
+          seoTitle: project.seoTitle || '',
+          seoDescription: project.seoDescription || '',
+          seoKeywords: project.seoKeywords || '',
+          cityName: project.cityName || '',
+          year: project.year || '',
+          content: JSON.stringify(buildProjectBaseBlocks(project, nextCategoryName, 1)),
+        });
+      }
+      await sync();
+      await refresh();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function newBlog() {
@@ -1034,7 +982,14 @@ export default function AdminPage({ data, refresh }: any) {
   }
 
   function getCover(project: any) {
-    return getHeroImage(parseContent(project.content));
+    return getHeroImage(parseProjectContent(project.content));
+  }
+
+  function scrollToBlockEditor(blockId: string) {
+    setActiveBlockId(blockId);
+    window.setTimeout(() => {
+      blockRefs.current[blockId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 10);
   }
 
   if (!authed) {
@@ -1115,10 +1070,15 @@ export default function AdminPage({ data, refresh }: any) {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ color: '#fff', margin: 0, fontSize: '18px' }}>{form ? 'Editing Project' : 'Projects'}</h3>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               {form ? (
                 <button onClick={closeProjectEditor} style={{ ...miniBtn, padding: '8px 16px', background: 'rgba(255,255,255,0.1)' }}>
                   Back to List
+                </button>
+              ) : null}
+              {!form ? (
+                <button onClick={applyBaseStructureToAllProjects} style={{ ...miniBtn, padding: '8px 16px', borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}>
+                  Fill All Structures
                 </button>
               ) : null}
               {!form ? <button onClick={newProject} className="btn-primary">+ New Project</button> : null}
@@ -1175,10 +1135,21 @@ export default function AdminPage({ data, refresh }: any) {
                 <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                     <h4 style={{ color: '#fff', margin: 0, fontSize: '14px' }}>Content Blocks</h4>
-                    <button type="button" onClick={applyDemoLayout} style={{ ...miniBtn, borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}>
-                      Apply Demo Layout
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button type="button" onClick={applyBaseStructure} style={{ ...miniBtn, borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}>
+                        Apply Base Structure
+                      </button>
+                      <button type="button" onClick={addBeforeAfterSeries} style={{ ...miniBtn, borderColor: 'rgba(198,164,123,0.22)', color: 'rgba(255,255,255,0.78)' }}>
+                        +10 Before/After
+                      </button>
+                    </div>
                   </div>
+                  <AdminProjectMiniMap
+                    blocks={form.content || []}
+                    activeBlockId={activeBlockId}
+                    onSelect={scrollToBlockEditor}
+                    onReorder={moveBlockToIndex}
+                  />
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
                     {BLOCK_TYPES.map((blockType) => (
                       <button key={blockType.value} type="button" onClick={() => addBlock(blockType.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '11px' }}>
@@ -1187,7 +1158,20 @@ export default function AdminPage({ data, refresh }: any) {
                     ))}
                   </div>
                   {(form.content || []).map((block: any, index: number) => (
-                    <div key={block.id || index} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                    <div
+                      key={block.id || index}
+                      onClick={() => setActiveBlockId(block.id || `${block.type}-${index}`)}
+                      ref={(node) => {
+                        blockRefs.current[block.id || `${block.type}-${index}`] = node;
+                      }}
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: activeBlockId === (block.id || `${block.type}-${index}`) ? '1px solid rgba(198,164,123,0.45)' : '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        marginBottom: '8px',
+                      }}
+                    >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ color: '#fff', fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>{block.type}</span>
                         <div style={{ display: 'flex', gap: '4px' }}>
@@ -1346,10 +1330,10 @@ export default function AdminPage({ data, refresh }: any) {
             </div>
             <button onClick={saveBaToggles} className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Settings'}</button>
           </div>
-          {adminData.projects.filter((project: any) => parseContent(project.content).some((block: any) => block.type === 'beforeAfter')).length ? (
+          {adminData.projects.filter((project: any) => parseProjectContent(project.content).some((block: any) => block.type === 'beforeAfter')).length ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
               {adminData.projects
-                .filter((project: any) => parseContent(project.content).some((block: any) => block.type === 'beforeAfter'))
+                .filter((project: any) => parseProjectContent(project.content).some((block: any) => block.type === 'beforeAfter'))
                 .map((project: any) => (
                   <div key={project.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1 }}>
@@ -1408,6 +1392,8 @@ function BlockEditor({
     </label>
   );
 
+  const metaInfoValue = data.metaText || (data.items || []).map((item: any) => `${item.label}: ${item.value}`).join('\n');
+
   if (block.type === 'heroImage') return (
     <>
       {field('Title', 'title')}
@@ -1433,6 +1419,7 @@ function BlockEditor({
             value={image}
             aspectRatio="4 / 3"
             cropEnabled={false}
+            previewMaxWidth="100%"
             onChange={(nextImage) => {
               const next = Array.from(
                 { length: Math.max(((data.images || []) as any[]).length + 1, imageIndex + 1) },
@@ -1449,7 +1436,30 @@ function BlockEditor({
     </>
   );
 
-  if (block.type === 'metaInfo') return <>{field('Items (label: value, one per line)', 'metaText', { textarea: true })}</>;
+  if (block.type === 'metaInfo') return (
+    <label style={labelStyle}>
+      Items (label: value, one per line)
+      <textarea
+        rows={4}
+        value={metaInfoValue}
+        onChange={(e) => {
+          const nextText = e.target.value;
+          const nextItems = nextText
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => {
+              const [label, ...rest] = line.split(':');
+              return { label: (label || '').trim(), value: rest.join(':').trim() };
+            })
+            .filter((item) => item.label && item.value);
+          onUpdate(idx, 'metaText', nextText);
+          onUpdate(idx, 'items', nextItems);
+        }}
+        style={{ ...inputStyle, resize: 'vertical' }}
+      />
+    </label>
+  );
   if (block.type === 'typography') return <>{field('Title', 'title')}{field('Content', 'content', { textarea: true, rows: 5 })}{field('Size', 'size', { select: true, options: [{ value: 'sm', label: 'Small' }, { value: 'md', label: 'Medium' }, { value: 'lg', label: 'Large' }], default: 'md' })}</>;
   if (block.type === 'sideBySide') return (
     <>

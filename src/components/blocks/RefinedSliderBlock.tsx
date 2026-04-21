@@ -27,6 +27,7 @@ export default function RefinedSliderBlock({ data }: RefinedSliderBlockProps) {
   const shouldReduceMotion = useReducedMotion();
   const images = useMemo(() => normalizeImages(data.images), [data.images]);
   const [index, setIndex] = useState(0);
+  const [orientationMap, setOrientationMap] = useState<Record<string, 'portrait' | 'landscape'>>({});
   const thumbPosition = data.thumbnailPosition || 'bottom';
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function RefinedSliderBlock({ data }: RefinedSliderBlockProps) {
   if (!images.length) return null;
 
   const active = images[index];
+  const activeOrientation = orientationMap[active.url] || 'landscape';
 
   return (
     <section className={styles.block} data-project-block>
@@ -56,7 +58,7 @@ export default function RefinedSliderBlock({ data }: RefinedSliderBlockProps) {
       ) : null}
 
       <div className={`${styles.layout} ${styles[`layout--${thumbPosition}`]}`}>
-        <div className={styles.stage}>
+        <div className={`${styles.stage} ${activeOrientation === 'portrait' ? styles.stagePortrait : styles.stageLandscape}`}>
           {images.length > 1 ? (
             <>
               <button
@@ -78,7 +80,14 @@ export default function RefinedSliderBlock({ data }: RefinedSliderBlockProps) {
             key={active.url}
             src={active.url}
             alt={active.alt || data.title || ''}
-            className={styles.image}
+            className={`${styles.image} ${activeOrientation === 'portrait' ? styles.imagePortrait : styles.imageLandscape}`}
+            onLoad={(event) => {
+              const { naturalWidth, naturalHeight } = event.currentTarget;
+              setOrientationMap((prev) => ({
+                ...prev,
+                [active.url]: naturalHeight > naturalWidth ? 'portrait' : 'landscape',
+              }));
+            }}
             initial={shouldReduceMotion ? false : { opacity: 0.4, scale: 1.02 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
