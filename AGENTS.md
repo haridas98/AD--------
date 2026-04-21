@@ -19,6 +19,9 @@
 - `npm run dev`
 - `npm run build`
 - `npm run test:smoke`
+- `npm run deploy:check`
+- `npm run deploy:up`
+- `npm run deploy:down`
 - `npm run start:server`
 - `docker compose up -d --build`
 - `npx prisma generate --schema=server/prisma/schema.prisma`

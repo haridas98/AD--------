@@ -11,6 +11,24 @@ npm run dev
 - API: http://localhost:8787
 - Admin: http://localhost:5173/admin
 
+## Deploy (current stack)
+
+```bash
+npm run deploy:check
+npm run deploy:up
+```
+
+Health checks:
+
+- App: `http://localhost:8787/api/health`
+- Nginx proxy: `http://localhost/api/health`
+
+Stop:
+
+```bash
+npm run deploy:down
+```
+
 ## Admin authorization
 
 Default credentials:
