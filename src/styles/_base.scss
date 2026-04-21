@@ -20,12 +20,13 @@ html {
 
 body {
   font-family: 'GilroyLight', 'Arial', sans-serif;
-  color: $text-primary;
-  background-color: $bg-site;
+  color: var(--theme-text-primary);
+  background-color: var(--theme-bg);
   line-height: 1.3;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 a {
@@ -91,9 +92,9 @@ img, video, iframe {
    Utility classes
    ============================================ */
 
-.text-white { color: #fff; }
-.text-secondary { color: rgba(255, 255, 255, 0.7); }
-.text-muted { color: rgba(255, 255, 255, 0.5); }
+.text-white { color: var(--theme-text-primary); }
+.text-secondary { color: var(--theme-text-secondary); }
+.text-muted { color: var(--theme-text-muted); }
 .text-accent { color: $accent; }
 
 @media (max-width: $breakpoint-tablet) {

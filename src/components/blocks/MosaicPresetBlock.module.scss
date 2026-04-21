@@ -6,7 +6,7 @@
 
 .title {
   margin: 0 0 16px;
-  color: #fff;
+  color: var(--project-text-primary);
   font-family: 'GilroyExtraBold', sans-serif;
   font-size: clamp(24px, 3vw, 40px);
   line-height: 1;
@@ -22,7 +22,7 @@
   border: 0;
   overflow: hidden;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--project-surface) 92%, transparent);
 }
 
 .cell img {

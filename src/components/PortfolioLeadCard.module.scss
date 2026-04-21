@@ -3,7 +3,7 @@
   display: block;
   min-height: clamp(420px, 66vh, 880px);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--theme-surface) 92%, transparent);
 }
 
 .image {
@@ -26,11 +26,15 @@
   flex-direction: column;
   justify-content: flex-end;
   padding: clamp(22px, 3vw, 40px);
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 22%, rgba(0, 0, 0, 0.72) 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--theme-bg) 10%, transparent) 22%,
+    color-mix(in srgb, var(--theme-bg) 72%, transparent) 100%
+  );
 }
 
 .eyebrow {
-  color: rgba(255, 255, 255, 0.74);
+  color: color-mix(in srgb, var(--theme-text-primary) 74%, transparent);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -40,7 +44,7 @@
 .title {
   margin: 0;
   max-width: 14ch;
-  color: #fff;
+  color: var(--theme-text-primary);
   font-family: 'GilroyExtraBold', sans-serif;
   font-size: clamp(30px, 4vw, 64px);
   line-height: 0.95;
@@ -48,7 +52,7 @@
 
 .meta {
   margin: 16px 0 0;
-  color: rgba(255, 255, 255, 0.84);
+  color: color-mix(in srgb, var(--theme-text-primary) 84%, transparent);
   font-size: 14px;
 }
 

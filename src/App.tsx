@@ -25,13 +25,25 @@ function PageTransition({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
+
+  return null;
+}
+
 export default function App() {
+  const location = useLocation();
   const setContent = useAppStore((s) => s.setContent);
   const setLoading = useAppStore((s) => s.setLoading);
   const setError = useAppStore((s) => s.setError);
   const loading = useAppStore((s) => s.loading);
   const error = useAppStore((s) => s.error);
   const site = useAppStore((s) => s.site);
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     async function load() {
@@ -45,6 +57,7 @@ export default function App() {
           projects: data.projects || [],
           blogPosts: data.blogPosts || [],
           pages: data.pages || {},
+          themeSettings: data.themeSettings,
         });
       } catch (err: any) { setError(err.message); }
       finally { setLoading(false); }
@@ -52,13 +65,14 @@ export default function App() {
     load();
   }, []);
 
-  if (loading && !site) return <div className="app-loading">Loading...</div>;
-  if (error && !site) return <div className="app-error"><h1>Error</h1><p>{error}</p><button className="btn-primary" onClick={() => window.location.reload()}>Reload</button></div>;
+  if (!isAdminRoute && !site && !error) return <div className="app-loading">Loading...</div>;
+  if (!isAdminRoute && error && !site) return <div className="app-error"><h1>Error</h1><p>{error}</p><button className="btn-primary" onClick={() => window.location.reload()}>Reload</button></div>;
 
   return (
     <HelmetProvider>
       <ErrorBoundary>
-        <Layout isAdmin={location.pathname.startsWith('/admin')}>
+        <ScrollToTop />
+        <Layout isAdmin={isAdminRoute}>
           <AnimatePresence mode="wait">
             <PageTransition>
               <Routes>
@@ -97,15 +111,15 @@ export default function App() {
 }
 
 function AdminWrapper() {
-  const { projects, categories, blogPosts, setContent } = useAppStore();
-  const [data, setData] = useState({ projects, categories, blogPosts });
+  const { projects, categories, blogPosts, themeSettings, setContent } = useAppStore();
+  const [data, setData] = useState({ projects, categories, blogPosts, themeSettings });
   const refresh = async () => {
     try {
       const d = await api.getAdminContent();
-      setContent({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts });
-      setData({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts });
+      setContent({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts, themeSettings: d.themeSettings });
+      setData({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts, themeSettings: d.themeSettings });
     } catch (e) { console.error(e); }
   };
-  useEffect(() => { setData({ projects, categories, blogPosts }); }, [projects, categories, blogPosts]);
+  useEffect(() => { setData({ projects, categories, blogPosts, themeSettings }); }, [projects, categories, blogPosts, themeSettings]);
   return <AdminPage data={data} refresh={refresh} />;
 }

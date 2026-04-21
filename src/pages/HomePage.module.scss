@@ -20,7 +20,7 @@
 
 .sectionHead h2 {
   margin: 0;
-  color: #fff;
+  color: var(--theme-text-primary);
   font-family: 'GilroyExtraBold', sans-serif;
   font-size: clamp(22px, 2vw, 34px);
   letter-spacing: 0.08em;

@@ -12,7 +12,7 @@
 
 .head h2 {
   margin: 0 0 10px;
-  color: #fff;
+  color: var(--theme-text-primary);
   font-family: 'GilroyExtraBold', sans-serif;
   font-size: clamp(28px, 4.2vw, 54px);
   line-height: 0.96;
@@ -20,7 +20,7 @@
 
 .head p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--theme-text-secondary);
   font-size: 15px;
   line-height: 1.6;
 }
@@ -57,9 +57,9 @@
   overflow: hidden;
   border-radius: 18px;
   background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.08), rgba(20, 20, 20, 0.88)),
-    rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+    radial-gradient(circle at center, color-mix(in srgb, var(--theme-surface) 88%, transparent), color-mix(in srgb, var(--theme-bg) 88%, transparent)),
+    var(--theme-surface);
+  border: 1px solid var(--theme-border);
 }
 
 .stageLandscape {
@@ -118,10 +118,10 @@
 
 .thumb {
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--theme-border);
   border-radius: 14px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--theme-surface);
   opacity: 0.68;
   transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
 }
@@ -137,7 +137,7 @@
 .thumbActive {
   opacity: 1;
   transform: translateY(-2px);
-  border-color: rgba(198, 164, 123, 0.5);
+  border-color: var(--theme-accent);
 }
 
 @media (max-width: 768px) {

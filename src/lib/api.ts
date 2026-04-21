@@ -27,6 +27,7 @@ async function request(path: string, options: RequestInit = {}) {
 export const api = {
   getContent: () => request('/api/content'),
   getAdminContent: () => request('/api/admin/content'),
+  updateThemeSettings: (payload: any) => request('/api/admin/theme-settings', { method: 'PUT', body: JSON.stringify(payload) }),
   getStats: () => request('/api/admin/stats'),
   createProject: (p: any) => request('/api/admin/projects', { method: 'POST', body: JSON.stringify(p) }),
   updateProject: (id: string, p: any) => request(`/api/admin/projects/${id}`, { method: 'PUT', body: JSON.stringify(p) }),

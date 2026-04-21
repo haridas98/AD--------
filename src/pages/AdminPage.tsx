@@ -5,9 +5,12 @@ import { api } from '../lib/api';
 import AdminAssetSourcePanel from '../components/admin/AdminAssetSourcePanel';
 import AdminImageCropModal from '../components/admin/AdminImageCropModal';
 import AdminProjectMiniMap from '../components/admin/AdminProjectMiniMap';
+import AdminThemeEditor from '../components/admin/AdminThemeEditor';
 import { normalizeEditorCrop } from '../lib/adminImageCrop';
 import { getCoverImageStyle } from '../lib/imageTransforms';
 import { appendBeforeAfterBlocks, buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
+import { PROJECT_STYLE_PRESET_OPTIONS } from '../lib/projectStylePresets';
+import { normalizeThemeSettings } from '../lib/themeTokens';
 
 const BLOCK_TYPES = [
   { value: 'heroImage', label: 'Hero Image' },
@@ -573,7 +576,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [tab, setTab] = useState('dashboard');
-  const [adminData, setAdminData] = useState(data || { projects: [], categories: [], blogPosts: [] });
+  const [adminData, setAdminData] = useState(data || { projects: [], categories: [], blogPosts: [], themeSettings: normalizeThemeSettings() });
   const [stats, setStats] = useState({ projectCount: 0, publishedCount: 0, blogCount: 0, categoryCount: 0 });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -585,6 +588,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [blogSelId, setBlogSelId] = useState('');
   const [blogForm, setBlogForm] = useState<any>(null);
   const [blogContent, setBlogContent] = useState('');
+  const [themeForm, setThemeForm] = useState(normalizeThemeSettings(data?.themeSettings));
   const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -623,6 +627,15 @@ export default function AdminPage({ data, refresh }: any) {
   useEffect(() => { if (authed) sync(); }, [authed]);
 
   useEffect(() => {
+    if (!data) return;
+    setAdminData(data);
+  }, [data]);
+
+  useEffect(() => {
+    setThemeForm(normalizeThemeSettings(adminData.themeSettings));
+  }, [adminData.themeSettings]);
+
+  useEffect(() => {
     if (tab !== 'beforeafter') return;
     const toggles: Record<string, boolean> = {};
     adminData.projects
@@ -658,6 +671,19 @@ export default function AdminPage({ data, refresh }: any) {
     setBlogForm(null);
     setCatSelId('');
     setCatForm(null);
+  }
+
+  async function saveThemeSettings() {
+    setSaving(true);
+    try {
+      const response = await api.updateThemeSettings(themeForm);
+      setThemeForm(normalizeThemeSettings(response.themeSettings));
+      await refresh();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function newCategory() {
@@ -715,6 +741,7 @@ export default function AdminPage({ data, refresh }: any) {
       title: '',
       slug: '',
       categoryId: firstCategory?.id || '',
+      stylePreset: 'default',
       isFeatured: false,
       isPublished: true,
       seoTitle: '',
@@ -745,6 +772,7 @@ export default function AdminPage({ data, refresh }: any) {
       title: project.title || '',
       slug: project.slug || '',
       categoryId: project.categoryId || '',
+      stylePreset: project.stylePreset || 'default',
       content: projectBlocks.length ? projectBlocks : buildProjectBaseBlocks(project, projectCategoryName, 1),
       isFeatured: !!project.isFeatured,
       isPublished: project.isPublished !== false,
@@ -879,6 +907,7 @@ export default function AdminPage({ data, refresh }: any) {
           categoryId: project.categoryId,
           isFeatured: !!project.isFeatured,
           isPublished: project.isPublished !== false,
+          stylePreset: project.stylePreset || 'default',
           seoTitle: project.seoTitle || '',
           seoDescription: project.seoDescription || '',
           seoKeywords: project.seoKeywords || '',
@@ -1020,6 +1049,7 @@ export default function AdminPage({ data, refresh }: any) {
     { id: 'projects', label: 'Projects' },
     { id: 'categories', label: 'Categories' },
     { id: 'beforeafter', label: 'Before & After' },
+    { id: 'themes', label: 'Themes' },
     { id: 'blog', label: 'Blog' },
   ];
 
@@ -1118,6 +1148,16 @@ export default function AdminPage({ data, refresh }: any) {
                   <label style={labelStyle}>City<input value={form.cityName} onChange={(e) => setF('cityName', e.target.value)} placeholder="San Francisco" style={inputStyle} /></label>
                   <label style={labelStyle}>Year<input type="number" value={form.year} onChange={(e) => setF('year', e.target.value)} placeholder="2024" style={inputStyle} /></label>
                 </div>
+                <label style={labelStyle}>
+                  Style Preset
+                  <select value={form.stylePreset || 'default'} onChange={(e) => setF('stylePreset', e.target.value)} style={inputStyle}>
+                    {PROJECT_STYLE_PRESET_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value} style={{ background: '#141414' }}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={form.isFeatured} onChange={(e) => setF('isFeatured', e.target.checked)} /> Featured</label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={form.isPublished} onChange={(e) => setF('isPublished', e.target.checked)} /> Published</label>
@@ -1348,6 +1388,15 @@ export default function AdminPage({ data, refresh }: any) {
             </div>
           ) : <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '40px' }}>No projects with Before/After blocks found.</p>}
         </div>
+      ) : null}
+
+      {tab === 'themes' ? (
+        <AdminThemeEditor
+          value={themeForm}
+          saving={saving}
+          onChange={setThemeForm}
+          onSave={saveThemeSettings}
+        />
       ) : null}
 
       {loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>Loading...</div> : null}

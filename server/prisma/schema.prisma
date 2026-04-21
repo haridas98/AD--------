@@ -41,6 +41,7 @@ model Project {
   year        Int?
   isFeatured  Boolean  @default(false)
   isPublished Boolean  @default(true)
+  stylePreset String   @default("default")
   sortOrder   Int      @default(0)
   createdAt   String   @default("")
   updatedAt   String   @default("")

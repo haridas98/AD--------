@@ -1,6 +1,13 @@
 .page {
   padding-top: calc(var(--header-offset) + 8px);
   padding-bottom: clamp(56px, 8vw, 112px);
+  --project-accent: var(--theme-accent);
+  --project-accent-soft: var(--theme-accent-soft);
+  --project-surface: var(--theme-surface);
+  --project-surface-strong: var(--theme-surface-strong);
+  --project-text-primary: var(--theme-text-primary);
+  --project-text-secondary: var(--theme-text-secondary);
+  --project-border: var(--theme-border);
 }
 
 .content {

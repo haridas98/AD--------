@@ -10,11 +10,19 @@ import styles from './ProjectPage.module.scss';
 export default function ProjectPage() {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
-  const { projects, site } = useAppStore();
+  const { projects, site, loading } = useAppStore();
 
   const catSlug = location.pathname.split('/')[1];
   const category = useAppStore.getState().categories.find((item) => item.slug === catSlug || item.id === catSlug);
   const project = projects.find((item) => item.slug === slug);
+
+  if (!project && (loading || !site)) {
+    return (
+      <main className={`${styles.page} project-page`} data-project-page>
+        <div className={styles.content}>Loading...</div>
+      </main>
+    );
+  }
 
   if (!project) return <Navigate to="/" replace />;
 
@@ -43,6 +51,7 @@ export default function ProjectPage() {
       <motion.main
         className={`${styles.page} project-page`}
         data-project-page
+        data-project-preset={project.stylePreset || 'default'}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}

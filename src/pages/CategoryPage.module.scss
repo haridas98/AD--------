@@ -8,7 +8,7 @@
 
 .header h1 {
   margin: 0 0 10px;
-  color: #fff;
+  color: var(--theme-text-primary);
   font-family: 'GilroyExtraBold', sans-serif;
   font-size: clamp(30px, 3vw, 52px);
   line-height: 0.98;
@@ -17,7 +17,7 @@
 .header p {
   max-width: 780px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--theme-text-secondary);
   font-size: 16px;
   line-height: 1.55;
 }

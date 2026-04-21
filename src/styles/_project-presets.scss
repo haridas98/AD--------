@@ -1,0 +1,59 @@
+[data-project-page][data-project-preset='default'] {
+  --project-accent: var(--theme-accent);
+  --project-accent-soft: var(--theme-accent-soft);
+  --project-surface: var(--theme-surface);
+  --project-surface-strong: var(--theme-surface-strong);
+  --project-text-primary: var(--theme-text-primary);
+  --project-text-secondary: var(--theme-text-secondary);
+  --project-border: var(--theme-border);
+}
+
+[data-project-page][data-project-preset='kids'] {
+  --project-accent: #d978a6;
+  --project-accent-soft: rgba(217, 120, 166, 0.16);
+  --project-surface: color-mix(in srgb, #fff4fb 88%, var(--theme-surface));
+  --project-surface-strong: color-mix(in srgb, #fff7fc 92%, var(--theme-surface-strong));
+  --project-text-primary: #342633;
+  --project-text-secondary: rgba(52, 38, 51, 0.72);
+  --project-border: rgba(217, 120, 166, 0.2);
+}
+
+[data-project-page][data-project-preset='minimal'] {
+  --project-accent: #938a7d;
+  --project-accent-soft: rgba(147, 138, 125, 0.14);
+  --project-surface: color-mix(in srgb, #f3efe9 82%, var(--theme-surface));
+  --project-surface-strong: color-mix(in srgb, #ede7df 86%, var(--theme-surface-strong));
+  --project-text-primary: #24211d;
+  --project-text-secondary: rgba(36, 33, 29, 0.72);
+  --project-border: rgba(147, 138, 125, 0.16);
+}
+
+[data-project-page][data-project-preset='luxury'] {
+  --project-accent: #c5a56a;
+  --project-accent-soft: rgba(197, 165, 106, 0.16);
+  --project-surface: color-mix(in srgb, #1d1812 32%, var(--theme-surface));
+  --project-surface-strong: color-mix(in srgb, #251d14 44%, var(--theme-surface-strong));
+  --project-text-primary: #f6efe5;
+  --project-text-secondary: rgba(246, 239, 229, 0.72);
+  --project-border: rgba(197, 165, 106, 0.22);
+}
+
+[data-project-page][data-project-preset='warm'] {
+  --project-accent: #bf7f55;
+  --project-accent-soft: rgba(191, 127, 85, 0.14);
+  --project-surface: color-mix(in srgb, #f8ede3 80%, var(--theme-surface));
+  --project-surface-strong: color-mix(in srgb, #f4e6da 84%, var(--theme-surface-strong));
+  --project-text-primary: #2b211a;
+  --project-text-secondary: rgba(43, 33, 26, 0.72);
+  --project-border: rgba(191, 127, 85, 0.18);
+}
+
+[data-project-page][data-project-preset='editorial'] {
+  --project-accent: #7d96d9;
+  --project-accent-soft: rgba(125, 150, 217, 0.14);
+  --project-surface: color-mix(in srgb, #f4f6fb 82%, var(--theme-surface));
+  --project-surface-strong: color-mix(in srgb, #eef2fb 88%, var(--theme-surface-strong));
+  --project-text-primary: #20263a;
+  --project-text-secondary: rgba(32, 38, 58, 0.72);
+  --project-border: rgba(125, 150, 217, 0.18);
+}

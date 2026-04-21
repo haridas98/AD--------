@@ -7,16 +7,51 @@ import path from 'path';
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 import { normalizeSqliteDatabaseUrl } from './database-url.mjs';
+import { assertThemeShape, readThemeSettings, writeThemeSettings } from './theme-settings.js';
+
+function readLocalEnvFile() {
+  const envPath = path.resolve('.env');
+  if (!fs.existsSync(envPath)) return {};
+
+  const raw = fs.readFileSync(envPath, 'utf8');
+  const values = {};
+
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const separatorIndex = trimmed.indexOf('=');
+    if (separatorIndex === -1) continue;
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, '');
+    if (!key) continue;
+    values[key] = value;
+  }
+
+  return values;
+}
+
+const localEnv = readLocalEnvFile();
+const preferLocalEnv = process.env.NODE_ENV !== 'production';
+
+function getEnvValue(key, fallback = '') {
+  if (preferLocalEnv && localEnv[key] != null && localEnv[key] !== '') return localEnv[key];
+  if (process.env[key] != null && process.env[key] !== '') return process.env[key];
+  if (!preferLocalEnv && localEnv[key] != null && localEnv[key] !== '') return localEnv[key];
+  return fallback;
+}
 
 const app = express();
-const PORT = process.env.PORT || 8787;
+const PORT = getEnvValue('PORT', 8787);
 const UPLOADS_DIR = path.resolve('public/uploads');
-const ADMIN_USER = process.env.ADMIN_USER || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_USER = getEnvValue('ADMIN_USER', 'admin');
+const ADMIN_PASSWORD = getEnvValue('ADMIN_PASSWORD', 'admin123');
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 12;
 
-if (process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = normalizeSqliteDatabaseUrl(process.env.DATABASE_URL, process.cwd());
+const databaseUrl = getEnvValue('DATABASE_URL', '');
+if (databaseUrl) {
+  process.env.DATABASE_URL = normalizeSqliteDatabaseUrl(databaseUrl, process.cwd());
 }
 
 const prisma = new PrismaClient();
@@ -90,12 +125,13 @@ function runImageUpload(req, res, next) {
 
 app.get('/api/content', async (_req, res) => {
   try {
+    const themeSettings = readThemeSettings();
     const [categories, projects, blogPosts] = await Promise.all([
       prisma.category.findMany({ where: { showInHeader: true }, orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ where: { isPublished: true }, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ where: { isPublished: true }, orderBy: { publishedAt: 'desc' }, take: 10 }),
     ]);
-    res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts });
+    res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts, themeSettings });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });
 
@@ -152,13 +188,24 @@ app.get('/api/auth/me', requireAuth, (req, res) => res.json({ ok: true, user: re
 
 app.get('/api/admin/content', requireAuth, async (_req, res) => {
   try {
+    const themeSettings = readThemeSettings();
     const [categories, projects, blogPosts] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ orderBy: { createdAt: 'desc' } }),
       prisma.blogPost.findMany({ orderBy: { createdAt: 'desc' } }),
     ]);
-    res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts });
+    res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts, themeSettings });
   } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.put('/api/admin/theme-settings', requireAuth, async (req, res) => {
+  try {
+    assertThemeShape(req.body || {});
+    const themeSettings = writeThemeSettings(req.body || {});
+    res.json({ themeSettings });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Invalid theme settings' });
+  }
 });
 
 // Admin stats
@@ -199,7 +246,7 @@ app.post('/api/admin/projects', requireAuth, async (req, res) => {
     if (!b.title || !b.categoryId) return res.status(400).json({ error: 'title & categoryId required' });
     let slug = b.slug || normalizeSlug(b.title);
     if (await prisma.project.findUnique({ where: { slug } })) slug = `${slug}-${Date.now()}`;
-    const p = await prisma.project.create({ data: { title: b.title, slug, categoryId: b.categoryId, content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content || []), isFeatured: !!b.isFeatured, isPublished: b.isPublished !== false, seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
+    const p = await prisma.project.create({ data: { title: b.title, slug, categoryId: b.categoryId, content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content || []), isFeatured: !!b.isFeatured, isPublished: b.isPublished !== false, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
     res.status(201).json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });
@@ -211,7 +258,7 @@ app.put('/api/admin/projects/:id', requireAuth, async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Not found' });
     let slug = b.slug ?? existing.slug;
     if (slug !== existing.slug && await prisma.project.findUnique({ where: { slug } })) return res.status(409).json({ error: 'Slug exists' });
-    const p = await prisma.project.update({ where: { id: req.params.id }, data: { title: b.title, slug, categoryId: b.categoryId, content: b.content ? (typeof b.content === 'string' ? b.content : JSON.stringify(b.content)) : undefined, isFeatured: b.isFeatured, isPublished: b.isPublished, seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
+    const p = await prisma.project.update({ where: { id: req.params.id }, data: { title: b.title, slug, categoryId: b.categoryId, content: b.content ? (typeof b.content === 'string' ? b.content : JSON.stringify(b.content)) : undefined, isFeatured: b.isFeatured, isPublished: b.isPublished, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
     res.json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });

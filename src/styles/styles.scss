@@ -19,14 +19,27 @@
 
 // CSS Variables (for JS/runtime access)
 :root {
-  --bg-site: #141414;
-  --bg-menu-mobile: #000000;
-  --bg-submenu: rgba(20, 20, 20, 1);
-  --text-primary: rgba(255, 255, 255, 1);
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-copyright: #787878;
-  --link-hover: rgba(198, 164, 123, 1);
-  --accent: rgba(198, 164, 123, 1);
+  --theme-bg: #141414;
+  --theme-surface: rgba(255, 255, 255, 0.04);
+  --theme-surface-strong: rgba(18, 18, 18, 0.98);
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: rgba(255, 255, 255, 0.72);
+  --theme-text-muted: rgba(255, 255, 255, 0.48);
+  --theme-accent: rgba(198, 164, 123, 1);
+  --theme-accent-soft: rgba(198, 164, 123, 0.18);
+  --theme-border: rgba(255, 255, 255, 0.08);
+  --theme-border-strong: rgba(255, 255, 255, 0.14);
+  --theme-header-bg: rgba(20, 20, 20, 0.92);
+  --theme-header-bg-strong: rgba(20, 20, 20, 0.97);
+  --theme-footer-bg: #141414;
+  --bg-site: var(--theme-bg);
+  --bg-menu-mobile: var(--theme-surface-strong);
+  --bg-submenu: var(--theme-surface-strong);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --text-copyright: var(--theme-text-muted);
+  --link-hover: var(--theme-accent);
+  --accent: var(--theme-accent);
   --menu-font: 'Proba Pro', 'GilroyLight', sans-serif;
   --menu-font-size: 13px;
   --menu-line-height: 16px;
@@ -55,10 +68,43 @@
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+[data-theme='dark'] {
+  --theme-bg: #141414;
+  --theme-surface: rgba(255, 255, 255, 0.04);
+  --theme-surface-strong: rgba(18, 18, 18, 0.98);
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: rgba(255, 255, 255, 0.72);
+  --theme-text-muted: rgba(255, 255, 255, 0.48);
+  --theme-accent: rgba(198, 164, 123, 1);
+  --theme-accent-soft: rgba(198, 164, 123, 0.18);
+  --theme-border: rgba(255, 255, 255, 0.08);
+  --theme-border-strong: rgba(255, 255, 255, 0.14);
+  --theme-header-bg: rgba(20, 20, 20, 0.92);
+  --theme-header-bg-strong: rgba(20, 20, 20, 0.97);
+  --theme-footer-bg: #141414;
+}
+
+[data-theme='light'] {
+  --theme-bg: #f5f1eb;
+  --theme-surface: rgba(255, 255, 255, 0.8);
+  --theme-surface-strong: rgba(255, 250, 243, 0.98);
+  --theme-text-primary: #201c18;
+  --theme-text-secondary: rgba(32, 28, 24, 0.72);
+  --theme-text-muted: rgba(32, 28, 24, 0.52);
+  --theme-accent: #b07a48;
+  --theme-accent-soft: rgba(176, 122, 72, 0.16);
+  --theme-border: rgba(32, 28, 24, 0.1);
+  --theme-border-strong: rgba(32, 28, 24, 0.16);
+  --theme-header-bg: rgba(245, 241, 235, 0.92);
+  --theme-header-bg-strong: rgba(248, 244, 239, 0.97);
+  --theme-footer-bg: #efe7dd;
+}
+
 // Import modules
 @import 'variables';
 @import 'base';
 @import 'layout';
+@import 'project-presets';
 @import 'components';
 @import 'pages';
 @import 'blocks';

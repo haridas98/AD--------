@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAppStore } from '../store/useAppStore';
 import styles from './Header.module.scss';
 
 interface MenuSection {
@@ -13,6 +14,8 @@ interface MenuSection {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const themeMode = useAppStore((s) => s.themeMode);
+  const toggleThemeMode = useAppStore((s) => s.toggleThemeMode);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -84,6 +87,15 @@ export default function Header() {
         </nav>
 
         <button
+          className={styles.themeToggle}
+          onClick={toggleThemeMode}
+          aria-label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          title={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        >
+          <span className={styles.themeToggleText}>{themeMode === 'dark' ? 'Light' : 'Dark'}</span>
+        </button>
+
+        <button
           className={styles.menuToggle}
           onClick={() => setMenuOpen((value) => !value)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -105,6 +117,13 @@ export default function Header() {
       </AnimatePresence>
 
       <nav className={`${styles.topNav} ${menuOpen ? styles.open : ''}`}>
+        <button
+          className={styles.mobileThemeToggle}
+          onClick={toggleThemeMode}
+          aria-label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        >
+          Theme: {themeMode === 'dark' ? 'Light' : 'Dark'}
+        </button>
         {menuItems.map((item) => (
           <div key={item.name}>
             <NavLink
