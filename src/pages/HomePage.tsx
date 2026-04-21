@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
+import { PortfolioLeadCard } from '../components/PortfolioLeadCard';
+import { PortfolioProjectCard } from '../components/PortfolioProjectCard';
+import styles from './HomePage.module.scss';
 
 export default function HomePage() {
   const { categories, projects, site } = useAppStore();
@@ -77,33 +80,52 @@ export default function HomePage() {
       </section>
 
       {/* Category Sections — Project Cards */}
-      <section className="container home-sections">
+      <section className={styles.sections}>
         {categories.map((category) => {
           const catProjects = projects.filter((p) => p.categoryId === category.id && p.isPublished);
           if (!catProjects.length) return null;
+          const projectsWithCover = catProjects.filter((project) => getCover(project));
+          const leadProject = projectsWithCover.find((project) => project.isFeatured) || projectsWithCover[0];
+          const supportingProjects = projectsWithCover.filter((project) => project.id !== leadProject?.id).slice(0, 4);
+          if (!leadProject) return null;
+
           return (
-            <motion.div key={category.id} className="section-block" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-              <div className="section-head">
-                <h2>{category.name}</h2>
-                <Link to={getCategorySlug(category.id)} className="btn-see-more">
-                  <span>See more {category.name.toLowerCase()}</span>
-                  <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </Link>
-              </div>
-              <div className="cards-grid">
-                {catProjects.slice(0, 8).map((project, idx) => {
-                  const cover = getCover(project);
-                  return (
-                    <motion.article key={project.id} className="project-card" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} whileHover={{ y: -4 }}>
-                      <Link to={getProjectLink(project)} className="project-image-wrap">
-                        {cover && <img src={cover} alt={project.title} loading="lazy" />}
-                      </Link>
-                      <div className="project-body">
-                        <h3>{project.title}</h3>
-                      </div>
-                    </motion.article>
-                  );
-                })}
+            <motion.div key={category.id} className={styles.section} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+              <div className="page-shell">
+                <div className="page-shell__portfolio">
+                  <div className={styles.sectionHead}>
+                    <h2>{category.name}</h2>
+                    <Link to={getCategorySlug(category.id)} className="btn-see-more">
+                      <span>See more {category.name.toLowerCase()}</span>
+                      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </Link>
+                  </div>
+
+                  <PortfolioLeadCard
+                    to={getProjectLink(leadProject)}
+                    title={leadProject.title}
+                    image={getCover(leadProject)}
+                    categoryName={category.name}
+                    cityName={leadProject.cityName}
+                    year={leadProject.year}
+                  />
+
+                  {supportingProjects.length > 0 && (
+                    <div className={styles.supportingGrid}>
+                      {supportingProjects.map((project) => (
+                        <PortfolioProjectCard
+                          key={project.id}
+                          to={getProjectLink(project)}
+                          title={project.title}
+                          image={getCover(project)}
+                          eyebrow={category.name}
+                          cityName={project.cityName}
+                          year={project.year}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           );

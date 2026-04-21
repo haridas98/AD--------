@@ -3,12 +3,25 @@ import { motion } from 'framer-motion';
 
 interface MetaInfoBlockProps {
   data: {
-    items: Array<{ label: string; value: string }>;
+    items?: Array<{ label: string; value: string }>;
+    metaText?: string;
   };
 }
 
 export default function MetaInfoBlock({ data }: MetaInfoBlockProps) {
-  if (!data.items?.length) return null;
+  const items = data.items?.length
+    ? data.items
+    : String(data.metaText || '')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const [label, ...rest] = line.split(':');
+          return { label: (label || '').trim(), value: rest.join(':').trim() };
+        })
+        .filter((item) => item.label && item.value);
+
+  if (!items.length) return null;
 
   return (
     <motion.section
@@ -18,7 +31,7 @@ export default function MetaInfoBlock({ data }: MetaInfoBlockProps) {
       viewport={{ once: true }}
       transition={{ duration: 0.4 }}
     >
-      {data.items.map((item, i) => (
+      {items.map((item, i) => (
         <p key={i} className="block-meta-info-item">
           <strong>{item.label}:</strong> {item.value}
         </p>

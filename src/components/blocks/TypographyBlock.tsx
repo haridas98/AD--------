@@ -14,6 +14,8 @@ export default function TypographyBlock({ data }: TypographyBlockProps) {
   if (!data.content) return null;
 
   const sizeMap = { sm: '14px', md: '16px', lg: '18px' };
+  const alignMap = { left: 'left', center: 'center', right: 'right' } as const;
+  const align = alignMap[data.align || 'left'];
 
   return (
     <motion.section
@@ -23,8 +25,8 @@ export default function TypographyBlock({ data }: TypographyBlockProps) {
       viewport={{ once: true }}
       transition={{ duration: 0.4 }}
     >
-      {data.title && <h2>{data.title}</h2>}
-      <p style={{ fontSize: sizeMap[data.size || 'md'], whiteSpace: 'pre-wrap' }}>{data.content}</p>
+      {data.title ? <h2 style={{ textAlign: align }}>{data.title}</h2> : null}
+      <p style={{ fontSize: sizeMap[data.size || 'md'], whiteSpace: 'pre-wrap', textAlign: align }}>{data.content}</p>
     </motion.section>
   );
 }

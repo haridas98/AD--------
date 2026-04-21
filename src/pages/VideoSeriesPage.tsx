@@ -80,12 +80,13 @@ export default function VideoSeriesPage() {
         <meta name="description" content="Watch our design process and project walkthroughs" />
       </Helmet>
       <motion.main
-        className="container video-series-page"
+        className="page-shell page-shell--offset video-series-page"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="page-title">Video Series</h1>
+        <div className="page-shell__portfolio">
+          <h1 className="page-title">Video Series</h1>
 
         {/* Featured Video */}
         <section className="video-featured">
@@ -102,7 +103,7 @@ export default function VideoSeriesPage() {
         </section>
 
         {/* Video Gallery Grid */}
-        {videoSections.slice(1).map((section, i) => (
+          {videoSections.slice(1).map((section, i) => (
           <motion.section
             key={i}
             className="video-section"
@@ -145,7 +146,8 @@ export default function VideoSeriesPage() {
               </div>
             ) : null}
           </motion.section>
-        ))}
+          ))}
+        </div>
       </motion.main>
     </>
   );

@@ -1,18 +1,25 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
 
 interface SideBySideBlockProps {
   data: {
     text: string;
-    image: string;
+    image: any;
     alt?: string;
     imagePosition?: 'left' | 'right';
     title?: string;
+    crop?: {
+      scale?: number;
+      x?: number;
+      y?: number;
+    };
   };
 }
 
 export default function SideBySideBlock({ data }: SideBySideBlockProps) {
-  if (!data.text && !data.image) return null;
+  const asset = normalizeImageAsset(typeof data.image === 'string' ? { url: data.image, alt: data.alt, crop: data.crop } : data.image);
+  if (!data.text && !asset?.url) return null;
 
   const isImageLeft = data.imagePosition !== 'right';
 
@@ -24,9 +31,9 @@ export default function SideBySideBlock({ data }: SideBySideBlockProps) {
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
     >
-      {data.image && (
+      {asset?.url && (
         <div className="block-side-by-side-image">
-          <img src={data.image} alt={data.alt || data.title || ''} />
+          <img src={asset.url} alt={asset.alt || data.alt || data.title || ''} style={getCoverImageStyle(asset.crop)} />
         </div>
       )}
       {data.text && (

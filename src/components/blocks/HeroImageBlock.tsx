@@ -1,17 +1,24 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
 
 interface HeroImageBlockProps {
   data: {
-    image: string;
+    image: any;
     alt?: string;
     title?: string;
     subtitle?: string;
+    crop?: {
+      scale?: number;
+      x?: number;
+      y?: number;
+    };
   };
 }
 
 export default function HeroImageBlock({ data }: HeroImageBlockProps) {
-  if (!data.image) return null;
+  const asset = normalizeImageAsset(typeof data.image === 'string' ? { url: data.image, alt: data.alt, crop: data.crop } : data.image);
+  if (!asset?.url) return null;
 
   return (
     <motion.section
@@ -21,9 +28,10 @@ export default function HeroImageBlock({ data }: HeroImageBlockProps) {
       transition={{ duration: 0.6 }}
     >
       <img
-        src={data.image}
-        alt={data.alt || data.title || ''}
+        src={asset.url}
+        alt={asset.alt || data.alt || data.title || ''}
         className="project-hero-image"
+        style={getCoverImageStyle(asset.crop)}
       />
       <div className="project-hero-overlay" />
       {data.title && (

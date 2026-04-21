@@ -12,10 +12,12 @@ export default function StaticPage() {
 
   if (!page) {
     return (
-      <main className="container page-pad">
-        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          Page not found
-        </motion.h1>
+      <main className="page-shell page-shell--offset">
+        <div className="page-shell__text">
+          <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            Page not found
+          </motion.h1>
+        </div>
       </main>
     );
   }
@@ -28,13 +30,15 @@ export default function StaticPage() {
       </Helmet>
 
       <motion.main
-        className="container page-pad static-page"
+        className="page-shell page-shell--offset static-page"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1>{page.title}</h1>
-        <p>{page.body}</p>
+        <div className="page-shell__text">
+          <h1>{page.title}</h1>
+          <p>{page.body}</p>
+        </div>
       </motion.main>
     </>
   );

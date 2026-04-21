@@ -1,16 +1,24 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { api } from '../lib/api';
+import AdminAssetSourcePanel from '../components/admin/AdminAssetSourcePanel';
+import AdminImageCropModal from '../components/admin/AdminImageCropModal';
+import { normalizeEditorCrop } from '../lib/adminImageCrop';
+import { getCoverImageStyle } from '../lib/imageTransforms';
 
 const BLOCK_TYPES = [
-  { value: 'heroImage', label: '📸 Hero Image' },
-  { value: 'imageGrid', label: '🖼️ Image Grid' },
-  { value: 'metaInfo', label: 'ℹ️ Meta Info' },
-  { value: 'typography', label: '📝 Typography' },
-  { value: 'sideBySide', label: '↔️ Side by Side' },
-  { value: 'ctaSection', label: '📣 CTA Section' },
-  { value: 'beforeAfter', label: '🔄 Before / After' },
+  { value: 'heroImage', label: 'Hero Image' },
+  { value: 'imageGrid', label: 'Image Grid' },
+  { value: 'metaInfo', label: 'Meta Info' },
+  { value: 'typography', label: 'Typography' },
+  { value: 'sideBySide', label: 'Side by Side' },
+  { value: 'ctaSection', label: 'CTA Section' },
+  { value: 'beforeAfter', label: 'Before / After' },
+  { value: 'refinedSlider', label: 'Refined Slider' },
+  { value: 'circleDetail', label: 'Circle Detail' },
+  { value: 'editorialNote', label: 'Editorial Note' },
+  { value: 'mosaicPreset', label: 'Mosaic Preset' },
 ];
 
 function toSlug(t: string) {
@@ -18,9 +26,655 @@ function toSlug(t: string) {
   return t.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
 }
 
-const inputStyle: React.CSSProperties = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '14px', fontFamily: 'inherit' };
-const miniBtn: React.CSSProperties = { padding: '4px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '12px' };
-const cardStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '20px' };
+function parseContent(content: any) {
+  if (!content) return [];
+  if (typeof content === 'string') {
+    try { return JSON.parse(content); } catch { return []; }
+  }
+  return Array.isArray(content) ? content : [];
+}
+
+function getHeroImage(content: any[]) {
+  return content.find((block: any) => block.type === 'heroImage')?.data?.image || '';
+}
+
+function getProjectImages(content: any[]) {
+  const hero = getHeroImage(content);
+  const gridImages = content
+    .flatMap((block: any) => {
+      if (block.type === 'imageGrid') return block.data?.images || [];
+      if (block.type === 'refinedSlider') return block.data?.images || [];
+      if (block.type === 'mosaicPreset') return block.data?.images || [];
+      return [];
+    })
+    .map((item: any) => typeof item === 'string' ? item : item?.url)
+    .filter(Boolean);
+
+  const base = [hero, ...gridImages].filter(Boolean);
+  return base.length ? base : [''];
+}
+
+function buildDemoProjectBlocks(project: any, categoryName: string) {
+  const current = parseContent(project.content);
+  const baseImages = getProjectImages(current);
+  const fallbackImage = baseImages[0] || '';
+  if (!fallbackImage) return current;
+
+  const repeated = Array.from({ length: 4 }, (_, index) => ({
+    url: baseImages[index] || fallbackImage,
+    alt: `${project.title} ${index + 1}`,
+  }));
+
+  const existingHero = current.find((block: any) => block.type === 'heroImage');
+
+  return [
+    existingHero || {
+      id: `hero-${Date.now()}`,
+      type: 'heroImage',
+      data: {
+        title: project.title,
+        subtitle: `${categoryName} project in ${project.cityName || 'California'} with a cleaner, more intentional presentation.`,
+        image: fallbackImage,
+        alt: project.title,
+      },
+    },
+    {
+      id: `editorial-${Date.now()}`,
+      type: 'editorialNote',
+      data: {
+        eyebrow: categoryName,
+        title: 'Project overview',
+        note: `${project.title} is presented as a richer portfolio story: concept, material rhythm, day-to-day function, and the final visual atmosphere.`,
+        image: repeated[1]?.url || fallbackImage,
+      },
+    },
+    {
+      id: `typography-${Date.now()}`,
+      type: 'typography',
+      data: {
+        title: 'What was done',
+        content: 'Space planning, storage logic, material coordination, finish selection, lighting balance, and a calmer visual composition for daily use.',
+        size: 'lg',
+      },
+    },
+    {
+      id: `slider-${Date.now()}`,
+      type: 'refinedSlider',
+      data: {
+        title: 'Walkthrough highlights',
+        description: 'A cleaner image sequence for key moments of the project.',
+        thumbnailPosition: 'bottom',
+        images: repeated,
+      },
+    },
+    {
+      id: `circle-${Date.now()}`,
+      type: 'circleDetail',
+      data: {
+        title: 'Key details',
+        description: 'A quick visual summary of accents and focal points.',
+        items: [
+          { label: 'Cabinet lines', image: repeated[0].url, alt: 'Cabinet lines' },
+          { label: 'Finish palette', image: repeated[1].url, alt: 'Finish palette' },
+          { label: 'Lighting mood', image: repeated[2].url, alt: 'Lighting mood' },
+          { label: 'Material balance', image: repeated[3].url, alt: 'Material balance' },
+        ],
+      },
+    },
+    {
+      id: `mosaic-${Date.now()}`,
+      type: 'mosaicPreset',
+      data: {
+        title: 'Project composition',
+        preset: 'a',
+        images: repeated,
+      },
+    },
+    {
+      id: `before-${Date.now()}`,
+      type: 'beforeAfter',
+      data: {
+        title: 'Before / After',
+        beforeImage: repeated[0].url,
+        afterImage: repeated[1].url || repeated[0].url,
+      },
+    },
+    {
+      id: `cta-${Date.now()}`,
+      type: 'ctaSection',
+      data: {
+        title: 'Discuss a similar project',
+        text: 'Use this section as a placeholder until the final client-facing copy is ready.',
+        buttonText: 'Contact us',
+        buttonLink: '/contact',
+      },
+    },
+  ];
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '10px',
+  borderRadius: '8px',
+  border: '1px solid rgba(255,255,255,0.2)',
+  background: 'rgba(255,255,255,0.05)',
+  color: '#fff',
+  fontSize: '14px',
+  fontFamily: 'inherit',
+};
+const miniBtn: React.CSSProperties = {
+  padding: '4px 10px',
+  borderRadius: '4px',
+  border: '1px solid rgba(255,255,255,0.2)',
+  background: 'transparent',
+  color: '#fff',
+  cursor: 'pointer',
+  fontSize: '12px',
+};
+const cardStyle: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '12px',
+  padding: '20px',
+};
+const labelStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '4px',
+  color: 'rgba(255,255,255,0.6)',
+  fontSize: '13px',
+};
+const panelStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '12px',
+  padding: '12px',
+  borderRadius: '10px',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.08)',
+};
+const slotGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '10px',
+};
+
+type CropData = { scale: number; x: number; y: number };
+type EditableImage = { url: string; alt?: string; crop: CropData };
+type CircleItem = { label?: string; image: string; alt?: string; crop: CropData };
+
+function ensureCrop(crop?: any): CropData {
+  return normalizeEditorCrop(crop);
+}
+
+function toEditableImage(item?: any): EditableImage {
+  if (!item) return { url: '', alt: '', crop: ensureCrop() };
+  if (typeof item === 'string') return { url: item, alt: '', crop: ensureCrop() };
+  return { url: item.url || '', alt: item.alt || '', crop: ensureCrop(item.crop) };
+}
+
+function toCircleItem(item?: any): CircleItem {
+  if (!item) return { label: '', image: '', alt: '', crop: ensureCrop() };
+  return {
+    label: item.label || '',
+    image: item.image || '',
+    alt: item.alt || '',
+    crop: ensureCrop(item.crop),
+  };
+}
+
+function CoverPreview({
+  url,
+  crop,
+  aspectRatio = '1 / 1',
+  radius = '16px',
+}: {
+  url?: string;
+  crop?: CropData;
+  aspectRatio?: string;
+  radius?: string;
+}) {
+  return (
+    <div style={{ aspectRatio, borderRadius: radius, overflow: 'hidden', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', position: 'relative' }}>
+      {url ? (
+        <img
+          src={url}
+          alt=""
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+            ...getCoverImageStyle(crop),
+          }}
+        />
+      ) : (
+        <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', color: 'rgba(255,255,255,0.28)', fontSize: '12px' }}>Empty</div>
+      )}
+    </div>
+  );
+}
+
+function actionButtonStyle(isPrimary = false): React.CSSProperties {
+  return (
+    {
+      padding: '8px 12px',
+      borderRadius: '999px',
+      border: isPrimary ? '1px solid rgba(198,164,123,0.5)' : '1px solid rgba(255,255,255,0.12)',
+      background: isPrimary ? 'rgba(198,164,123,0.14)' : 'rgba(255,255,255,0.03)',
+      color: '#fff',
+      cursor: 'pointer',
+      fontSize: '12px',
+      fontWeight: 600,
+    }
+  );
+}
+
+function mediaOverlayButtonStyle(tone: 'default' | 'danger' = 'default'): React.CSSProperties {
+  return {
+    width: '34px',
+    height: '34px',
+    borderRadius: '999px',
+    border: '1px solid rgba(255,255,255,0.12)',
+    background: tone === 'danger' ? 'rgba(170,46,46,0.75)' : 'rgba(15,15,15,0.75)',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: 700,
+    display: 'grid',
+    placeItems: 'center',
+    backdropFilter: 'blur(8px)',
+  };
+}
+
+function EditableCoverFieldEditor({
+  value,
+  onChange,
+  onUpload,
+  aspectRatio = '4 / 5',
+  radius = '16px',
+  cropShape = 'rect',
+  cropEnabled = true,
+}: {
+  value?: any;
+  onChange: (next: EditableImage) => void;
+  onUpload: (file: File) => Promise<any> | any;
+  aspectRatio?: string;
+  radius?: string;
+  cropShape?: 'rect' | 'round';
+  cropEnabled?: boolean;
+}) {
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [isSourceOpen, setIsSourceOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const current = toEditableImage(value);
+  const openFilePicker = () => fileInputRef.current?.click();
+
+  return (
+    <div style={{ display: 'grid', gap: '10px' }}>
+      <div style={{ position: 'relative' }}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsSourceOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setIsSourceOpen(true);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        >
+          <CoverPreview url={current.url} crop={current.crop} aspectRatio={aspectRatio} radius={radius} />
+          {!current.url ? (
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontSize: '26px', fontWeight: 700, background: 'rgba(15,15,15,0.28)', borderRadius: radius }}>
+              +
+            </div>
+          ) : null}
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={async (e) => {
+            if (!e.target.files?.[0]) return;
+            const uploaded = await onUpload(e.target.files[0]);
+            if (uploaded?.url) onChange({ ...current, url: uploaded.url, crop: ensureCrop() });
+            e.currentTarget.value = '';
+          }}
+          style={{ display: 'none' }}
+        />
+
+        {current.url ? (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
+            {cropEnabled ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsCropOpen(true);
+                }}
+                style={mediaOverlayButtonStyle()}
+              >
+                edit
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onChange({ ...current, url: '', crop: ensureCrop() });
+              }}
+              style={mediaOverlayButtonStyle('danger')}
+            >
+              x
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <AdminAssetSourcePanel
+        open={isSourceOpen}
+        title={current.url ? 'Replace image' : 'Add image'}
+        initialUrl={current.url}
+        onUploadClick={() => {
+          setIsSourceOpen(false);
+          openFilePicker();
+        }}
+        onUrlApply={(nextUrl) => {
+          onChange({ ...current, url: nextUrl, crop: ensureCrop() });
+          setIsSourceOpen(false);
+        }}
+        onClose={() => setIsSourceOpen(false)}
+      />
+
+      <AdminImageCropModal
+        open={isCropOpen}
+        title="Edit image framing"
+        imageUrl={current.url}
+        aspectRatio={aspectRatio}
+        cropShape={cropShape}
+        initialCrop={current.crop}
+        onClose={() => setIsCropOpen(false)}
+        onSave={(crop) => {
+          onChange({ ...current, crop });
+          setIsCropOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+function BasicCoverFieldEditor({
+  url,
+  crop,
+  onUrlChange,
+  onCropChange,
+  onUpload,
+  aspectRatio = '4 / 5',
+  radius = '16px',
+  cropShape = 'rect',
+  cropEnabled = true,
+}: {
+  url?: string;
+  crop?: CropData;
+  onUrlChange: (next: string) => void;
+  onCropChange: (next: CropData) => void;
+  onUpload: (file: File) => Promise<any> | any;
+  aspectRatio?: string;
+  radius?: string;
+  cropShape?: 'rect' | 'round';
+  cropEnabled?: boolean;
+}) {
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [isSourceOpen, setIsSourceOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const currentCrop = ensureCrop(crop);
+  const openFilePicker = () => fileInputRef.current?.click();
+
+  return (
+    <div style={{ display: 'grid', gap: '10px' }}>
+      <div style={{ position: 'relative' }}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsSourceOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setIsSourceOpen(true);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        >
+          <CoverPreview url={url} crop={currentCrop} aspectRatio={aspectRatio} radius={radius} />
+          {!url ? (
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontSize: '26px', fontWeight: 700, background: 'rgba(15,15,15,0.28)', borderRadius: radius }}>
+              +
+            </div>
+          ) : null}
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={async (e) => {
+            if (!e.target.files?.[0]) return;
+            const uploaded = await onUpload(e.target.files[0]);
+            if (uploaded?.url) {
+              onUrlChange(uploaded.url);
+              onCropChange(ensureCrop());
+            }
+            e.currentTarget.value = '';
+          }}
+          style={{ display: 'none' }}
+        />
+
+        {url ? (
+          <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
+            {cropEnabled ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsCropOpen(true);
+                }}
+                style={mediaOverlayButtonStyle()}
+              >
+                edit
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onUrlChange('');
+                onCropChange(ensureCrop());
+              }}
+              style={mediaOverlayButtonStyle('danger')}
+            >
+              x
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <AdminAssetSourcePanel
+        open={isSourceOpen}
+        title={url ? 'Replace image' : 'Add image'}
+        initialUrl={url || ''}
+        onUploadClick={() => {
+          setIsSourceOpen(false);
+          openFilePicker();
+        }}
+        onUrlApply={(nextUrl) => {
+          onUrlChange(nextUrl);
+          onCropChange(ensureCrop());
+          setIsSourceOpen(false);
+        }}
+        onClose={() => setIsSourceOpen(false)}
+      />
+
+      <AdminImageCropModal
+        open={isCropOpen}
+        title="Edit image framing"
+        imageUrl={url}
+        aspectRatio={aspectRatio}
+        cropShape={cropShape}
+        initialCrop={currentCrop}
+        onClose={() => setIsCropOpen(false)}
+        onSave={(nextCrop) => {
+          onCropChange(nextCrop);
+          setIsCropOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+
+function MosaicPresetEditor({
+  data,
+  idx,
+  onUpdate,
+  onUpload,
+  formTitle,
+  compact = false,
+}: {
+  data: any;
+  idx: number;
+  onUpdate: (i: number, f: string, v: any) => void;
+  onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  formTitle: string;
+  compact?: boolean;
+}) {
+  const images = Array.from({ length: 4 }, (_, index) => toEditableImage((data.images || [])[index]));
+
+  const updateImage = (imageIndex: number, nextImage: EditableImage) => {
+    const next = [...images];
+    next[imageIndex] = nextImage;
+    onUpdate(idx, 'images', next.filter((item) => item.url));
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: '12px' }}>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        <label style={labelStyle}>Title<input value={data.title || ''} onChange={(e) => onUpdate(idx, 'title', e.target.value)} style={inputStyle} /></label>
+        <label style={labelStyle}>Preset<select value={data.preset || 'a'} onChange={(e) => onUpdate(idx, 'preset', e.target.value)} style={inputStyle}><option value="a" style={{ background: '#141414' }}>Preset A</option><option value="b" style={{ background: '#141414' }}>Preset B</option></select></label>
+      </div>
+
+      <div style={{ ...slotGridStyle, gridTemplateColumns: compact ? '1fr 1fr' : data.preset === 'b' ? '0.85fr 1.15fr 1.15fr' : '1.25fr 0.75fr 0.75fr' }}>
+        {images.map((image, imageIndex) => (
+          <EditableCoverFieldEditor
+            key={imageIndex}
+            value={image}
+            aspectRatio={imageIndex === 0 ? '4 / 5' : '1 / 1'}
+            onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
+            onUpload={(file) => onUpload(idx, `mosaicUpload-${imageIndex}`, file)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CircleDetailEditor({
+  data,
+  idx,
+  onUpdate,
+  onUpload,
+  formTitle,
+  compact = false,
+}: {
+  data: any;
+  idx: number;
+  onUpdate: (i: number, f: string, v: any) => void;
+  onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  formTitle: string;
+  compact?: boolean;
+}) {
+  const items = Array.from({ length: Math.max((data.items || []).length, 5) }, (_, index) => toCircleItem((data.items || [])[index]));
+
+  const updateItem = (itemIndex: number, nextItem: CircleItem) => {
+    const next = [...items];
+    next[itemIndex] = nextItem;
+    onUpdate(idx, 'items', next.filter((item) => item.image || item.label));
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: '12px' }}>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        <label style={labelStyle}>Title<input value={data.title || ''} onChange={(e) => onUpdate(idx, 'title', e.target.value)} style={inputStyle} /></label>
+        <label style={labelStyle}>Description<textarea rows={3} value={data.description || ''} onChange={(e) => onUpdate(idx, 'description', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+      </div>
+
+      <div style={{ ...slotGridStyle, gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))' }}>
+        {items.map((item, itemIndex) => (
+          <div key={itemIndex} style={{ display: 'grid', gap: '8px' }}>
+            <EditableCoverFieldEditor
+              value={{ url: item.image, alt: item.alt || item.label || formTitle, crop: item.crop }}
+              radius="999px"
+              cropShape="round"
+              onChange={(nextImage) => updateItem(itemIndex, { ...item, image: nextImage.url, alt: nextImage.alt || item.label || formTitle, crop: nextImage.crop })}
+              onUpload={(file) => onUpload(idx, `circleUpload-${itemIndex}`, file)}
+            />
+            <input
+              value={item.label || ''}
+              onChange={(e) => updateItem(itemIndex, { ...item, label: e.target.value, alt: e.target.value || formTitle })}
+              placeholder={`Circle ${itemIndex + 1}`}
+              style={inputStyle}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RefinedSliderEditor({
+  data,
+  idx,
+  onUpdate,
+  onUpload,
+  formTitle,
+  compact = false,
+}: {
+  data: any;
+  idx: number;
+  onUpdate: (i: number, f: string, v: any) => void;
+  onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  formTitle: string;
+  compact?: boolean;
+}) {
+  const images = Array.from({ length: Math.max((data.images || []).length, 4) }, (_, index) => toEditableImage((data.images || [])[index]));
+
+  const updateImage = (imageIndex: number, nextImage: EditableImage) => {
+    const next = [...images];
+    next[imageIndex] = nextImage;
+    onUpdate(idx, 'images', next.filter((item) => item.url));
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: '12px' }}>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        <label style={labelStyle}>Title<input value={data.title || ''} onChange={(e) => onUpdate(idx, 'title', e.target.value)} style={inputStyle} /></label>
+        <label style={labelStyle}>Description<textarea rows={3} value={data.description || ''} onChange={(e) => onUpdate(idx, 'description', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+        <label style={labelStyle}>Thumbnail Position<select value={data.thumbnailPosition || 'bottom'} onChange={(e) => onUpdate(idx, 'thumbnailPosition', e.target.value)} style={inputStyle}><option value="bottom" style={{ background: '#141414' }}>Bottom</option><option value="left" style={{ background: '#141414' }}>Left</option><option value="right" style={{ background: '#141414' }}>Right</option></select></label>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: '10px' }}>
+        {images.map((image, imageIndex) => (
+          <EditableCoverFieldEditor
+            key={imageIndex}
+            value={image}
+            aspectRatio="4 / 5"
+            cropEnabled={false}
+            onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
+            onUpload={(file) => onUpload(idx, `sliderUpload-${imageIndex}`, file)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminPage({ data, refresh }: any) {
   const [authed, setAuthed] = useState(!!api.getStoredToken());
@@ -32,202 +686,374 @@ export default function AdminPage({ data, refresh }: any) {
   const [stats, setStats] = useState({ projectCount: 0, publishedCount: 0, blogCount: 0, categoryCount: 0 });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // Before & After toggles
   const [baToggles, setBaToggles] = useState<Record<string, boolean>>({});
-
-  // Category CRUD
   const [catForm, setCatForm] = useState<any>(null);
   const [catSelId, setCatSelId] = useState('');
-
-  // Project
   const [selId, setSelId] = useState('');
   const [form, setForm] = useState<any>(null);
-
-  // Blog
   const [blogSelId, setBlogSelId] = useState('');
   const [blogForm, setBlogForm] = useState<any>(null);
   const [blogContent, setBlogContent] = useState('');
+  const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
+
+  const categoryName = useMemo(
+    () => adminData.categories?.find((category: any) => category.id === form?.categoryId)?.name || 'Project',
+    [adminData.categories, form?.categoryId],
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onResize = () => setIsCompact(window.innerWidth <= 960);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   async function sync() {
     setLoading(true);
     try {
-      const p1 = api.getAdminContent();
-      const p2 = api.getStats().catch(() => ({ projectCount: 0, publishedCount: 0, blogCount: 0, categoryCount: 0 }));
-      const [content, s] = await Promise.all([p1, p2]);
+      const [content, nextStats] = await Promise.all([
+        api.getAdminContent(),
+        api.getStats().catch(() => ({ projectCount: 0, publishedCount: 0, blogCount: 0, categoryCount: 0 })),
+      ]);
       setAdminData(content);
-      setStats(s);
-    } catch { api.clearToken(); setAuthed(false); setAuthError('Session expired'); }
-    finally { setLoading(false); }
+      setStats(nextStats);
+    } catch {
+      api.clearToken();
+      setAuthed(false);
+      setAuthError('Session expired');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { if (authed) sync(); }, [authed]);
 
+  useEffect(() => {
+    if (tab !== 'beforeafter') return;
+    const toggles: Record<string, boolean> = {};
+    adminData.projects
+      .filter((project: any) => parseContent(project.content).some((block: any) => block.type === 'beforeAfter'))
+      .forEach((project: any) => {
+        toggles[project.id] = project.isPublished !== false;
+      });
+    setBaToggles(toggles);
+  }, [adminData.projects, tab]);
+
   async function login(e: any) {
-    e.preventDefault(); setSaving(true);
-    try { await api.login(username, password); setAuthed(true); setPassword(''); await sync(); }
-    catch { setAuthError('Wrong credentials'); api.clearToken(); }
-    finally { setSaving(false); }
-  }
-
-  async function logout() { await api.logout(); setAuthed(false); setSelId(''); setForm(null); setBlogSelId(''); setBlogForm(null); setCatSelId(''); setCatForm(null); }
-
-  // ===== CATEGORY CRUD =====
-  function newCategory() { setCatSelId(''); setCatForm({ name: '', slug: '', description: '', showInHeader: true, sortOrder: 0 }); }
-  function editCategory(c: any) { setCatSelId(c.id); setCatForm({ name: c.name, slug: c.slug, description: c.description || '', showInHeader: c.showInHeader, sortOrder: c.sortOrder || 0 }); }
-  function setCatF(field: string, value: any) { setCatForm((prev: any) => ({ ...prev, [field]: value })); }
-  async function saveCategory(e: any) {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault();
+    setSaving(true);
     try {
-      if (catSelId) await api.updateCategory(catSelId, catForm); else await api.createCategory(catForm);
-      await sync(); setCatSelId(''); setCatForm(null);
-    } catch (err: any) { alert('Error: ' + err.message); }
-    finally { setSaving(false); }
+      await api.login(username, password);
+      setAuthed(true);
+      setPassword('');
+      await sync();
+    } catch {
+      setAuthError('Wrong credentials');
+      api.clearToken();
+    } finally {
+      setSaving(false);
+    }
   }
+
+  async function logout() {
+    await api.logout();
+    setAuthed(false);
+    setSelId('');
+    setForm(null);
+    setBlogSelId('');
+    setBlogForm(null);
+    setCatSelId('');
+    setCatForm(null);
+  }
+
+  function newCategory() {
+    setCatSelId('');
+    setCatForm({ name: '', slug: '', description: '', showInHeader: true, sortOrder: 0 });
+  }
+
+  function editCategory(category: any) {
+    setCatSelId(category.id);
+    setCatForm({
+      name: category.name,
+      slug: category.slug,
+      description: category.description || '',
+      showInHeader: category.showInHeader,
+      sortOrder: category.sortOrder || 0,
+    });
+  }
+
+  function setCatF(field: string, value: any) {
+    setCatForm((prev: any) => ({ ...prev, [field]: value }));
+  }
+
+  async function saveCategory(e: any) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (catSelId) await api.updateCategory(catSelId, catForm);
+      else await api.createCategory(catForm);
+      await sync();
+      setCatSelId('');
+      setCatForm(null);
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function deleteCategory() {
     if (!catSelId || !confirm('Delete this category?')) return;
     setSaving(true);
-    try { await api.deleteCategory(catSelId); await sync(); setCatSelId(''); setCatForm(null); }
-    finally { setSaving(false); }
+    try {
+      await api.deleteCategory(catSelId);
+      await sync();
+      setCatSelId('');
+      setCatForm(null);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  // ===== BEFORE & AFTER TOGGLES =====
-  function getBaProjects() {
-    return adminData.projects.filter((p: any) => {
-      const c = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
-      return c.some((b: any) => b.type === 'beforeAfter');
+  function newProject() {
+    const firstCategory = adminData.categories?.[0];
+    setSelId('');
+    setForm({
+      title: '',
+      slug: '',
+      categoryId: firstCategory?.id || '',
+      content: [],
+      isFeatured: false,
+      isPublished: true,
+      seoTitle: '',
+      seoDescription: '',
+      seoKeywords: '',
+      cityName: '',
+      year: '',
     });
   }
-  function initBaToggles() {
-    const toggles: Record<string, boolean> = {};
-    getBaProjects().forEach((p: any) => { toggles[p.id] = p.isPublished !== false; });
-    setBaToggles(toggles);
-  }
-  async function saveBaToggles() {
-    setSaving(true);
-    try {
-      for (const [id, show] of Object.entries(baToggles)) {
-        await api.updateProject(id, { isPublished: show });
-      }
-      await sync();
-      alert('Before & After settings saved!');
-    } catch (err: any) { alert('Error: ' + err.message); }
-    finally { setSaving(false); }
-  }
 
-  // ===== PROJECT =====
-  function newProject() {
+  function closeProjectEditor() {
     setSelId('');
-    const c = adminData.categories?.[0];
-    setForm({ title: '', slug: '', categoryId: c?.id || '', content: [], isFeatured: false, isPublished: true, seoTitle: '', seoDescription: '', seoKeywords: '', cityName: '', year: '' });
+    setForm(null);
   }
 
-  function editProject(p: any) {
-    setSelId(p.id);
-    const ct = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
-    setForm({ title: p.title || '', slug: p.slug || '', categoryId: p.categoryId || '', content: ct || [], isFeatured: !!p.isFeatured, isPublished: p.isPublished !== false, seoTitle: p.seoTitle || '', seoDescription: p.seoDescription || '', seoKeywords: p.seoKeywords || '', cityName: p.cityName || '', year: p.year || '' });
+  function editProject(project: any) {
+    setSelId(project.id);
+    setForm({
+      title: project.title || '',
+      slug: project.slug || '',
+      categoryId: project.categoryId || '',
+      content: parseContent(project.content),
+      isFeatured: !!project.isFeatured,
+      isPublished: project.isPublished !== false,
+      seoTitle: project.seoTitle || '',
+      seoDescription: project.seoDescription || '',
+      seoKeywords: project.seoKeywords || '',
+      cityName: project.cityName || '',
+      year: project.year || '',
+    });
   }
 
   function setF(field: string, value: any) {
     setForm((prev: any) => {
-      const n = { ...prev, [field]: value };
-      if (field === 'title' && !prev.slug) n.slug = toSlug(value);
-      return n;
+      const next = { ...prev, [field]: value };
+      if (field === 'title' && !prev.slug) next.slug = toSlug(value);
+      return next;
     });
   }
 
   function addBlock(type: string) {
-    setForm((prev: any) => ({ ...prev, content: [...(prev.content || []), { type, data: {}, id: Date.now().toString() }] }));
+    setForm((prev: any) => ({
+      ...prev,
+      content: [...(prev.content || []), { type, data: {}, id: Date.now().toString() }],
+    }));
   }
-  function rmBlock(i: number) { setForm((prev: any) => ({ ...prev, content: (prev.content || []).filter((_: any, j: number) => j !== i) })); }
-  function mvBlock(i: number, d: number) {
+
+  function removeBlock(index: number) {
+    setForm((prev: any) => ({
+      ...prev,
+      content: (prev.content || []).filter((_: any, i: number) => i !== index),
+    }));
+  }
+
+  function moveBlock(index: number, direction: number) {
     setForm((prev: any) => {
-      const a = [...(prev.content || [])]; const ni = i + d;
-      if (ni < 0 || ni >= a.length) return prev;
-      [a[i], a[ni]] = [a[ni], a[i]];
-      return { ...prev, content: a };
+      const content = [...(prev.content || [])];
+      const nextIndex = index + direction;
+      if (nextIndex < 0 || nextIndex >= content.length) return prev;
+      [content[index], content[nextIndex]] = [content[nextIndex], content[index]];
+      return { ...prev, content };
     });
   }
-  function setBlock(i: number, f: string, v: any) {
+
+  function setBlock(index: number, field: string, value: any) {
     setForm((prev: any) => {
-      const a = [...(prev.content || [])];
-      a[i] = { ...a[i], data: { ...a[i].data, [f]: v } };
-      return { ...prev, content: a };
+      const content = [...(prev.content || [])];
+      content[index] = { ...content[index], data: { ...content[index].data, [field]: value } };
+      return { ...prev, content };
     });
   }
 
   async function uploadBlockImg(blockIdx: number, field: string, file: File) {
-    if (!file) return;
+    if (!file) return null;
     setSaving(true);
     try {
-      const r = await api.uploadImage(file, form.title, `${blockIdx}-${field}`);
-      setBlock(blockIdx, field, r.url);
-    } catch (e: any) { alert(e.message); }
-    finally { setSaving(false); }
+      const uploaded = await api.uploadImage(file, form.title, `${blockIdx}-${field}`);
+      if (!field.toLowerCase().includes('upload')) setBlock(blockIdx, field, uploaded.url);
+      return uploaded;
+    } catch (err: any) {
+      alert(err.message);
+      return null;
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function saveProject(e: any) {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault();
+    setSaving(true);
     try {
-      const p = { ...form, content: JSON.stringify(form.content || []) };
-      if (selId) await api.updateProject(selId, p); else await api.createProject(p);
-      await sync(); await refresh(); newProject();
-    } catch (e: any) { alert('Error: ' + e.message); }
-    finally { setSaving(false); }
+      const payload = { ...form, content: JSON.stringify(form.content || []) };
+      if (selId) await api.updateProject(selId, payload);
+      else await api.createProject(payload);
+      await sync();
+      await refresh();
+      closeProjectEditor();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function deleteProject() {
     if (!selId || !confirm('Delete this project?')) return;
     setSaving(true);
-    try { await api.deleteProject(selId); await sync(); await refresh(); newProject(); }
-    finally { setSaving(false); }
+    try {
+      await api.deleteProject(selId);
+      await sync();
+      await refresh();
+      closeProjectEditor();
+    } finally {
+      setSaving(false);
+    }
   }
 
-  // ===== BLOG =====
-  function newBlog() { setBlogSelId(''); setBlogForm({ title: '', slug: '', excerpt: '', content: '', coverImage: '', isPublished: false, seoTitle: '', seoDescription: '', seoKeywords: '', tags: '' }); setBlogContent(''); }
+  function applyDemoLayout() {
+    setForm((prev: any) => ({
+      ...prev,
+      content: buildDemoProjectBlocks(prev, categoryName),
+    }));
+  }
 
-  function editBlog(p: any) {
-    setBlogSelId(p.id);
-    setBlogForm({ title: p.title || '', slug: p.slug || '', excerpt: p.excerpt || '', content: p.content || '', coverImage: p.coverImage || '', isPublished: !!p.isPublished, seoTitle: p.seoTitle || '', seoDescription: p.seoDescription || '', seoKeywords: p.seoKeywords || '', tags: p.tags || '' });
-    setBlogContent(p.content || '');
+  function newBlog() {
+    setBlogSelId('');
+    setBlogForm({
+      title: '',
+      slug: '',
+      excerpt: '',
+      content: '',
+      coverImage: '',
+      isPublished: false,
+      seoTitle: '',
+      seoDescription: '',
+      seoKeywords: '',
+      tags: '',
+    });
+    setBlogContent('');
+  }
+
+  function editBlog(post: any) {
+    setBlogSelId(post.id);
+    setBlogForm({
+      title: post.title || '',
+      slug: post.slug || '',
+      excerpt: post.excerpt || '',
+      content: post.content || '',
+      coverImage: post.coverImage || '',
+      isPublished: !!post.isPublished,
+      seoTitle: post.seoTitle || '',
+      seoDescription: post.seoDescription || '',
+      seoKeywords: post.seoKeywords || '',
+      tags: post.tags || '',
+    });
+    setBlogContent(post.content || '');
   }
 
   function setBF(field: string, value: any) {
-    setBlogForm((prev: any) => { const n = { ...prev, [field]: value }; if (field === 'title' && !prev.slug) n.slug = toSlug(value); return n; });
+    setBlogForm((prev: any) => {
+      const next = { ...prev, [field]: value };
+      if (field === 'title' && !prev.slug) next.slug = toSlug(value);
+      return next;
+    });
   }
 
   async function saveBlog(e: any) {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault();
+    setSaving(true);
     try {
-      const p = { ...blogForm, content: blogContent };
-      if (blogSelId) await api.updateBlog(blogSelId, p); else await api.createBlog(p);
-      await sync(); newBlog();
-    } catch (e: any) { alert('Error: ' + e.message); }
-    finally { setSaving(false); }
+      const payload = { ...blogForm, content: blogContent };
+      if (blogSelId) await api.updateBlog(blogSelId, payload);
+      else await api.createBlog(payload);
+      await sync();
+      newBlog();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function deleteBlog() {
     if (!blogSelId || !confirm('Delete this post?')) return;
     setSaving(true);
-    try { await api.deleteBlog(blogSelId); await sync(); newBlog(); }
-    finally { setSaving(false); }
+    try {
+      await api.deleteBlog(blogSelId);
+      await sync();
+      newBlog();
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function getCover(p: any) {
-    const c = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
-    return c?.find((b: any) => b.type === 'heroImage')?.data?.image || '';
+  async function saveBaToggles() {
+    setSaving(true);
+    try {
+      for (const [projectId, isPublished] of Object.entries(baToggles)) {
+        await api.updateProject(projectId, { isPublished });
+      }
+      await sync();
+      alert('Before & After settings saved');
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  // ===== LOGIN SCREEN =====
+  function getCover(project: any) {
+    return getHeroImage(parseContent(project.content));
+  }
+
   if (!authed) {
     return (
       <main className="container" style={{ padding: '120px 15px 60px', maxWidth: '460px' }}>
         <h1 style={{ color: '#fff', fontFamily: "'GilroyExtraBold', sans-serif", textAlign: 'center', marginBottom: '30px' }}>Admin Login</h1>
         <form onSubmit={login} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '30px', display: 'grid', gap: '15px' }}>
-          <label style={{ display: 'grid', gap: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Username<input value={username} onChange={(e) => setUsername(e.target.value)} style={inputStyle} /></label>
-          <label style={{ display: 'grid', gap: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} /></label>
-          {authError && <p style={{ color: '#e74c3c', fontSize: '13px', margin: 0 }}>{authError}</p>}
-          <button type="submit" className="btn-primary" disabled={saving} style={{ width: '100%' }}>{saving ? 'Signing in...' : 'Sign in'}</button>
+          <label style={{ display: 'grid', gap: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
+            Username
+            <input value={username} onChange={(e) => setUsername(e.target.value)} style={inputStyle} />
+          </label>
+          <label style={{ display: 'grid', gap: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
+            Password
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+          </label>
+          {authError ? <p style={{ color: '#e74c3c', fontSize: '13px', margin: 0 }}>{authError}</p> : null}
+          <button type="submit" className="btn-primary" disabled={saving} style={{ width: '100%' }}>
+            {saving ? 'Signing in...' : 'Sign in'}
+          </button>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', textAlign: 'center', margin: 0 }}>Default: admin / admin123</p>
         </form>
       </main>
@@ -235,115 +1061,108 @@ export default function AdminPage({ data, refresh }: any) {
   }
 
   const tabs = [
-    { id: 'dashboard', label: '📊 Dashboard' },
-    { id: 'projects', label: '🏠 Projects' },
-    { id: 'categories', label: '📁 Categories' },
-    { id: 'beforeafter', label: '🔄 Before & After' },
-    { id: 'blog', label: '📝 Blog' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'projects', label: 'Projects' },
+    { id: 'categories', label: 'Categories' },
+    { id: 'beforeafter', label: 'Before & After' },
+    { id: 'blog', label: 'Blog' },
   ];
 
   return (
-    <main className="container" style={{ padding: '100px 15px 60px', maxWidth: '1400px' }}>
-      {/* Tabs */}
+    <main className="container" style={{ padding: isCompact ? '92px 0 40px' : '100px 15px 60px', maxWidth: '1400px' }}>
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#141414', paddingBottom: '20px', marginBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {tabs.map((t) => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '10px 18px', borderRadius: '8px', border: tab === t.id ? '1px solid rgba(198,164,123,1)' : '1px solid rgba(255,255,255,0.15)', background: tab === t.id ? 'rgba(198,164,123,0.15)' : 'transparent', color: tab === t.id ? 'rgba(198,164,123,1)' : 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', fontWeight: tab === t.id ? 600 : 400 }}>{t.label}</button>
+            {tabs.map((nextTab) => (
+              <button
+                key={nextTab.id}
+                onClick={() => setTab(nextTab.id)}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: tab === nextTab.id ? '1px solid rgba(198,164,123,1)' : '1px solid rgba(255,255,255,0.15)',
+                  background: tab === nextTab.id ? 'rgba(198,164,123,0.15)' : 'transparent',
+                  color: tab === nextTab.id ? 'rgba(198,164,123,1)' : 'rgba(255,255,255,0.7)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  transition: 'all 0.2s',
+                  fontWeight: tab === nextTab.id ? 600 : 400,
+                }}
+              >
+                {nextTab.label}
+              </button>
             ))}
           </div>
           <button onClick={logout} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px' }}>Logout</button>
         </div>
       </div>
 
-      {/* ========== DASHBOARD ========== */}
-      {tab === 'dashboard' && (
+      {tab === 'dashboard' ? (
         <div>
           <h2 style={{ color: '#fff', marginBottom: '20px' }}>Dashboard</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '30px' }}>
-            {[{ l: 'Total Projects', v: stats.projectCount, c: '#8c6a4e' }, { l: 'Published', v: stats.publishedCount, c: '#27ae60' }, { l: 'Blog Posts', v: stats.blogCount, c: '#3498db' }, { l: 'Categories', v: stats.categoryCount, c: '#9b59b6' }].map((s, i) => (
-              <div key={i} style={{ ...cardStyle, textAlign: 'center' }}>
-                <div style={{ fontSize: '36px', fontWeight: 800, color: s.c, fontFamily: "'GilroyExtraBold', sans-serif" }}>{s.v}</div>
-                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginTop: '5px' }}>{s.l}</div>
+            {[{ l: 'Total Projects', v: stats.projectCount, c: '#8c6a4e' }, { l: 'Published', v: stats.publishedCount, c: '#27ae60' }, { l: 'Blog Posts', v: stats.blogCount, c: '#3498db' }, { l: 'Categories', v: stats.categoryCount, c: '#9b59b6' }].map((item, index) => (
+              <div key={index} style={{ ...cardStyle, textAlign: 'center' }}>
+                <div style={{ fontSize: '36px', fontWeight: 800, color: item.c, fontFamily: "'GilroyExtraBold', sans-serif" }}>{item.v}</div>
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginTop: '5px' }}>{item.l}</div>
               </div>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div style={cardStyle}>
-              <h3 style={{ color: '#fff', margin: '0 0 15px' }}>Recent Projects</h3>
-              {adminData.projects?.slice(0, 5).map((p: any) => (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  {getCover(p) && <img src={getCover(p)} alt="" style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover' }} />}
-                  <div><div style={{ color: '#fff', fontSize: '14px' }}>{p.title}</div><div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{p.isPublished ? '✓ Published' : '○ Draft'}{p.cityName ? ` • ${p.cityName}` : ''}</div></div>
-                </div>
-              ))}
-            </div>
-            <div style={cardStyle}>
-              <h3 style={{ color: '#fff', margin: '0 0 15px' }}>Quick Actions</h3>
-              <div style={{ display: 'grid', gap: '10px' }}>
-                <button onClick={() => { setTab('projects'); newProject(); }} className="btn-primary" style={{ textAlign: 'left' }}>+ New Project</button>
-                <button onClick={() => { setTab('blog'); newBlog(); }} className="btn-primary" style={{ textAlign: 'left' }}>+ New Blog Post</button>
-                <button onClick={() => setTab('categories')} className="btn-primary" style={{ textAlign: 'left' }}>Manage Categories</button>
-              </div>
-            </div>
-          </div>
         </div>
-      )}
+      ) : null}
 
-      {/* ========== PROJECTS ========== */}
-      {tab === 'projects' && (
+      {tab === 'projects' ? (
         <div>
-          {/* Action bar */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ color: '#fff', margin: 0, fontSize: '18px' }}>{form ? 'Editing Project' : 'Projects'}</h3>
             <div style={{ display: 'flex', gap: '10px' }}>
-              {form && <button onClick={() => { setSelId(''); setForm(null); }} style={{ ...miniBtn, padding: '8px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>← Back to List</button>}
-              {!form && <button onClick={newProject} className="btn-primary">+ New Project</button>}
+              {form ? (
+                <button onClick={closeProjectEditor} style={{ ...miniBtn, padding: '8px 16px', background: 'rgba(255,255,255,0.1)' }}>
+                  Back to List
+                </button>
+              ) : null}
+              {!form ? <button onClick={newProject} className="btn-primary">+ New Project</button> : null}
             </div>
           </div>
 
-          {/* Project list — only when not editing */}
-          {!form && (
+          {!form ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px', marginBottom: '30px' }}>
-              {adminData.projects?.map((p: any) => (
-                <div key={p.id} onClick={() => editProject(p)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(198,164,123,0.1)'; e.currentTarget.style.borderColor = 'rgba(198,164,123,0.3)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+              {adminData.projects?.map((project: any) => (
+                <div
+                  key={project.id}
+                  onClick={() => editProject(project)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                 >
-                  {getCover(p) ? <img src={getCover(p)} alt="" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />}
+                  {getCover(project) ? <img src={getCover(project)} alt="" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />}
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{p.cityName || ''} {p.year ? `(${p.year})` : ''}</div>
+                    <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{project.cityName || ''} {project.year ? `(${project.year})` : ''}</div>
                     <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                      <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: p.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: p.isPublished ? '#27ae60' : '#e74c3c' }}>{p.isPublished ? 'Published' : 'Draft'}</span>
-                      {p.isFeatured && <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span>}
+                      <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: project.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: project.isPublished ? '#27ae60' : '#e74c3c' }}>{project.isPublished ? 'Published' : 'Draft'}</span>
+                      {project.isFeatured ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span> : null}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          )}
-
-          {/* Editor — only when form is open */}
-          {form && (
-            <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
+          ) : (
+            <div style={{ ...cardStyle, maxHeight: isCompact ? 'none' : '80vh', overflow: isCompact ? 'visible' : 'auto' }}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{selId ? 'Edit Project' : 'New Project'}</h3>
               <form onSubmit={saveProject} style={{ display: 'grid', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <label style={labelStyle}>Title<input value={form.title} onChange={(e) => setF('title', e.target.value)} required style={inputStyle} /></label>
                   <label style={labelStyle}>Slug<input value={form.slug} onChange={(e) => setF('slug', e.target.value)} style={inputStyle} placeholder="auto-generated" /></label>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                  <label style={labelStyle}>Category<select value={form.categoryId} onChange={(e) => setF('categoryId', e.target.value)} required style={inputStyle}>{adminData.categories?.map((c: any) => <option key={c.id} value={c.id} style={{ background: '#141414' }}>{c.name}</option>)}</select></label>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr 1fr', gap: '12px' }}>
+                  <label style={labelStyle}>Category<select value={form.categoryId} onChange={(e) => setF('categoryId', e.target.value)} required style={inputStyle}>{adminData.categories?.map((category: any) => <option key={category.id} value={category.id} style={{ background: '#141414' }}>{category.name}</option>)}</select></label>
                   <label style={labelStyle}>City<input value={form.cityName} onChange={(e) => setF('cityName', e.target.value)} placeholder="San Francisco" style={inputStyle} /></label>
                   <label style={labelStyle}>Year<input type="number" value={form.year} onChange={(e) => setF('year', e.target.value)} placeholder="2024" style={inputStyle} /></label>
                 </div>
-                <div style={{ display: 'flex', gap: '20px' }}>
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={form.isFeatured} onChange={(e) => setF('isFeatured', e.target.checked)} /> Featured</label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={form.isPublished} onChange={(e) => setF('isPublished', e.target.checked)} /> Published</label>
                 </div>
 
-                {/* SEO */}
                 <details style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px' }}>
                   <summary style={{ cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: 600 }}>SEO Settings</summary>
                   <div style={{ display: 'grid', gap: '10px', marginTop: '10px' }}>
@@ -353,65 +1172,70 @@ export default function AdminPage({ data, refresh }: any) {
                   </div>
                 </details>
 
-                {/* Block Builder */}
                 <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '12px' }}>
-                  <h4 style={{ color: '#fff', margin: '0 0 10px', fontSize: '14px' }}>Content Blocks</h4>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
-                    {BLOCK_TYPES.map((bt) => <button key={bt.value} type="button" onClick={() => addBlock(bt.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '11px' }}>{bt.label}</button>)}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                    <h4 style={{ color: '#fff', margin: 0, fontSize: '14px' }}>Content Blocks</h4>
+                    <button type="button" onClick={applyDemoLayout} style={{ ...miniBtn, borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}>
+                      Apply Demo Layout
+                    </button>
                   </div>
-                  {(form.content || []).map((block: any, i: number) => (
-                    <div key={block.id || i} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
+                    {BLOCK_TYPES.map((blockType) => (
+                      <button key={blockType.value} type="button" onClick={() => addBlock(blockType.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '11px' }}>
+                        {blockType.label}
+                      </button>
+                    ))}
+                  </div>
+                  {(form.content || []).map((block: any, index: number) => (
+                    <div key={block.id || index} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ color: '#fff', fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>{block.type}</span>
                         <div style={{ display: 'flex', gap: '4px' }}>
-                          <button type="button" onClick={() => mvBlock(i, -1)} disabled={i === 0} style={miniBtn}>↑</button>
-                          <button type="button" onClick={() => mvBlock(i, 1)} disabled={i === (form.content || []).length - 1} style={miniBtn}>↓</button>
-                          <button type="button" onClick={() => rmBlock(i)} style={{ ...miniBtn, color: '#e74c3c' }}>✕</button>
+                          <button type="button" onClick={() => moveBlock(index, -1)} disabled={index === 0} style={miniBtn}>↑</button>
+                          <button type="button" onClick={() => moveBlock(index, 1)} disabled={index === (form.content || []).length - 1} style={miniBtn}>↓</button>
+                          <button type="button" onClick={() => removeBlock(index)} style={{ ...miniBtn, color: '#e74c3c' }}>✕</button>
                         </div>
                       </div>
-                      <BlockEditor block={block} idx={i} onUpdate={setBlock} onUpload={uploadBlockImg} formTitle={form.title} />
+                      <BlockEditor block={block} idx={index} onUpdate={setBlock} onUpload={uploadBlockImg} formTitle={form.title} compact={isCompact} />
                     </div>
                   ))}
-                  {(!form.content || !form.content.length) && <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', textAlign: 'center', padding: '15px', margin: 0 }}>Click a block type above to start building</p>}
+                  {(!form.content || !form.content.length) ? <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', textAlign: 'center', padding: '15px', margin: 0 }}>Click a block type above to start building</p> : null}
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save Project'}</button>
-                  {selId && <button type="button" onClick={deleteProject} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Delete</button>}
+                  {selId ? <button type="button" onClick={deleteProject} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Delete</button> : null}
                 </div>
               </form>
             </div>
           )}
-          {!form && adminData.projects?.length === 0 && <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '60px' }}><p>No projects yet. Click + New Project to get started.</p></div>}
         </div>
-      )}
+      ) : null}
 
-      {/* ========== BLOG ========== */}
-      {tab === 'blog' && (
-        <div style={{ display: 'grid', gridTemplateColumns: blogSelId ? '300px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
-          <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
+      {tab === 'blog' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: blogSelId && !isCompact ? '300px 1fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+          <div style={{ ...cardStyle, maxHeight: isCompact ? 'none' : '80vh', overflow: isCompact ? 'visible' : 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Blog Posts</h3>
               <button onClick={newBlog} style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>+ New</button>
             </div>
-            {adminData.blogPosts?.map((p: any) => (
-              <div key={p.id} onClick={() => editBlog(p)} style={{ padding: '10px', borderRadius: '8px', cursor: 'pointer', background: blogSelId === p.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '4px' }}>
-                <div style={{ color: '#fff', fontSize: '13px' }}>{p.title}</div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{p.isPublished ? '✓ Published' : '○ Draft'}</div>
+            {adminData.blogPosts?.map((post: any) => (
+              <div key={post.id} onClick={() => editBlog(post)} style={{ padding: '10px', borderRadius: '8px', cursor: 'pointer', background: blogSelId === post.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '4px' }}>
+                <div style={{ color: '#fff', fontSize: '13px' }}>{post.title}</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{post.isPublished ? 'Published' : 'Draft'}</div>
               </div>
             ))}
           </div>
-          {blogForm && (
-            <div style={{ ...cardStyle, maxHeight: '80vh', overflow: 'auto' }}>
+          {blogForm ? (
+            <div style={{ ...cardStyle, maxHeight: isCompact ? 'none' : '80vh', overflow: isCompact ? 'visible' : 'auto' }}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{blogSelId ? 'Edit Post' : 'New Post'}</h3>
               <form onSubmit={saveBlog} style={{ display: 'grid', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <label style={labelStyle}>Title<input value={blogForm.title} onChange={(e) => setBF('title', e.target.value)} required style={inputStyle} /></label>
                   <label style={labelStyle}>Slug<input value={blogForm.slug} onChange={(e) => setBF('slug', e.target.value)} style={inputStyle} placeholder="auto" /></label>
                 </div>
                 <label style={labelStyle}>Excerpt<textarea rows={2} value={blogForm.excerpt} onChange={(e) => setBF('excerpt', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
 
-                {/* React Quill Editor */}
                 <div>
                   <label style={{ display: 'block', color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginBottom: '6px' }}>Content</label>
                   <div className="quill-wrapper">
@@ -431,18 +1255,34 @@ export default function AdminPage({ data, refresh }: any) {
                           ['clean'],
                         ],
                       }}
-                      formats={[
-                        'header', 'bold', 'italic', 'underline', 'strike',
-                        'color', 'background', 'list', 'bullet', 'align',
-                        'blockquote', 'code-block', 'link', 'image', 'video',
-                      ]}
+                      formats={['header', 'bold', 'italic', 'underline', 'strike', 'color', 'background', 'list', 'bullet', 'align', 'blockquote', 'code-block', 'link', 'image', 'video']}
                       style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', minHeight: '300px' }}
                     />
                   </div>
                 </div>
 
-                <label style={labelStyle}>Cover Image URL<input value={blogForm.coverImage} onChange={(e) => setBF('coverImage', e.target.value)} style={inputStyle} /></label>
-                <label style={labelStyle}>Upload Cover<input type="file" accept="image/jpeg,image/png,image/webp" onChange={async (e) => { if (!e.target.files?.[0]) return; setSaving(true); try { const r = await api.uploadImage(e.target.files[0], blogForm.title); setBF('coverImage', r.url); } catch (err: any) { alert(err.message); } finally { setSaving(false); } }} style={{ ...inputStyle, padding: '6px' }} /></label>
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>Cover image</div>
+                  <BasicCoverFieldEditor
+                    url={blogForm.coverImage}
+                    crop={ensureCrop()}
+                    aspectRatio="16 / 10"
+                    cropEnabled={false}
+                    onUrlChange={(next) => setBF('coverImage', next)}
+                    onCropChange={() => {}}
+                    onUpload={async (file) => {
+                      setSaving(true);
+                      try {
+                        return await api.uploadImage(file, blogForm.title);
+                      } catch (err: any) {
+                        alert(err.message);
+                        return null;
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  />
+                </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={blogForm.isPublished} onChange={(e) => setBF('isPublished', e.target.checked)} /> Published</label>
 
                 <details style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px' }}>
@@ -454,33 +1294,31 @@ export default function AdminPage({ data, refresh }: any) {
                   </div>
                 </details>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save Post'}</button>
-                  {blogSelId && <button type="button" onClick={deleteBlog} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Delete</button>}
+                  {blogSelId ? <button type="button" onClick={deleteBlog} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Delete</button> : null}
                 </div>
               </form>
             </div>
-          )}
-          {!blogForm && <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '60px' }}><p>Select a post or click + New</p></div>}
+          ) : <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '60px' }}><p>Select a post or click + New</p></div>}
         </div>
-      )}
+      ) : null}
 
-      {/* ========== CATEGORIES ========== */}
-      {tab === 'categories' && (
-        <div style={{ display: 'grid', gridTemplateColumns: catForm ? '300px 1fr' : '1fr', gap: '20px' }}>
+      {tab === 'categories' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: catForm && !isCompact ? '300px 1fr' : '1fr', gap: '20px' }}>
           <div style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>Categories</h3>
               <button onClick={newCategory} style={miniBtn}>+ New</button>
             </div>
-            {adminData.categories?.map((c: any) => (
-              <div key={c.id} onClick={() => editCategory(c)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderRadius: '8px', cursor: 'pointer', background: catSelId === c.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '4px', transition: 'background 0.2s' }}>
-                <div><div style={{ color: '#fff', fontSize: '14px' }}>{c.name}</div><div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>/{c.slug}</div></div>
-                <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: c.showInHeader ? 'rgba(39,174,96,0.2)' : 'rgba(255,255,255,0.1)', color: c.showInHeader ? '#27ae60' : 'rgba(255,255,255,0.4)' }}>{c.showInHeader ? 'Visible' : 'Hidden'}</span>
+            {adminData.categories?.map((category: any) => (
+              <div key={category.id} onClick={() => editCategory(category)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderRadius: '8px', cursor: 'pointer', background: catSelId === category.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '4px' }}>
+                <div><div style={{ color: '#fff', fontSize: '14px' }}>{category.name}</div><div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>/{category.slug}</div></div>
+                <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: category.showInHeader ? 'rgba(39,174,96,0.2)' : 'rgba(255,255,255,0.1)', color: category.showInHeader ? '#27ae60' : 'rgba(255,255,255,0.4)' }}>{category.showInHeader ? 'Visible' : 'Hidden'}</span>
               </div>
             ))}
           </div>
-          {catForm && (
+          {catForm ? (
             <div style={cardStyle}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{catSelId ? 'Edit Category' : 'New Category'}</h3>
               <form onSubmit={saveCategory} style={{ display: 'grid', gap: '12px' }}>
@@ -491,17 +1329,15 @@ export default function AdminPage({ data, refresh }: any) {
                 <label style={labelStyle}>Sort Order<input type="number" value={catForm.sortOrder} onChange={(e) => setCatF('sortOrder', Number(e.target.value))} style={inputStyle} /></label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save'}</button>
-                  {catSelId && <button type="button" onClick={deleteCategory} style={{ ...miniBtn, padding: '8px 16px', background: '#e74c3c', border: 'none' }}>Delete</button>}
+                  {catSelId ? <button type="button" onClick={deleteCategory} style={{ ...miniBtn, padding: '8px 16px', background: '#e74c3c', border: 'none' }}>Delete</button> : null}
                 </div>
               </form>
             </div>
-          )}
-          {!catForm && <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '40px' }}><p>Select a category or click + New</p></div>}
+          ) : <div style={{ ...cardStyle, textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '40px' }}><p>Select a category or click + New</p></div>}
         </div>
-      )}
+      ) : null}
 
-      {/* ========== BEFORE & AFTER ========== */}
-      {tab === 'beforeafter' && (
+      {tab === 'beforeafter' ? (
         <div style={cardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
@@ -510,79 +1346,178 @@ export default function AdminPage({ data, refresh }: any) {
             </div>
             <button onClick={saveBaToggles} className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Settings'}</button>
           </div>
-          {(() => {
-            const baProjects = getBaProjects();
-            if (!baProjects.length) return <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '40px' }}>No projects with Before/After blocks found.</p>;
-            return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-                {baProjects.map((p: any) => (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          {adminData.projects.filter((project: any) => parseContent(project.content).some((block: any) => block.type === 'beforeAfter')).length ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+              {adminData.projects
+                .filter((project: any) => parseContent(project.content).some((block: any) => block.type === 'beforeAfter'))
+                .map((project: any) => (
+                  <div key={project.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1 }}>
-                      <input type="checkbox" checked={baToggles[p.id] !== false} onChange={(e) => setBaToggles((prev) => ({ ...prev, [p.id]: e.target.checked }))} />
+                      <input type="checkbox" checked={baToggles[project.id] !== false} onChange={(e) => setBaToggles((prev) => ({ ...prev, [project.id]: e.target.checked }))} />
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ color: '#fff', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.title}</div>
-                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{adminData.categories?.find((c: any) => c.id === p.categoryId)?.name || ''}</div>
+                        <div style={{ color: '#fff', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</div>
+                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{adminData.categories?.find((category: any) => category.id === project.categoryId)?.name || ''}</div>
                       </div>
                     </label>
                   </div>
                 ))}
-              </div>
-            );
-          })()}
+            </div>
+          ) : <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '40px' }}>No projects with Before/After blocks found.</p>}
         </div>
-      )}
+      ) : null}
 
-      {loading && <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>Loading...</div>}
+      {loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>Loading...</div> : null}
     </main>
   );
 }
 
-const labelStyle: React.CSSProperties = { display: 'grid', gap: '4px', color: 'rgba(255,255,255,0.6)', fontSize: '13px' };
-
-function BlockEditor({ block, idx, onUpdate, onUpload, formTitle }: { block: any; idx: number; onUpdate: (i: number, f: string, v: any) => void; onUpload: (i: number, f: string, file: File) => void; formTitle: string }) {
+function BlockEditor({
+  block,
+  idx,
+  onUpdate,
+  onUpload,
+  formTitle,
+  compact = false,
+}: {
+  block: any;
+  idx: number;
+  onUpdate: (i: number, f: string, v: any) => void;
+  onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  formTitle: string;
+  compact?: boolean;
+}) {
   const { data } = block;
-  const field = (label: string, f: string, opts: any = {}) => (
+
+  const field = (label: string, fieldName: string, opts: any = {}) => (
     <label style={labelStyle}>
       {label}
-      {opts.textarea ? <textarea rows={opts.rows || 3} value={data[f] || ''} onChange={(e) => onUpdate(idx, f, e.target.value)} style={{ ...inputStyle, resize: 'vertical', fontFamily: opts.mono ? 'monospace' : 'inherit' }} /> :
-        opts.select ? <select value={data[f] || opts.default || ''} onChange={(e) => onUpdate(idx, f, e.target.value)} style={inputStyle}>{opts.options.map((o: any) => <option key={o.value} value={o.value} style={{ background: '#141414' }}>{o.label}</option>)}</select> :
-        <input type={opts.type || 'text'} value={data[f] || ''} onChange={(e) => onUpdate(idx, f, e.target.value)} style={inputStyle} />}
+      {opts.textarea ? (
+        <textarea
+          rows={opts.rows || 3}
+          value={data[fieldName] || ''}
+          onChange={(e) => onUpdate(idx, fieldName, e.target.value)}
+          style={{ ...inputStyle, resize: 'vertical', fontFamily: opts.mono ? 'monospace' : 'inherit' }}
+        />
+      ) : opts.select ? (
+        <select value={data[fieldName] || opts.default || ''} onChange={(e) => onUpdate(idx, fieldName, e.target.value)} style={inputStyle}>
+          {opts.options.map((option: any) => <option key={option.value} value={option.value} style={{ background: '#141414' }}>{option.label}</option>)}
+        </select>
+      ) : (
+        <input type={opts.type || 'text'} value={data[fieldName] || ''} onChange={(e) => onUpdate(idx, fieldName, e.target.value)} style={inputStyle} />
+      )}
     </label>
   );
 
-  const uploadField = (label: string, f: string) => (
-    <label style={labelStyle}>
-      {label}
-      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { if (e.target.files?.[0]) onUpload(idx, f, e.target.files[0]); }} style={{ ...inputStyle, padding: '6px' }} />
-    </label>
+  if (block.type === 'heroImage') return (
+    <>
+      {field('Title', 'title')}
+      {field('Subtitle', 'subtitle')}
+      {field('Alt Text', 'alt')}
+      <BasicCoverFieldEditor
+        url={data.image}
+        crop={data.crop}
+        aspectRatio="16 / 10"
+        onUrlChange={(next) => onUpdate(idx, 'image', next)}
+        onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onUpload={(file) => onUpload(idx, 'image', file)}
+      />
+    </>
   );
 
-  if (block.type === 'heroImage') return <>{field('Title', 'title')}{field('Subtitle', 'subtitle')}{field('Image URL', 'image')}{uploadField('Upload Image', 'image')}{field('Alt Text', 'alt')}</>;
-
-  if (block.type === 'imageGrid') return (<>
-    <div style={{ display: 'grid', gap: '6px', marginBottom: '8px' }}>
-      {((data.images || []) as any[]).map((img: any, gi: number) => (
-        <div key={gi} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {(typeof img === 'object' ? img.url : img) && <img src={typeof img === 'object' ? img.url : img} alt="" style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />}
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{typeof img === 'string' ? img : img.url}</span>
-          <button type="button" onClick={() => { const a = [...(data.images || [])]; a.splice(gi, 1); onUpdate(idx, 'images', a); }} style={miniBtn}>✕</button>
-        </div>
-      ))}
-    </div>
-    <label style={labelStyle}>
-      Image URLs (one per line)
-      <textarea rows={3} value={(data.images || []).map((im: any) => typeof im === 'string' ? im : im.url).join('\n')}
-        onChange={(e) => { const urls = e.target.value.split('\n').filter(Boolean); onUpdate(idx, 'images', urls.map((u) => ({ url: u, alt: formTitle }))); }}
-        style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }} />
-    </label>
-    <label style={labelStyle}>Upload Images<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={async (e) => { if (!e.target.files?.length) return; for (const f of Array.from(e.target.files)) { try { const r = await onUpload(idx, 'imageUpload', f as File); const a = [...(data.images || [])]; a.push({ url: r.url, alt: formTitle }); onUpdate(idx, 'images', a); } catch (err: any) { alert(err.message); } } }} style={{ ...inputStyle, padding: '6px' }} /></label>
-    {field('Columns', 'columns', { select: true, options: [{ value: 1, label: '1' }, { value: 2, label: '2' }, { value: 3, label: '3' }], default: 2 })}
-  </>);
+  if (block.type === 'imageGrid') return (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '8px' }}>
+        {Array.from({ length: Math.max(((data.images || []) as any[]).length + 1, 4) }, (_, imageIndex) => toEditableImage((data.images || [])[imageIndex])).map((image, imageIndex) => (
+          <EditableCoverFieldEditor
+            key={imageIndex}
+            value={image}
+            aspectRatio="4 / 3"
+            cropEnabled={false}
+            onChange={(nextImage) => {
+              const next = Array.from(
+                { length: Math.max(((data.images || []) as any[]).length + 1, imageIndex + 1) },
+                (_, nextIndex) => toEditableImage((data.images || [])[nextIndex]),
+              );
+              next[imageIndex] = { ...nextImage, alt: nextImage.alt || formTitle };
+              onUpdate(idx, 'images', next.filter((item) => item.url).map((item) => ({ url: item.url, alt: item.alt || formTitle, crop: item.crop })));
+            }}
+            onUpload={(file) => onUpload(idx, `imageGridUpload-${imageIndex}`, file)}
+          />
+        ))}
+      </div>
+      {field('Columns', 'columns', { select: true, options: [{ value: 1, label: '1' }, { value: 2, label: '2' }, { value: 3, label: '3' }], default: 2 })}
+    </>
+  );
 
   if (block.type === 'metaInfo') return <>{field('Items (label: value, one per line)', 'metaText', { textarea: true })}</>;
   if (block.type === 'typography') return <>{field('Title', 'title')}{field('Content', 'content', { textarea: true, rows: 5 })}{field('Size', 'size', { select: true, options: [{ value: 'sm', label: 'Small' }, { value: 'md', label: 'Medium' }, { value: 'lg', label: 'Large' }], default: 'md' })}</>;
-  if (block.type === 'sideBySide') return <>{field('Title', 'title')}{field('Text', 'text', { textarea: true, rows: 4 })}{field('Image URL', 'image')}{uploadField('Upload', 'image')}{field('Position', 'imagePosition', { select: true, options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], default: 'left' })}</>;
+  if (block.type === 'sideBySide') return (
+    <>
+      {field('Title', 'title')}
+      {field('Text', 'text', { textarea: true, rows: 4 })}
+      {field('Position', 'imagePosition', { select: true, options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], default: 'left' })}
+      <BasicCoverFieldEditor
+        url={data.image}
+        crop={data.crop}
+        aspectRatio="4 / 5"
+        onUrlChange={(next) => onUpdate(idx, 'image', next)}
+        onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onUpload={(file) => onUpload(idx, 'image', file)}
+      />
+    </>
+  );
   if (block.type === 'ctaSection') return <>{field('Title', 'title')}{field('Text', 'text', { textarea: true })}{field('Button Text', 'buttonText')}{field('Button Link', 'buttonLink')}</>;
-  if (block.type === 'beforeAfter') return <>{field('Title', 'title')}{field('Before URL', 'beforeImage')}{uploadField('Upload Before', 'beforeImage')}{field('After URL', 'afterImage')}{uploadField('Upload After', 'afterImage')}</>;
+  if (block.type === 'beforeAfter') return (
+    <>
+      {field('Title', 'title')}
+      <div style={{ ...panelStyle, gap: '14px' }}>
+        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Before image</div>
+        <BasicCoverFieldEditor
+          url={data.beforeImage}
+          crop={data.beforeCrop}
+          aspectRatio="16 / 9"
+          onUrlChange={(next) => onUpdate(idx, 'beforeImage', next)}
+          onCropChange={(next) => onUpdate(idx, 'beforeCrop', next)}
+          onUpload={(file) => onUpload(idx, 'beforeImage', file)}
+        />
+      </div>
+      <div style={{ ...panelStyle, gap: '14px' }}>
+        <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>After image</div>
+        <BasicCoverFieldEditor
+          url={data.afterImage}
+          crop={data.afterCrop}
+          aspectRatio="16 / 9"
+          onUrlChange={(next) => onUpdate(idx, 'afterImage', next)}
+          onCropChange={(next) => onUpdate(idx, 'afterCrop', next)}
+          onUpload={(file) => onUpload(idx, 'afterImage', file)}
+        />
+      </div>
+    </>
+  );
+  if (block.type === 'refinedSlider') return (
+    <RefinedSliderEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
+  );
+  if (block.type === 'circleDetail') return (
+    <CircleDetailEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
+  );
+  if (block.type === 'editorialNote') return (
+    <>
+      {field('Eyebrow', 'eyebrow')}
+      {field('Title', 'title')}
+      {field('Note', 'note', { textarea: true, rows: 5 })}
+      <BasicCoverFieldEditor
+        url={data.image}
+        crop={data.crop}
+        aspectRatio="4 / 5"
+        onUrlChange={(next) => onUpdate(idx, 'image', next)}
+        onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onUpload={(file) => onUpload(idx, 'image', file)}
+      />
+    </>
+  );
+  if (block.type === 'mosaicPreset') return (
+    <MosaicPresetEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
+  );
+
   return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No fields</p>;
 }

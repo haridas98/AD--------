@@ -1,8 +1,10 @@
 import React from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
+import { PortfolioProjectCard } from '../components/PortfolioProjectCard';
+import styles from './CategoryPage.module.scss';
 
 const CATEGORY_NAMES: Record<string, string> = {
   kitchens: 'Kitchens',
@@ -30,8 +32,10 @@ export default function CategoryPage() {
 
   if (!catProjects.length) {
     return (
-      <main className="container page-pad wide">
-        <motion.h1 className="text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Section not found</motion.h1>
+      <main className={`${styles.page} page-shell page-shell--offset`}>
+        <div className="page-shell__portfolio">
+          <motion.h1 className="text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Section not found</motion.h1>
+        </div>
       </main>
     );
   }
@@ -42,20 +46,30 @@ export default function CategoryPage() {
         <title>{name} — {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content={`${name} projects by Alexandra Diz`} />
       </Helmet>
-      <main className="container page-pad wide">
-        <motion.header className="page-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-white">{name}</h1>
-          {category?.description && <p className="text-secondary">{category.description}</p>}
-        </motion.header>
-        <div className="cards-grid category-grid">
-          {catProjects.map((project, i) => (
-            <motion.article key={project.id} className="project-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} whileHover={{ y: -4 }}>
-              <Link to={`/${catSlug}/${project.slug}`} className="project-image-wrap" style={{ display: 'block' }}>
-                {getCover(project) && <img src={getCover(project)} alt={project.title} loading="lazy" />}
-              </Link>
-              <div className="project-body"><h3>{project.title}</h3></div>
-            </motion.article>
-          ))}
+      <main className={`${styles.page} page-shell page-shell--offset`}>
+        <div className="page-shell__portfolio">
+          <motion.header className={styles.header} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 className="text-white">{name}</h1>
+            {category?.description && <p className="text-secondary">{category.description}</p>}
+          </motion.header>
+          <div className={styles.grid}>
+            {catProjects.map((project) => {
+              const cover = getCover(project);
+              if (!cover) return null;
+
+              return (
+                <PortfolioProjectCard
+                  key={project.id}
+                  to={`/${catSlug}/${project.slug}`}
+                  title={project.title}
+                  image={cover}
+                  eyebrow={name}
+                  cityName={project.cityName}
+                  year={project.year}
+                />
+              );
+            })}
+          </div>
         </div>
       </main>
     </>
