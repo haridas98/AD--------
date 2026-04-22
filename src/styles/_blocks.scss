@@ -26,8 +26,10 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--theme-bg) 18%, transparent) 0%,
-    color-mix(in srgb, var(--theme-bg) 68%, transparent) 100%
+    rgba(10, 10, 10, 0.04) 0%,
+    rgba(10, 10, 10, 0.08) 42%,
+    rgba(10, 10, 10, 0.24) 68%,
+    rgba(10, 10, 10, 0.72) 100%
   );
   z-index: 1;
 }
@@ -35,7 +37,7 @@
 .project-hero-content {
   position: relative;
   z-index: 2;
-  color: var(--project-text-primary);
+  color: #fff;
   width: min(100%, 1040px);
   margin: 0 auto;
   padding: 0 var(--page-gutter) clamp(40px, 6vw, 72px);
@@ -50,8 +52,9 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: 0.7;
+  color: rgba(255, 255, 255, 0.82);
   margin-bottom: 10px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
 }
 
 .project-hero-content h1 {
@@ -59,17 +62,19 @@
   font-size: 38px;
   font-weight: 800;
   margin: 0 0 15px;
-  color: var(--project-text-primary);
+  color: #fff;
   letter-spacing: 0.02em;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.34);
 }
 
 .project-hero-content p {
   font-family: 'GilroyLight', sans-serif;
   font-size: 16px;
   line-height: 1.6;
-  color: color-mix(in srgb, var(--project-text-primary) 88%, transparent);
+  color: rgba(255, 255, 255, 0.88);
   max-width: 700px;
   margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
 }
 
 /* Project Meta Block */

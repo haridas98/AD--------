@@ -31,6 +31,27 @@ function toSlug(t: string) {
   return t.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
 }
 
+async function getImageOrientation(file: File): Promise<'landscape' | 'portrait' | 'square'> {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const orientation = await new Promise<'landscape' | 'portrait' | 'square'>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => {
+        if (image.naturalWidth > image.naturalHeight) resolve('landscape');
+        else if (image.naturalWidth < image.naturalHeight) resolve('portrait');
+        else resolve('square');
+      };
+      image.onerror = () => reject(new Error('Failed to read image dimensions'));
+      image.src = objectUrl;
+    });
+
+    return orientation;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 function getHeroImage(content: any[]) {
   return content.find((block: any) => block.type === 'heroImage')?.data?.image || '';
 }
@@ -294,6 +315,7 @@ function BasicCoverFieldEditor({
   onUrlChange,
   onCropChange,
   onUpload,
+  openCropOnPortraitUpload = false,
   aspectRatio = '4 / 5',
   radius = '16px',
   cropShape = 'rect',
@@ -305,6 +327,7 @@ function BasicCoverFieldEditor({
   onUrlChange: (next: string) => void;
   onCropChange: (next: CropData) => void;
   onUpload: (file: File) => Promise<any> | any;
+  openCropOnPortraitUpload?: boolean;
   aspectRatio?: string;
   radius?: string;
   cropShape?: 'rect' | 'round';
@@ -346,10 +369,15 @@ function BasicCoverFieldEditor({
           accept="image/jpeg,image/png,image/webp"
           onChange={async (e) => {
             if (!e.target.files?.[0]) return;
-            const uploaded = await onUpload(e.target.files[0]);
+            const file = e.target.files[0];
+            const orientation = await getImageOrientation(file).catch(() => 'landscape' as const);
+            const uploaded = await onUpload(file);
             if (uploaded?.url) {
               onUrlChange(uploaded.url);
               onCropChange(ensureCrop());
+              if (openCropOnPortraitUpload && orientation === 'portrait') {
+                setIsCropOpen(true);
+              }
             }
             e.currentTarget.value = '';
           }}
@@ -1535,6 +1563,7 @@ function BlockEditor({
           url={data.beforeImage}
           crop={data.beforeCrop}
           aspectRatio="16 / 9"
+          openCropOnPortraitUpload
           onUrlChange={(next) => onUpdate(idx, 'beforeImage', next)}
           onCropChange={(next) => onUpdate(idx, 'beforeCrop', next)}
           onUpload={(file) => onUpload(idx, 'beforeImage', file)}
@@ -1546,6 +1575,7 @@ function BlockEditor({
           url={data.afterImage}
           crop={data.afterCrop}
           aspectRatio="16 / 9"
+          openCropOnPortraitUpload
           onUrlChange={(next) => onUpdate(idx, 'afterImage', next)}
           onCropChange={(next) => onUpdate(idx, 'afterCrop', next)}
           onUpload={(file) => onUpload(idx, 'afterImage', file)}

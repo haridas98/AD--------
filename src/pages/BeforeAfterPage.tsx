@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import Lightbox from '../components/Lightbox';
+import BeforeAfterBlock from '../components/blocks/BeforeAfterBlock';
 
 export default function BeforeAfterPage() {
   const { projects, site } = useAppStore();
@@ -12,6 +13,7 @@ export default function BeforeAfterPage() {
 
   const beforeAfterItems = projects.flatMap((project) => {
     const content = typeof project.content === 'string' ? JSON.parse(project.content) : project.content;
+
     return content
       .filter((block: any) => block.type === 'beforeAfter')
       .map((block: any) => ({
@@ -29,7 +31,7 @@ export default function BeforeAfterPage() {
     setLightboxOpen(true);
   };
 
-  function getCategorySlug(catId: string) {
+  function getCategorySlug(categoryId: string) {
     const map: Record<string, string> = {
       kitchens: 'kitchens',
       'full-house-remodeling': 'full-house-remodeling',
@@ -38,40 +40,37 @@ export default function BeforeAfterPage() {
       'projects-before-and-after': 'projects-before-and-after',
       fireplaces: 'fireplaces',
     };
-    return map[catId] || catId;
+
+    return map[categoryId] || categoryId;
   }
 
   return (
     <>
       <Helmet>
-        <title>Before & After вЂ” {site?.name || 'Alexandra Diz'}</title>
+        <title>Before & After — {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content="Before and after transformations of our interior design projects" />
       </Helmet>
 
       <main className="page-shell page-shell--offset before-after-page">
         <div className="page-shell__portfolio">
-          <motion.header className="page-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.header
+            className="page-title"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <h1 className="text-white">Before & After</h1>
             <p className="text-muted">Transformation stories from our projects</p>
           </motion.header>
 
           <div className="before-after-list">
-            {beforeAfterItems.map((item, i) => (
-              <motion.div
-                key={`${item.projectId}-${i}`}
+            {beforeAfterItems.map((item, index) => (
+              <motion.article
+                key={`${item.projectId}-${index}`}
                 className="before-after-item"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                style={{ marginBottom: '40px' }}
-                onMouseMove={(e) => {
-                  const rect = e.currentTarget.querySelector('.before-after-slider')?.getBoundingClientRect();
-                  if (rect) {
-                    const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-                    e.currentTarget.querySelector('.before-after-slider')?.style.setProperty('--slider', `${pct}%`);
-                  }
-                }}
+                transition={{ delay: index * 0.05 }}
               >
                 <div className="before-after-info">
                   <a href={`/${getCategorySlug(item.categoryId)}/${item.projectSlug}`}>
@@ -80,26 +79,23 @@ export default function BeforeAfterPage() {
                   {item.title && <p>{item.title}</p>}
                 </div>
 
-                <div className="before-after-slider">
-                  <img src={item.afterImage} alt="After" onClick={() => openLightbox([item.beforeImage, item.afterImage], 1)} />
-
-                  <div className="before-image">
-                    <img src={item.beforeImage} alt="Before" onClick={() => openLightbox([item.beforeImage, item.afterImage], 0)} />
-                  </div>
-
-                  <div className="slider-line">
-                    <div className="slider-handle">&lt;&gt;</div>
-                  </div>
-
-                  <span className="before-after-label before-after-label--before">Before</span>
-                  <span className="before-after-label before-after-label--after">After</span>
-                </div>
-              </motion.div>
+                <BeforeAfterBlock
+                  data={{
+                    beforeImage: item.beforeImage,
+                    afterImage: item.afterImage,
+                    beforeAlt: `${item.projectTitle} before`,
+                    afterAlt: `${item.projectTitle} after`,
+                  }}
+                  variant="embedded"
+                  className="before-after-item__block"
+                  onOpenLightbox={openLightbox}
+                />
+              </motion.article>
             ))}
           </div>
 
           {beforeAfterItems.length === 0 && (
-            <p className="text-muted" style={{ textAlign: 'center', padding: '60px 0' }}>
+            <p className="text-muted before-after-empty">
               No before/after transformations available yet.
             </p>
           )}
@@ -107,7 +103,12 @@ export default function BeforeAfterPage() {
       </main>
 
       {lightboxOpen && (
-        <Lightbox images={lightboxImages} currentIndex={lightboxIndex} onClose={() => setLightboxOpen(false)} onNavigate={setLightboxIndex} />
+        <Lightbox
+          images={lightboxImages}
+          currentIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
+          onNavigate={setLightboxIndex}
+        />
       )}
     </>
   );

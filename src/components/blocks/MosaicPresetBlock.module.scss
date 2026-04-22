@@ -15,6 +15,7 @@
 .block {
   display: grid;
   gap: 14px;
+  height: min(76vh, 820px);
 }
 
 .cell {
@@ -28,7 +29,6 @@
 .cell img {
   width: 100%;
   height: 100%;
-  min-height: clamp(220px, 26vw, 380px);
   object-fit: cover;
   display: block;
   transition: transform 0.45s ease;
@@ -40,6 +40,7 @@
 
 .presetA {
   grid-template-columns: 1.25fr 0.75fr 0.75fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   grid-template-areas:
     "hero side1 side2"
     "hero base base";
@@ -52,6 +53,7 @@
 
 .presetB {
   grid-template-columns: 0.85fr 1.15fr 1.15fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   grid-template-areas:
     "left top top"
     "left bottom1 bottom2";
@@ -63,15 +65,32 @@
 .presetB .cell:nth-child(4) { grid-area: bottom2; }
 
 @media (max-width: 900px) {
+  .block {
+    height: auto;
+  }
+
   .presetA,
   .presetB {
     grid-template-columns: 1fr 1fr;
-    grid-template-areas: none;
+    grid-template-rows: repeat(3, minmax(0, auto));
   }
 
-  .presetA .cell,
-  .presetB .cell {
-    grid-area: auto !important;
+  .presetA {
+    grid-template-areas:
+      "hero hero"
+      "side1 side2"
+      "base base";
+  }
+
+  .presetB {
+    grid-template-areas:
+      "top top"
+      "left bottom1"
+      "left bottom2";
+  }
+
+  .cell img {
+    min-height: clamp(220px, 32vw, 320px);
   }
 }
 
@@ -79,5 +98,12 @@
   .presetA,
   .presetB {
     grid-template-columns: 1fr;
+    grid-template-areas: none;
+    grid-template-rows: none;
+  }
+
+  .cell img {
+    aspect-ratio: 16 / 10;
+    min-height: 0;
   }
 }

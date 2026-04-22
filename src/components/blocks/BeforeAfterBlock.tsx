@@ -22,18 +22,32 @@ interface BeforeAfterBlockProps {
       y?: number;
     };
   };
+  className?: string;
+  variant?: 'default' | 'embedded';
+  onOpenLightbox?: (images: string[], index: number) => void;
 }
 
-export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
+export default function BeforeAfterBlock({
+  data,
+  className = '',
+  variant = 'default',
+  onOpenLightbox,
+}: BeforeAfterBlockProps) {
   const [sliderValue, setSliderValue] = useState(50);
   const beforeAsset = normalizeImageAsset(typeof data.beforeImage === 'string' ? { url: data.beforeImage, alt: data.beforeAlt, crop: data.beforeCrop } : data.beforeImage);
   const afterAsset = normalizeImageAsset(typeof data.afterImage === 'string' ? { url: data.afterImage, alt: data.afterAlt, crop: data.afterCrop } : data.afterImage);
 
   if (!beforeAsset?.url || !afterAsset?.url) return null;
 
+  const rootClassName = [
+    styles.block,
+    variant === 'embedded' ? styles.blockEmbedded : '',
+    className,
+  ].filter(Boolean).join(' ');
+
   return (
     <motion.section
-      className={styles.block}
+      className={rootClassName}
       data-project-block
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -52,8 +66,9 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
           transition=".18s ease-out"
           handle={
             <div className={styles.handle} aria-hidden="true">
-              <span />
-              <span />
+              <span className={styles.arrowLeft} />
+              <span className={styles.grip} />
+              <span className={styles.arrowRight} />
             </div>
           }
           itemOne={
@@ -63,6 +78,7 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
                 alt={beforeAsset.alt || data.beforeAlt || 'Before'}
                 className={styles.image}
                 style={getCoverImageStyle(beforeAsset.crop)}
+                onClick={onOpenLightbox ? () => onOpenLightbox([beforeAsset.url, afterAsset.url], 0) : undefined}
               />
               <div className={`${styles.label} ${styles.labelBefore}`}>Before</div>
             </div>
@@ -74,6 +90,7 @@ export default function BeforeAfterBlock({ data }: BeforeAfterBlockProps) {
                 alt={afterAsset.alt || data.afterAlt || 'After'}
                 className={styles.image}
                 style={getCoverImageStyle(afterAsset.crop)}
+                onClick={onOpenLightbox ? () => onOpenLightbox([beforeAsset.url, afterAsset.url], 1) : undefined}
               />
               <div className={`${styles.label} ${styles.labelAfter}`}>After</div>
             </div>
