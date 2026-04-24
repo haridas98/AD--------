@@ -7,7 +7,7 @@ type HomeIntroProps = {
     title: string;
     text: string;
     portraitPrimary: string;
-    portraitSecondary: string;
+    materialImages: string[];
     quote: string;
     highlights: DraftHighlight[];
   };
@@ -58,7 +58,7 @@ export function HomeIntro({ data, metrics, styles }: HomeIntroProps) {
           </div>
 
           <div className={styles.materialStrip}>
-            {[data.portraitSecondary, data.portraitPrimary, data.portraitSecondary].map((image, index) => (
+            {data.materialImages.map((image, index) => (
               <div key={`${image}-${index}`} className={styles.materialCard}>
                 <img src={image} alt="" />
                 <span>{['Hand-selected Materials', 'Natural Textures', 'Timeless Finishes'][index]}</span>

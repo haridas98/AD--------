@@ -72,7 +72,7 @@
   .presetA,
   .presetB {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, minmax(0, auto));
+    grid-template-rows: repeat(3, clamp(126px, 22vw, 180px));
   }
 
   .presetA {
@@ -89,21 +89,33 @@
       "left bottom2";
   }
 
-  .cell img {
-    min-height: clamp(220px, 32vw, 320px);
+  .cell {
+    min-height: 0;
   }
 }
 
 @media (max-width: 640px) {
-  .presetA,
-  .presetB {
-    grid-template-columns: 1fr;
-    grid-template-areas: none;
-    grid-template-rows: none;
+  .block {
+    gap: 10px;
   }
 
-  .cell img {
-    aspect-ratio: 16 / 10;
-    min-height: 0;
+  .presetA,
+  .presetB {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, clamp(108px, 28vw, 150px));
+  }
+
+  .presetA {
+    grid-template-areas:
+      "hero hero"
+      "side1 side2"
+      "base base";
+  }
+
+  .presetB {
+    grid-template-areas:
+      "top top"
+      "left bottom1"
+      "left bottom2";
   }
 }

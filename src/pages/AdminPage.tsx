@@ -6,11 +6,14 @@ import AdminAssetSourcePanel from '../components/admin/AdminAssetSourcePanel';
 import AdminImageCropModal from '../components/admin/AdminImageCropModal';
 import AdminProjectMiniMap from '../components/admin/AdminProjectMiniMap';
 import AdminThemeEditor from '../components/admin/AdminThemeEditor';
+import ProjectAssetLibrary from '../components/admin/ProjectAssetLibrary';
+import ProjectAssetPicker from '../components/admin/ProjectAssetPicker';
 import { normalizeEditorCrop } from '../lib/adminImageCrop';
 import { getCoverImageStyle } from '../lib/imageTransforms';
-import { appendBeforeAfterBlocks, buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
+import { buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
 import { PROJECT_STYLE_PRESET_OPTIONS } from '../lib/projectStylePresets';
 import { normalizeThemeSettings } from '../lib/themeTokens';
+import type { ProjectAsset } from '../types';
 
 const BLOCK_TYPES = [
   { value: 'heroImage', label: 'Hero Image' },
@@ -101,26 +104,33 @@ const slotGridStyle: React.CSSProperties = {
 };
 
 type CropData = { scale: number; x: number; y: number };
-type EditableImage = { url: string; alt?: string; crop: CropData };
-type CircleItem = { label?: string; image: string; alt?: string; crop: CropData };
+type EditableImage = { url: string; alt?: string; crop: CropData; assetId?: string };
+type CircleItem = { label?: string; image: string; alt?: string; crop: CropData; assetId?: string };
+
+function cleanCircleLabel(value?: string) {
+  const label = String(value || '').trim();
+  return /^Detail\s+\d+$/i.test(label) ? '' : label;
+}
 
 function ensureCrop(crop?: any): CropData {
   return normalizeEditorCrop(crop);
 }
 
 function toEditableImage(item?: any): EditableImage {
-  if (!item) return { url: '', alt: '', crop: ensureCrop() };
-  if (typeof item === 'string') return { url: item, alt: '', crop: ensureCrop() };
-  return { url: item.url || '', alt: item.alt || '', crop: ensureCrop(item.crop) };
+  if (!item) return { url: '', alt: '', crop: ensureCrop(), assetId: '' };
+  if (typeof item === 'string') return { url: item, alt: '', crop: ensureCrop(), assetId: '' };
+  return { url: item.url || '', alt: item.alt || '', crop: ensureCrop(item.crop), assetId: item.assetId || '' };
 }
 
 function toCircleItem(item?: any): CircleItem {
-  if (!item) return { label: '', image: '', alt: '', crop: ensureCrop() };
+  if (!item) return { label: '', image: '', alt: '', crop: ensureCrop(), assetId: '' };
+  const label = cleanCircleLabel(item.label);
   return {
-    label: item.label || '',
+    label,
     image: item.image || '',
-    alt: item.alt || '',
+    alt: cleanCircleLabel(item.alt) || label,
     crop: ensureCrop(item.crop),
+    assetId: item.assetId || '',
   };
 }
 
@@ -192,6 +202,7 @@ function EditableCoverFieldEditor({
   value,
   onChange,
   onUpload,
+  onPickAsset,
   aspectRatio = '4 / 5',
   radius = '16px',
   cropShape = 'rect',
@@ -201,6 +212,7 @@ function EditableCoverFieldEditor({
   value?: any;
   onChange: (next: EditableImage) => void;
   onUpload: (file: File) => Promise<any> | any;
+  onPickAsset?: () => Promise<any> | any;
   aspectRatio?: string;
   radius?: string;
   cropShape?: 'rect' | 'round';
@@ -243,7 +255,7 @@ function EditableCoverFieldEditor({
           onChange={async (e) => {
             if (!e.target.files?.[0]) return;
             const uploaded = await onUpload(e.target.files[0]);
-            if (uploaded?.url) onChange({ ...current, url: uploaded.url, crop: ensureCrop() });
+            if (uploaded?.url) onChange({ ...current, url: uploaded.url, crop: ensureCrop(), assetId: uploaded.id || uploaded.assetId || '' });
             e.currentTarget.value = '';
           }}
           style={{ display: 'none' }}
@@ -267,7 +279,7 @@ function EditableCoverFieldEditor({
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
-                onChange({ ...current, url: '', crop: ensureCrop() });
+                onChange({ ...current, url: '', crop: ensureCrop(), assetId: '' });
               }}
               style={mediaOverlayButtonStyle('danger')}
             >
@@ -285,8 +297,21 @@ function EditableCoverFieldEditor({
           setIsSourceOpen(false);
           openFilePicker();
         }}
+        onLibraryClick={onPickAsset ? async () => {
+          const picked = await onPickAsset();
+          if (picked?.url || picked?.publicUrl) {
+            onChange({
+              ...current,
+              url: picked.url || picked.publicUrl,
+              alt: picked.altText || current.alt || '',
+              crop: ensureCrop(),
+              assetId: picked.id || picked.assetId || '',
+            });
+            setIsSourceOpen(false);
+          }
+        } : undefined}
         onUrlApply={(nextUrl) => {
-          onChange({ ...current, url: nextUrl, crop: ensureCrop() });
+          onChange({ ...current, url: nextUrl, crop: ensureCrop(), assetId: '' });
           setIsSourceOpen(false);
         }}
         onClose={() => setIsSourceOpen(false)}
@@ -312,9 +337,12 @@ function EditableCoverFieldEditor({
 function BasicCoverFieldEditor({
   url,
   crop,
+  assetId,
   onUrlChange,
   onCropChange,
+  onAssetIdChange,
   onUpload,
+  onPickAsset,
   openCropOnPortraitUpload = false,
   aspectRatio = '4 / 5',
   radius = '16px',
@@ -324,9 +352,12 @@ function BasicCoverFieldEditor({
 }: {
   url?: string;
   crop?: CropData;
+  assetId?: string;
   onUrlChange: (next: string) => void;
   onCropChange: (next: CropData) => void;
+  onAssetIdChange?: (next: string) => void;
   onUpload: (file: File) => Promise<any> | any;
+  onPickAsset?: () => Promise<any> | any;
   openCropOnPortraitUpload?: boolean;
   aspectRatio?: string;
   radius?: string;
@@ -375,6 +406,7 @@ function BasicCoverFieldEditor({
             if (uploaded?.url) {
               onUrlChange(uploaded.url);
               onCropChange(ensureCrop());
+              onAssetIdChange?.(uploaded.id || uploaded.assetId || '');
               if (openCropOnPortraitUpload && orientation === 'portrait') {
                 setIsCropOpen(true);
               }
@@ -404,6 +436,7 @@ function BasicCoverFieldEditor({
                 event.stopPropagation();
                 onUrlChange('');
                 onCropChange(ensureCrop());
+                onAssetIdChange?.('');
               }}
               style={mediaOverlayButtonStyle('danger')}
             >
@@ -421,9 +454,19 @@ function BasicCoverFieldEditor({
           setIsSourceOpen(false);
           openFilePicker();
         }}
+        onLibraryClick={onPickAsset ? async () => {
+          const picked = await onPickAsset();
+          if (picked?.url || picked?.publicUrl) {
+            onUrlChange(picked.url || picked.publicUrl);
+            onCropChange(ensureCrop());
+            onAssetIdChange?.(picked.id || picked.assetId || '');
+            setIsSourceOpen(false);
+          }
+        } : undefined}
         onUrlApply={(nextUrl) => {
           onUrlChange(nextUrl);
           onCropChange(ensureCrop());
+          onAssetIdChange?.('');
           setIsSourceOpen(false);
         }}
         onClose={() => setIsSourceOpen(false)}
@@ -451,6 +494,7 @@ function MosaicPresetEditor({
   idx,
   onUpdate,
   onUpload,
+  onPickAsset,
   formTitle,
   compact = false,
 }: {
@@ -458,10 +502,13 @@ function MosaicPresetEditor({
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  onPickAsset?: () => Promise<any> | any;
   formTitle: string;
   compact?: boolean;
 }) {
   const images = Array.from({ length: 4 }, (_, index) => toEditableImage((data.images || [])[index]));
+  const preset = data.preset === 'b' ? 'b' : 'a';
+  const areas = preset === 'b' ? ['left', 'top', 'bottom1', 'bottom2'] : ['hero', 'side1', 'side2', 'base'];
 
   const updateImage = (imageIndex: number, nextImage: EditableImage) => {
     const next = [...images];
@@ -476,16 +523,43 @@ function MosaicPresetEditor({
         <label style={labelStyle}>Preset<select value={data.preset || 'a'} onChange={(e) => onUpdate(idx, 'preset', e.target.value)} style={inputStyle}><option value="a" style={{ background: '#141414' }}>Preset A</option><option value="b" style={{ background: '#141414' }}>Preset B</option></select></label>
       </div>
 
-      <div style={{ ...slotGridStyle, gridTemplateColumns: compact ? '1fr 1fr' : data.preset === 'b' ? '0.85fr 1.15fr 1.15fr' : '1.25fr 0.75fr 0.75fr' }}>
-        {images.map((image, imageIndex) => (
-          <EditableCoverFieldEditor
-            key={imageIndex}
-            value={image}
-            aspectRatio={imageIndex === 0 ? '4 / 5' : '1 / 1'}
-            previewMaxWidth="100%"
-            onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
-            onUpload={(file) => onUpload(idx, `mosaicUpload-${imageIndex}`, file)}
-          />
+      <div
+        style={{
+          display: 'grid',
+          gap: '10px',
+          gridTemplateColumns: compact ? '1fr 1fr' : preset === 'b' ? '0.85fr 1.15fr 1.15fr' : '1.25fr 0.75fr 0.75fr',
+          gridTemplateRows: compact ? 'repeat(3, minmax(0, auto))' : 'repeat(2, minmax(0, 1fr))',
+          gridTemplateAreas: compact
+            ? preset === 'b'
+              ? `"top top" "left bottom1" "left bottom2"`
+              : `"hero hero" "side1 side2" "base base"`
+            : preset === 'b'
+              ? `"left top top" "left bottom1 bottom2"`
+              : `"hero side1 side2" "hero base base"`,
+          alignItems: 'stretch',
+        }}
+      >
+        {areas.map((area, imageIndex) => (
+          <div key={area} style={{ gridArea: area, minWidth: 0, minHeight: 0 }}>
+            <EditableCoverFieldEditor
+              value={images[imageIndex]}
+              aspectRatio={
+                compact
+                  ? area === 'hero' || area === 'top' || area === 'base'
+                    ? '16 / 10'
+                    : '1 / 1'
+                  : area === 'hero' || area === 'left'
+                    ? '4 / 5'
+                    : area === 'base' || area === 'top'
+                      ? '16 / 10'
+                      : '1 / 1'
+              }
+              previewMaxWidth="100%"
+              onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
+              onUpload={(file) => onUpload(idx, `mosaicUpload-${imageIndex}`, file)}
+              onPickAsset={onPickAsset}
+            />
+          </div>
         ))}
       </div>
     </div>
@@ -497,6 +571,7 @@ function CircleDetailEditor({
   idx,
   onUpdate,
   onUpload,
+  onPickAsset,
   formTitle,
   compact = false,
 }: {
@@ -504,6 +579,7 @@ function CircleDetailEditor({
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  onPickAsset?: () => Promise<any> | any;
   formTitle: string;
   compact?: boolean;
 }) {
@@ -526,22 +602,30 @@ function CircleDetailEditor({
         <div style={{ color: 'rgba(255,255,255,0.42)', fontSize: '12px' }}>The next dimmed slot appears automatically. Up to 10 circles.</div>
       </div>
 
-      <div style={{ ...slotGridStyle, gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))' }}>
+      <div
+        style={{
+          ...slotGridStyle,
+          gridTemplateColumns: compact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))',
+          justifyContent: 'stretch',
+          alignItems: 'start',
+        }}
+      >
         {items.map((item, itemIndex) => (
-          <div key={itemIndex} style={{ display: 'grid', gap: '8px', opacity: item.image || item.label ? 1 : 0.62 }}>
+          <div key={itemIndex} style={{ display: 'grid', gap: '8px', opacity: item.image || item.label ? 1 : 0.62, justifyItems: 'center' }}>
             <EditableCoverFieldEditor
-              value={{ url: item.image, alt: item.alt || item.label || formTitle, crop: item.crop }}
+              value={{ url: item.image, alt: item.alt || item.label || formTitle, crop: item.crop, assetId: item.assetId || '' }}
               radius="999px"
               cropShape="round"
-              previewMaxWidth="100%"
-              onChange={(nextImage) => updateItem(itemIndex, { ...item, image: nextImage.url, alt: nextImage.alt || item.label || formTitle, crop: nextImage.crop })}
+              previewMaxWidth={compact ? '100%' : '156px'}
+              onChange={(nextImage) => updateItem(itemIndex, { ...item, image: nextImage.url, alt: nextImage.alt || item.label || formTitle, crop: nextImage.crop, assetId: nextImage.assetId || '' })}
               onUpload={(file) => onUpload(idx, `circleUpload-${itemIndex}`, file)}
+              onPickAsset={onPickAsset}
             />
             <input
               value={item.label || ''}
               onChange={(e) => updateItem(itemIndex, { ...item, label: e.target.value, alt: e.target.value || formTitle })}
               placeholder={`Circle ${itemIndex + 1}`}
-              style={inputStyle}
+              style={{ ...inputStyle, maxWidth: compact ? '100%' : '156px' }}
             />
           </div>
         ))}
@@ -555,6 +639,7 @@ function RefinedSliderEditor({
   idx,
   onUpdate,
   onUpload,
+  onPickAsset,
   formTitle,
   compact = false,
 }: {
@@ -562,10 +647,14 @@ function RefinedSliderEditor({
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  onPickAsset?: () => Promise<any> | any;
   formTitle: string;
   compact?: boolean;
 }) {
-  const images = Array.from({ length: Math.max((data.images || []).length, 4) }, (_, index) => toEditableImage((data.images || [])[index]));
+  const images = Array.from(
+    { length: Math.min(Math.max((data.images || []).length + 1, 4), 12) },
+    (_, index) => toEditableImage((data.images || [])[index]),
+  );
 
   const updateImage = (imageIndex: number, nextImage: EditableImage) => {
     const next = [...images];
@@ -591,6 +680,7 @@ function RefinedSliderEditor({
             previewMaxWidth="100%"
             onChange={(nextImage) => updateImage(imageIndex, { ...nextImage, alt: nextImage.alt || formTitle })}
             onUpload={(file) => onUpload(idx, `sliderUpload-${imageIndex}`, file)}
+            onPickAsset={onPickAsset}
           />
         ))}
       </div>
@@ -619,7 +709,13 @@ export default function AdminPage({ data, refresh }: any) {
   const [themeForm, setThemeForm] = useState(normalizeThemeSettings(data?.themeSettings));
   const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const [projectEditorTab, setProjectEditorTab] = useState<'content' | 'assets'>('content');
+  const [projectAssets, setProjectAssets] = useState<ProjectAsset[]>([]);
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const [assetPickerOpen, setAssetPickerOpen] = useState(false);
+  const [aiInstructions, setAiInstructions] = useState('');
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const assetPickerResolver = useRef<((asset: ProjectAsset | null) => void) | null>(null);
 
   const categoryName = useMemo(
     () => adminData.categories?.find((category: any) => category.id === form?.categoryId)?.name || 'Project',
@@ -652,7 +748,105 @@ export default function AdminPage({ data, refresh }: any) {
     }
   }
 
+  async function loadProjectAssets(projectId = selId) {
+    if (!projectId) {
+      setProjectAssets([]);
+      return;
+    }
+
+    setAssetsLoading(true);
+    try {
+      const response = await api.getProjectAssets(projectId);
+      setProjectAssets(response.assets || []);
+    } catch (err: any) {
+      alert(err.message || 'Failed to load project assets');
+    } finally {
+      setAssetsLoading(false);
+    }
+  }
+
+  async function uploadProjectAssetFile(file: File) {
+    if (!file) return null;
+
+    if (!selId) {
+      return api.uploadImage(file, form?.title, `draft-${Date.now()}`);
+    }
+
+    const response = await api.uploadProjectAsset(selId, file);
+    await loadProjectAssets(selId);
+
+    if (!response?.asset) return null;
+    return {
+      ...response.asset,
+      url: response.asset.publicUrl,
+    };
+  }
+
+  async function importProjectAssetUrl(url: string) {
+    if (!selId) throw new Error('Save the project first to use the asset library');
+    const response = await api.importProjectAssetUrl(selId, url);
+    await loadProjectAssets(selId);
+    return response?.asset || null;
+  }
+
+  async function syncCurrentProjectAssets() {
+    if (!selId) return;
+    setAssetsLoading(true);
+    try {
+      await api.syncProjectAssets(selId);
+      await loadProjectAssets(selId);
+    } finally {
+      setAssetsLoading(false);
+    }
+  }
+
+  async function archiveProjectAsset(asset: ProjectAsset) {
+    if (!selId) return;
+    if (!confirm(`Archive ${asset.originalFilename}?`)) return;
+    await api.deleteProjectAsset(selId, asset.id);
+    await loadProjectAssets(selId);
+  }
+
+  async function updateProjectAsset(asset: ProjectAsset, payload: Partial<ProjectAsset>) {
+    if (!selId) return;
+    const response = await api.updateProjectAsset(selId, asset.id, payload);
+    if (response?.asset) {
+      setProjectAssets((current) => current.map((item) => (item.id === asset.id ? response.asset : item)));
+    } else {
+      await loadProjectAssets(selId);
+    }
+  }
+
+  function openProjectAssetPicker(): Promise<ProjectAsset | null> {
+    if (!selId) return Promise.resolve(null);
+
+    setAssetPickerOpen(true);
+    return new Promise((resolve) => {
+      assetPickerResolver.current = resolve;
+    });
+  }
+
+  function closeProjectAssetPicker() {
+    setAssetPickerOpen(false);
+    assetPickerResolver.current?.(null);
+    assetPickerResolver.current = null;
+  }
+
+  function handleProjectAssetPicked(asset: ProjectAsset) {
+    setAssetPickerOpen(false);
+    assetPickerResolver.current?.(asset);
+    assetPickerResolver.current = null;
+  }
+
   useEffect(() => { if (authed) sync(); }, [authed]);
+
+  useEffect(() => {
+    if (!authed || !selId) {
+      setProjectAssets([]);
+      return;
+    }
+    void loadProjectAssets(selId);
+  }, [authed, selId]);
 
   useEffect(() => {
     if (!data) return;
@@ -783,6 +977,8 @@ export default function AdminPage({ data, refresh }: any) {
       ...nextProject,
       content: buildProjectBaseBlocks(nextProject, firstCategory?.name || 'Project', 1),
     });
+    setProjectEditorTab('content');
+    setProjectAssets([]);
     setActiveBlockId('base-hero-image');
   }
 
@@ -790,6 +986,8 @@ export default function AdminPage({ data, refresh }: any) {
     setSelId('');
     setForm(null);
     setActiveBlockId(null);
+    setProjectEditorTab('content');
+    setProjectAssets([]);
   }
 
   function editProject(project: any) {
@@ -810,6 +1008,8 @@ export default function AdminPage({ data, refresh }: any) {
       cityName: project.cityName || '',
       year: project.year || '',
     });
+    setProjectEditorTab('content');
+    setAiInstructions('');
     setActiveBlockId((projectBlocks[0]?.id as string) || 'base-hero-image');
   }
 
@@ -867,8 +1067,8 @@ export default function AdminPage({ data, refresh }: any) {
     if (!file) return null;
     setSaving(true);
     try {
-      const uploaded = await api.uploadImage(file, form.title, `${blockIdx}-${field}`);
-      if (!field.toLowerCase().includes('upload')) setBlock(blockIdx, field, uploaded.url);
+      const uploaded = await uploadProjectAssetFile(file);
+      if (uploaded?.url && !field.toLowerCase().includes('upload')) setBlock(blockIdx, field, uploaded.url);
       return uploaded;
     } catch (err: any) {
       alert(err.message);
@@ -908,19 +1108,56 @@ export default function AdminPage({ data, refresh }: any) {
     }
   }
 
+  async function generateProjectDraftFromAi() {
+    if (!selId) {
+      alert('Save the project first, then AI can use its asset library.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await api.generateProjectPageDraft(selId, {
+        instructions: aiInstructions,
+      });
+      const draft = response?.draft;
+      if (!draft) return;
+
+      setForm((prev: any) => ({
+        ...prev,
+        content: draft.content || prev.content || [],
+        seoTitle: draft.seoTitle || prev.seoTitle || '',
+        seoDescription: draft.seoDescription || prev.seoDescription || '',
+        seoKeywords: draft.seoKeywords || prev.seoKeywords || '',
+      }));
+      setProjectEditorTab('content');
+      setActiveBlockId('ai-hero-image');
+    } catch (err: any) {
+      alert(err.message || 'AI draft failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function generateBlockTextWithAi(context: any) {
+    const prompt = window.prompt('Что нужно написать или улучшить?', context.currentValue || '');
+    if (prompt === null) return null;
+
+    const response = await api.generateAiText({
+      projectId: selId || undefined,
+      project: form,
+      prompt,
+      ...context,
+    });
+
+    return response?.text || null;
+  }
+
   function applyBaseStructure() {
     setForm((prev: any) => ({
       ...prev,
       content: buildProjectBaseBlocks(prev, categoryName, 1),
     }));
     setActiveBlockId('base-hero-image');
-  }
-
-  function addBeforeAfterSeries() {
-    setForm((prev: any) => ({
-      ...prev,
-      content: appendBeforeAfterBlocks(prev, prev.content || [], 10),
-    }));
   }
 
   async function applyBaseStructureToAllProjects() {
@@ -1200,15 +1437,101 @@ export default function AdminPage({ data, refresh }: any) {
                   </div>
                 </details>
 
+                <div style={{ ...panelStyle, gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>AI block draft</div>
+                      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginTop: '3px' }}>Creates editable blocks from project data and active assets, then fills copy and SEO.</div>
+                    </div>
+                    <button type="button" onClick={generateProjectDraftFromAi} disabled={saving || !selId} style={actionButtonStyle(true)}>
+                      Generate block draft
+                    </button>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={aiInstructions}
+                    onChange={(event) => setAiInstructions(event.target.value)}
+                    placeholder="Example: make it warmer, focus on premium materials and practical storage"
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => setProjectEditorTab('content')}
+                    style={{
+                      ...miniBtn,
+                      padding: '8px 16px',
+                      borderColor: projectEditorTab === 'content' ? 'rgba(198,164,123,0.45)' : 'rgba(255,255,255,0.15)',
+                      color: projectEditorTab === 'content' ? 'rgba(198,164,123,1)' : 'rgba(255,255,255,0.7)',
+                      background: projectEditorTab === 'content' ? 'rgba(198,164,123,0.12)' : 'transparent',
+                    }}
+                  >
+                    Content
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProjectEditorTab('assets')}
+                    style={{
+                      ...miniBtn,
+                      padding: '8px 16px',
+                      borderColor: projectEditorTab === 'assets' ? 'rgba(198,164,123,0.45)' : 'rgba(255,255,255,0.15)',
+                      color: projectEditorTab === 'assets' ? 'rgba(198,164,123,1)' : 'rgba(255,255,255,0.7)',
+                      background: projectEditorTab === 'assets' ? 'rgba(198,164,123,0.12)' : 'transparent',
+                    }}
+                  >
+                    Assets
+                  </button>
+                </div>
+
+                {projectEditorTab === 'assets' ? (
+                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '12px' }}>
+                    <ProjectAssetLibrary
+                      projectId={selId || undefined}
+                      projectSlug={form.slug}
+                      projectTitle={form.title}
+                      assets={projectAssets}
+                      loading={assetsLoading}
+                      onRefresh={() => loadProjectAssets(selId)}
+                      onSync={syncCurrentProjectAssets}
+                      onUpload={async (file) => {
+                        try {
+                          await uploadProjectAssetFile(file);
+                        } catch (err: any) {
+                          alert(err.message);
+                        }
+                      }}
+                      onImportUrl={async (url) => {
+                        try {
+                          await importProjectAssetUrl(url);
+                        } catch (err: any) {
+                          alert(err.message);
+                        }
+                      }}
+                      onUpdate={async (asset, payload) => {
+                        try {
+                          await updateProjectAsset(asset, payload);
+                        } catch (err: any) {
+                          alert(err.message);
+                        }
+                      }}
+                      onDelete={async (asset) => {
+                        try {
+                          await archiveProjectAsset(asset);
+                        } catch (err: any) {
+                          alert(err.message);
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
                 <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
                     <h4 style={{ color: '#fff', margin: 0, fontSize: '14px' }}>Content Blocks</h4>
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       <button type="button" onClick={applyBaseStructure} style={{ ...miniBtn, borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}>
                         Apply Base Structure
-                      </button>
-                      <button type="button" onClick={addBeforeAfterSeries} style={{ ...miniBtn, borderColor: 'rgba(198,164,123,0.22)', color: 'rgba(255,255,255,0.78)' }}>
-                        +10 Before/After
                       </button>
                     </div>
                   </div>
@@ -1248,11 +1571,24 @@ export default function AdminPage({ data, refresh }: any) {
                           <button type="button" onClick={() => removeBlock(index)} style={{ ...miniBtn, color: '#e74c3c' }}>✕</button>
                         </div>
                       </div>
-                      <BlockEditor block={block} idx={index} onUpdate={setBlock} onUpload={uploadBlockImg} formTitle={form.title} compact={isCompact} />
+                      <BlockEditor
+                        block={block}
+                        idx={index}
+                        onUpdate={setBlock}
+                        onUpload={uploadBlockImg}
+                        onPickAsset={selId ? async () => {
+                          const asset = await openProjectAssetPicker();
+                          return asset ? { ...asset, url: asset.publicUrl } : null;
+                        } : undefined}
+                        onGenerateText={generateBlockTextWithAi}
+                        formTitle={form.title}
+                        compact={isCompact}
+                      />
                     </div>
                   ))}
                   {(!form.content || !form.content.length) ? <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', textAlign: 'center', padding: '15px', margin: 0 }}>Click a block type above to start building</p> : null}
                 </div>
+                )}
 
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save Project'}</button>
@@ -1427,6 +1763,29 @@ export default function AdminPage({ data, refresh }: any) {
         />
       ) : null}
 
+      <ProjectAssetPicker
+        open={assetPickerOpen}
+        assets={projectAssets}
+        loading={assetsLoading}
+        onClose={closeProjectAssetPicker}
+        onSelect={handleProjectAssetPicked}
+        onRefresh={() => loadProjectAssets(selId)}
+        onUpload={async (file) => {
+          try {
+            await uploadProjectAssetFile(file);
+          } catch (err: any) {
+            alert(err.message);
+          }
+        }}
+        onImportUrl={async (url) => {
+          try {
+            await importProjectAssetUrl(url);
+          } catch (err: any) {
+            alert(err.message);
+          }
+        }}
+      />
+
       {loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>Loading...</div> : null}
     </main>
   );
@@ -1437,6 +1796,8 @@ function BlockEditor({
   idx,
   onUpdate,
   onUpload,
+  onPickAsset,
+  onGenerateText,
   formTitle,
   compact = false,
 }: {
@@ -1444,6 +1805,8 @@ function BlockEditor({
   idx: number;
   onUpdate: (i: number, f: string, v: any) => void;
   onUpload: (i: number, f: string, file: File) => Promise<any> | any;
+  onPickAsset?: () => Promise<any> | any;
+  onGenerateText?: (context: any) => Promise<string | null>;
   formTitle: string;
   compact?: boolean;
 }) {
@@ -1451,7 +1814,28 @@ function BlockEditor({
 
   const field = (label: string, fieldName: string, opts: any = {}) => (
     <label style={labelStyle}>
-      {label}
+      <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+        <span>{label}</span>
+        {opts.ai && onGenerateText ? (
+          <button
+            type="button"
+            title="Generate with AI"
+            onClick={async (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const nextText = await onGenerateText({
+                blockType: block.type,
+                fieldName,
+                currentValue: data[fieldName] || '',
+              });
+              if (nextText !== null) onUpdate(idx, fieldName, nextText);
+            }}
+            style={{ ...miniBtn, padding: '3px 8px', fontSize: '10px', borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}
+          >
+            AI
+          </button>
+        ) : null}
+      </span>
       {opts.textarea ? (
         <textarea
           rows={opts.rows || 3}
@@ -1473,16 +1857,19 @@ function BlockEditor({
 
   if (block.type === 'heroImage') return (
     <>
-      {field('Title', 'title')}
-      {field('Subtitle', 'subtitle')}
+      {field('Title', 'title', { ai: true })}
+      {field('Subtitle', 'subtitle', { ai: true })}
       {field('Alt Text', 'alt')}
       <BasicCoverFieldEditor
         url={data.image}
         crop={data.crop}
+        assetId={data.assetId}
         aspectRatio="16 / 10"
         onUrlChange={(next) => onUpdate(idx, 'image', next)}
         onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onAssetIdChange={(next) => onUpdate(idx, 'assetId', next)}
         onUpload={(file) => onUpload(idx, 'image', file)}
+        onPickAsset={onPickAsset}
       />
     </>
   );
@@ -1503,9 +1890,10 @@ function BlockEditor({
                 (_, nextIndex) => toEditableImage((data.images || [])[nextIndex]),
               );
               next[imageIndex] = { ...nextImage, alt: nextImage.alt || formTitle };
-              onUpdate(idx, 'images', next.filter((item) => item.url).map((item) => ({ url: item.url, alt: item.alt || formTitle, crop: item.crop })));
+              onUpdate(idx, 'images', next.filter((item) => item.url).map((item) => ({ url: item.url, alt: item.alt || formTitle, crop: item.crop, assetId: item.assetId || '' })));
             }}
             onUpload={(file) => onUpload(idx, `imageGridUpload-${imageIndex}`, file)}
+            onPickAsset={onPickAsset}
           />
         ))}
       </div>
@@ -1537,36 +1925,42 @@ function BlockEditor({
       />
     </label>
   );
-  if (block.type === 'typography') return <>{field('Title', 'title')}{field('Content', 'content', { textarea: true, rows: 5 })}{field('Size', 'size', { select: true, options: [{ value: 'sm', label: 'Small' }, { value: 'md', label: 'Medium' }, { value: 'lg', label: 'Large' }], default: 'md' })}</>;
+  if (block.type === 'typography') return <>{field('Title', 'title', { ai: true })}{field('Content', 'content', { textarea: true, rows: 5, ai: true })}{field('Size', 'size', { select: true, options: [{ value: 'sm', label: 'Small' }, { value: 'md', label: 'Medium' }, { value: 'lg', label: 'Large' }], default: 'md' })}</>;
   if (block.type === 'sideBySide') return (
     <>
-      {field('Title', 'title')}
-      {field('Text', 'text', { textarea: true, rows: 4 })}
+      {field('Title', 'title', { ai: true })}
+      {field('Text', 'text', { textarea: true, rows: 4, ai: true })}
       {field('Position', 'imagePosition', { select: true, options: [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }], default: 'left' })}
       <BasicCoverFieldEditor
         url={data.image}
         crop={data.crop}
+        assetId={data.assetId}
         aspectRatio="4 / 5"
         onUrlChange={(next) => onUpdate(idx, 'image', next)}
         onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onAssetIdChange={(next) => onUpdate(idx, 'assetId', next)}
         onUpload={(file) => onUpload(idx, 'image', file)}
+        onPickAsset={onPickAsset}
       />
     </>
   );
-  if (block.type === 'ctaSection') return <>{field('Title', 'title')}{field('Text', 'text', { textarea: true })}{field('Button Text', 'buttonText')}{field('Button Link', 'buttonLink')}</>;
+  if (block.type === 'ctaSection') return <>{field('Title', 'title', { ai: true })}{field('Text', 'text', { textarea: true, ai: true })}{field('Button Text', 'buttonText')}{field('Button Link', 'buttonLink')}</>;
   if (block.type === 'beforeAfter') return (
     <>
-      {field('Title', 'title')}
+      {field('Title', 'title', { ai: true })}
       <div style={{ ...panelStyle, gap: '14px' }}>
         <div style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Before image</div>
         <BasicCoverFieldEditor
           url={data.beforeImage}
           crop={data.beforeCrop}
+          assetId={data.beforeAssetId}
           aspectRatio="16 / 9"
           openCropOnPortraitUpload
           onUrlChange={(next) => onUpdate(idx, 'beforeImage', next)}
           onCropChange={(next) => onUpdate(idx, 'beforeCrop', next)}
+          onAssetIdChange={(next) => onUpdate(idx, 'beforeAssetId', next)}
           onUpload={(file) => onUpload(idx, 'beforeImage', file)}
+          onPickAsset={onPickAsset}
         />
       </div>
       <div style={{ ...panelStyle, gap: '14px' }}>
@@ -1574,38 +1968,44 @@ function BlockEditor({
         <BasicCoverFieldEditor
           url={data.afterImage}
           crop={data.afterCrop}
+          assetId={data.afterAssetId}
           aspectRatio="16 / 9"
           openCropOnPortraitUpload
           onUrlChange={(next) => onUpdate(idx, 'afterImage', next)}
           onCropChange={(next) => onUpdate(idx, 'afterCrop', next)}
+          onAssetIdChange={(next) => onUpdate(idx, 'afterAssetId', next)}
           onUpload={(file) => onUpload(idx, 'afterImage', file)}
+          onPickAsset={onPickAsset}
         />
       </div>
     </>
   );
   if (block.type === 'refinedSlider') return (
-    <RefinedSliderEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
+    <RefinedSliderEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} onPickAsset={onPickAsset} formTitle={formTitle} compact={compact} />
   );
   if (block.type === 'circleDetail') return (
-    <CircleDetailEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
+    <CircleDetailEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} onPickAsset={onPickAsset} formTitle={formTitle} compact={compact} />
   );
   if (block.type === 'editorialNote') return (
     <>
       {field('Eyebrow', 'eyebrow')}
-      {field('Title', 'title')}
-      {field('Note', 'note', { textarea: true, rows: 5 })}
+      {field('Title', 'title', { ai: true })}
+      {field('Note', 'note', { textarea: true, rows: 5, ai: true })}
       <BasicCoverFieldEditor
         url={data.image}
         crop={data.crop}
+        assetId={data.assetId}
         aspectRatio="4 / 5"
         onUrlChange={(next) => onUpdate(idx, 'image', next)}
         onCropChange={(next) => onUpdate(idx, 'crop', next)}
+        onAssetIdChange={(next) => onUpdate(idx, 'assetId', next)}
         onUpload={(file) => onUpload(idx, 'image', file)}
+        onPickAsset={onPickAsset}
       />
     </>
   );
   if (block.type === 'mosaicPreset') return (
-    <MosaicPresetEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} formTitle={formTitle} compact={compact} />
+    <MosaicPresetEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} onPickAsset={onPickAsset} formTitle={formTitle} compact={compact} />
   );
 
   return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No fields</p>;

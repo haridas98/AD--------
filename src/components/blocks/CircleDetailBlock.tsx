@@ -39,6 +39,7 @@ export default function CircleDetailBlock({ data }: CircleDetailBlockProps) {
 
   useEffect(() => {
     if (!useCarousel || items.length < 2) return undefined;
+
     const timerId = window.setInterval(() => {
       setActiveIndex((currentIndex) => {
         const nextIndex = (currentIndex + 1) % items.length;
@@ -82,7 +83,7 @@ export default function CircleDetailBlock({ data }: CircleDetailBlockProps) {
               aria-label="Previous details"
               onClick={() => moveTo(activeIndex - 1)}
             >
-              ‹
+              {'<'}
             </button>
             <button
               type="button"
@@ -90,7 +91,7 @@ export default function CircleDetailBlock({ data }: CircleDetailBlockProps) {
               aria-label="Next details"
               onClick={() => moveTo(activeIndex + 1)}
             >
-              ›
+              {'>'}
             </button>
           </>
         ) : null}

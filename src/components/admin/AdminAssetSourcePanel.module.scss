@@ -1,13 +1,25 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 8, 8, 0.58);
+  backdrop-filter: blur(12px);
+}
+
 .panel {
   display: grid;
   gap: 12px;
-  padding: 14px;
-  border-radius: 16px;
+  width: min(100%, 420px);
+  padding: 20px;
+  border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
-    rgba(17, 17, 17, 0.92);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(20, 20, 20, 0.96);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
 }
 
 .header {
@@ -19,37 +31,46 @@
 
 .title {
   color: #fff;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
+}
+
+.subtitle {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .closeButton,
 .primaryAction,
 .secondaryAction {
-  border-radius: 999px;
+  border-radius: 16px;
   font: inherit;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .closeButton {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.7);
+  font-size: 20px;
+  line-height: 1;
 }
 
 .actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  gap: 10px;
 }
 
 .primaryAction,
 .secondaryAction {
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 52px;
+  padding: 0 18px;
+  text-align: left;
 }
 
 .primaryAction {
@@ -78,8 +99,8 @@
 
 .input {
   width: 100%;
-  min-height: 42px;
-  padding: 0 12px;
+  min-height: 48px;
+  padding: 0 14px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
@@ -92,12 +113,12 @@
 }
 
 @media (max-width: 720px) {
-  .panel {
-    padding: 12px;
+  .overlay {
+    padding: 16px;
   }
 
-  .actions {
-    display: grid;
-    grid-template-columns: 1fr;
+  .panel {
+    width: 100%;
+    padding: 16px;
   }
 }

@@ -47,6 +47,8 @@ model Project {
   updatedAt   String   @default("")
 
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  assets      ProjectAsset[]
+  assetUsages ProjectAssetUsage[]
 
   // Dynamic content blocks (JSON string)
   content     String   @default("[]")
@@ -62,6 +64,66 @@ model Project {
   @@index([isPublished])
   @@index([cityName])
   @@index([year])
+}
+
+model ProjectAsset {
+  id               String              @id @default(uuid())
+  projectId        String
+  kind             String              @default("image")
+  storagePath      String
+  publicUrl        String
+  originalFilename String
+  mimeType         String?
+  width            Int?
+  height           Int?
+  durationMs       Int?
+  fileSize         Int?
+  checksum         String?
+  status           String              @default("active")
+  includeInAi      Boolean             @default(true)
+  sourceType       String              @default("upload")
+  sourcePath       String?
+  altText          String?
+  caption          String?
+  sortOrder        Int                 @default(0)
+  createdAt        String              @default("")
+  updatedAt        String              @default("")
+
+  project          Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  usages           ProjectAssetUsage[]
+
+  @@unique([projectId, storagePath])
+  @@index([projectId])
+  @@index([kind])
+  @@index([checksum])
+  @@index([status])
+}
+
+model ProjectAssetUsage {
+  id              String       @id @default(uuid())
+  projectId       String
+  assetId         String
+  blockId         String?
+  slotKey         String?
+  usageType       String?
+  cropX           Float?
+  cropY           Float?
+  cropScale       Float?
+  focalX          Float?
+  focalY          Float?
+  aspectRatio     String?
+  captionOverride String?
+  labelOverride   String?
+  sortOrder       Int          @default(0)
+  createdAt       String       @default("")
+  updatedAt       String       @default("")
+
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  asset           ProjectAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([assetId])
+  @@index([blockId])
 }
 
 model BlogPost {

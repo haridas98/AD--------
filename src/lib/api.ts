@@ -32,6 +32,8 @@ export const api = {
   createProject: (p: any) => request('/api/admin/projects', { method: 'POST', body: JSON.stringify(p) }),
   updateProject: (id: string, p: any) => request(`/api/admin/projects/${id}`, { method: 'PUT', body: JSON.stringify(p) }),
   deleteProject: (id: string) => request(`/api/admin/projects/${id}`, { method: 'DELETE' }),
+  generateProjectPageDraft: (projectId: string, payload: any) => request(`/api/admin/projects/${projectId}/ai/generate-page`, { method: 'POST', body: JSON.stringify(payload) }),
+  generateAiText: (payload: any) => request('/api/admin/ai/generate-text', { method: 'POST', body: JSON.stringify(payload) }),
   createBlog: (p: any) => request('/api/admin/blog', { method: 'POST', body: JSON.stringify(p) }),
   updateBlog: (id: string, p: any) => request(`/api/admin/blog/${id}`, { method: 'PUT', body: JSON.stringify(p) }),
   deleteBlog: (id: string) => request(`/api/admin/blog/${id}`, { method: 'DELETE' }),
@@ -41,6 +43,16 @@ export const api = {
   login: async (username: string, password: string) => { const r = await request('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }); setToken(r.token); return r; },
   logout: async () => { try { await request('/api/auth/logout', { method: 'POST' }); } finally { setToken(''); } },
   me: () => request('/api/auth/me'),
+  getProjectAssets: (projectId: string) => request(`/api/admin/projects/${projectId}/assets`),
+  uploadProjectAsset: async (projectId: string, file: File) => {
+    const fd = new FormData();
+    fd.append('asset', file);
+    return request(`/api/admin/projects/${projectId}/assets/upload`, { method: 'POST', body: fd });
+  },
+  importProjectAssetUrl: (projectId: string, url: string) => request(`/api/admin/projects/${projectId}/assets/import-url`, { method: 'POST', body: JSON.stringify({ url }) }),
+  syncProjectAssets: (projectId: string) => request(`/api/admin/projects/${projectId}/assets/sync`, { method: 'POST', body: JSON.stringify({}) }),
+  updateProjectAsset: (projectId: string, assetId: string, payload: any) => request(`/api/admin/projects/${projectId}/assets/${assetId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteProjectAsset: (projectId: string, assetId: string) => request(`/api/admin/projects/${projectId}/assets/${assetId}`, { method: 'DELETE' }),
   uploadImage: async (file: File, projectName?: string, imageIndex?: string) => { const fd = new FormData(); fd.append('image', file); if (projectName) fd.append('projectName', projectName); if (imageIndex) fd.append('imageIndex', imageIndex); return request('/api/admin/upload-image', { method: 'POST', body: fd }); },
   getStoredToken: () => getToken(),
   clearToken: () => setToken(''),

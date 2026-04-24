@@ -151,10 +151,10 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       data: {
         title: 'Key details',
         description: 'This block helps highlight important accents, materials, or small moments of the project.',
-        items: images.slice(0, 5).map((image, index) => ({
-          label: `Detail ${index + 1}`,
+        items: images.slice(0, 5).map((image) => ({
+          label: '',
           image: image.url,
-          alt: `Detail ${index + 1}`,
+          alt: title,
         })),
       },
     },

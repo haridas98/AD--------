@@ -7,6 +7,11 @@ import path from 'path';
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 import { normalizeSqliteDatabaseUrl } from './database-url.mjs';
+import { saveProjectAssetUpload, ensureProjectAssetDirectories } from './lib/project-assets.js';
+import { hydrateProjectAssetsFromContent, importProjectAssetsFromArchive } from './lib/project-asset-migration.js';
+import { syncProjectAssetFolder } from './lib/project-asset-sync.js';
+import { generateProjectPageDraft, generateTextDraft } from './lib/project-ai-draft.js';
+import { generateGeminiBlockText, generateGeminiProjectMetadata } from './lib/gemini-provider.js';
 import { assertThemeShape, readThemeSettings, writeThemeSettings } from './theme-settings.js';
 
 function readLocalEnvFile() {
@@ -36,10 +41,21 @@ const localEnv = readLocalEnvFile();
 const preferLocalEnv = process.env.NODE_ENV !== 'production';
 
 function getEnvValue(key, fallback = '') {
-  if (preferLocalEnv && localEnv[key] != null && localEnv[key] !== '') return localEnv[key];
   if (process.env[key] != null && process.env[key] !== '') return process.env[key];
-  if (!preferLocalEnv && localEnv[key] != null && localEnv[key] !== '') return localEnv[key];
+  if (localEnv[key] != null && localEnv[key] !== '') return localEnv[key];
   return fallback;
+}
+
+function getGeminiOptions() {
+  return {
+    apiKey: getEnvValue('GEMINI_API_KEY') || getEnvValue('GOOGLE_AI_API_KEY'),
+    model: getEnvValue('GEMINI_MODEL', 'gemini-flash-latest'),
+    imageLimit: Number(getEnvValue('GEMINI_IMAGE_LIMIT', 8)) || 8,
+  };
+}
+
+function getAssetVisualDuplicateThreshold() {
+  return Number(getEnvValue('ASSET_VISUAL_DUPLICATE_THRESHOLD', 8)) || 8;
 }
 
 const app = express();
@@ -67,6 +83,25 @@ const upload = multer({
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) cb(null, true);
     else cb(new Error('Only JPG, PNG, and WebP images are allowed'));
+  },
+});
+
+const assetUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'video/mp4',
+      'video/quicktime',
+      'video/webm',
+      'video/x-m4v',
+    ];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only JPG, PNG, WebP, MP4, MOV, WEBM, and M4V files are allowed'));
   },
 });
 
@@ -119,6 +154,37 @@ function runImageUpload(req, res, next) {
 
     return res.status(400).json({ error: error.message || 'Image upload failed' });
   });
+}
+
+function runAssetUpload(req, res, next) {
+  assetUpload.any()(req, res, (error) => {
+    if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Asset is too large. Max 100 MB' });
+    }
+
+    if (error) return res.status(400).json({ error: error.message || 'Asset upload failed' });
+
+    const files = Array.isArray(req.files) ? req.files : [];
+    req.file = files.find((file) => file.fieldname === 'asset' || file.fieldname === 'image') || files[0];
+    return next();
+  });
+}
+
+function serializeProjectAsset(asset) {
+  const usageCount = asset?._count?.usages ?? asset?.usages?.length ?? 0;
+  return {
+    ...asset,
+    usageCount,
+  };
+}
+
+async function getProjectOr404(projectId, res) {
+  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  if (!project) {
+    res.status(404).json({ error: 'Project not found' });
+    return null;
+  }
+  return project;
 }
 
 // ============ Public API ============
@@ -247,6 +313,7 @@ app.post('/api/admin/projects', requireAuth, async (req, res) => {
     let slug = b.slug || normalizeSlug(b.title);
     if (await prisma.project.findUnique({ where: { slug } })) slug = `${slug}-${Date.now()}`;
     const p = await prisma.project.create({ data: { title: b.title, slug, categoryId: b.categoryId, content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content || []), isFeatured: !!b.isFeatured, isPublished: b.isPublished !== false, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
+    ensureProjectAssetDirectories(p.slug, UPLOADS_DIR);
     res.status(201).json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });
@@ -259,6 +326,7 @@ app.put('/api/admin/projects/:id', requireAuth, async (req, res) => {
     let slug = b.slug ?? existing.slug;
     if (slug !== existing.slug && await prisma.project.findUnique({ where: { slug } })) return res.status(409).json({ error: 'Slug exists' });
     const p = await prisma.project.update({ where: { id: req.params.id }, data: { title: b.title, slug, categoryId: b.categoryId, content: b.content ? (typeof b.content === 'string' ? b.content : JSON.stringify(b.content)) : undefined, isFeatured: b.isFeatured, isPublished: b.isPublished, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
+    ensureProjectAssetDirectories(p.slug, UPLOADS_DIR);
     res.json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });
@@ -266,6 +334,345 @@ app.put('/api/admin/projects/:id', requireAuth, async (req, res) => {
 app.delete('/api/admin/projects/:id', requireAuth, async (req, res) => {
   try { await prisma.project.delete({ where: { id: req.params.id } }); res.json({ ok: true }); }
   catch (err) { res.status(500).json({ error: err.code === 'P2025' ? 'Not found' : 'Failed' }); }
+});
+
+app.post('/api/admin/projects/:id/ai/generate-page', requireAuth, async (req, res) => {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.id },
+      include: {
+        category: true,
+        assets: {
+          where: {
+            kind: 'image',
+            status: 'active',
+            includeInAi: true,
+          },
+          orderBy: [
+            { sortOrder: 'asc' },
+            { createdAt: 'asc' },
+          ],
+        },
+      },
+    });
+
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    let provider = 'local';
+    let metadata = null;
+    const gemini = getGeminiOptions();
+
+    if (gemini.apiKey) {
+      try {
+        metadata = await generateGeminiProjectMetadata({
+          ...gemini,
+          project,
+          assets: project.assets || [],
+          instructions: req.body?.instructions || '',
+          uploadsRoot: UPLOADS_DIR,
+        });
+        provider = 'gemini';
+      } catch (err) {
+        console.warn('Gemini project draft failed, using local fallback:', err.message);
+      }
+    }
+
+    const draft = generateProjectPageDraft({
+      project,
+      assets: project.assets || [],
+      instructions: req.body?.instructions || '',
+      metadata: metadata || {},
+    });
+
+    res.json({ draft, provider });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate project draft' });
+  }
+});
+
+app.post('/api/admin/ai/generate-text', requireAuth, async (req, res) => {
+  try {
+    const projectId = req.body?.projectId;
+    const project = projectId
+      ? await prisma.project.findUnique({
+          where: { id: projectId },
+          include: { category: true },
+        })
+      : null;
+
+    const request = {
+      project: project || req.body?.project || {},
+      blockType: req.body?.blockType,
+      fieldName: req.body?.fieldName,
+      prompt: req.body?.prompt,
+      currentValue: req.body?.currentValue,
+    };
+    let provider = 'local';
+    let text = '';
+    const gemini = getGeminiOptions();
+
+    if (gemini.apiKey) {
+      try {
+        text = await generateGeminiBlockText({ ...gemini, ...request });
+        provider = 'gemini';
+      } catch (err) {
+        console.warn('Gemini text draft failed, using local fallback:', err.message);
+      }
+    }
+
+    if (!text) text = generateTextDraft(request);
+
+    res.json({ text, provider });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate text draft' });
+  }
+});
+
+app.get('/api/admin/projects/:id/assets', requireAuth, async (req, res) => {
+  try {
+    const project = await getProjectOr404(req.params.id, res);
+    if (!project) return;
+
+    await importProjectAssetsFromArchive({
+      prisma,
+      project,
+      uploadsRoot: UPLOADS_DIR,
+      saveProjectAssetUpload,
+      visualDuplicateThreshold: getAssetVisualDuplicateThreshold(),
+    });
+
+    await hydrateProjectAssetsFromContent({
+      prisma,
+      project,
+      uploadsRoot: UPLOADS_DIR,
+      visualDuplicateThreshold: getAssetVisualDuplicateThreshold(),
+    });
+
+    const assets = await prisma.projectAsset.findMany({
+      where: {
+        projectId: project.id,
+        status: { not: 'archived' },
+      },
+      include: {
+        _count: { select: { usages: true } },
+      },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { createdAt: 'desc' },
+      ],
+    });
+
+    res.json({ projectId: project.id, assets: assets.map(serializeProjectAsset) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load project assets' });
+  }
+});
+
+app.post('/api/admin/projects/:id/assets/upload', requireAuth, runAssetUpload, async (req, res) => {
+  try {
+    const project = await getProjectOr404(req.params.id, res);
+    if (!project) return;
+    if (!req.file) return res.status(400).json({ error: 'Asset file is required' });
+
+    const saved = await saveProjectAssetUpload({
+      uploadsRoot: UPLOADS_DIR,
+      projectSlug: project.slug,
+      originalFilename: req.file.originalname,
+      mimeType: req.file.mimetype,
+      buffer: req.file.buffer,
+    });
+
+    const duplicate = await prisma.projectAsset.findFirst({
+      where: {
+        projectId: project.id,
+        checksum: saved.checksum,
+      },
+    });
+
+    if (duplicate) {
+      if (fs.existsSync(saved.absolutePath)) fs.unlinkSync(saved.absolutePath);
+      return res.json({ asset: serializeProjectAsset(duplicate), deduplicated: true });
+    }
+
+    const asset = await prisma.projectAsset.create({
+      data: {
+        projectId: project.id,
+        kind: saved.kind,
+        storagePath: saved.storagePath,
+        publicUrl: saved.publicUrl,
+        originalFilename: saved.originalFilename,
+        mimeType: saved.mimeType,
+        width: saved.width,
+        height: saved.height,
+        fileSize: saved.fileSize,
+        checksum: saved.checksum,
+        status: 'active',
+        sourceType: 'upload',
+        sourcePath: saved.absolutePath,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    res.status(201).json({ asset: serializeProjectAsset(asset) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to upload project asset' });
+  }
+});
+
+app.post('/api/admin/projects/:id/assets/import-url', requireAuth, async (req, res) => {
+  try {
+    const project = await getProjectOr404(req.params.id, res);
+    if (!project) return;
+
+    const sourceUrl = String(req.body?.url || '').trim();
+    if (!sourceUrl) return res.status(400).json({ error: 'URL is required' });
+
+    const response = await fetch(sourceUrl);
+    if (!response.ok) return res.status(400).json({ error: 'Failed to download asset' });
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    const urlFilename = path.basename(new URL(sourceUrl).pathname) || `remote-${Date.now()}`;
+
+    const saved = await saveProjectAssetUpload({
+      uploadsRoot: UPLOADS_DIR,
+      projectSlug: project.slug,
+      originalFilename: urlFilename,
+      mimeType: contentType,
+      buffer,
+    });
+
+    const duplicate = await prisma.projectAsset.findFirst({
+      where: {
+        projectId: project.id,
+        checksum: saved.checksum,
+      },
+    });
+
+    if (duplicate) {
+      if (fs.existsSync(saved.absolutePath)) fs.unlinkSync(saved.absolutePath);
+      return res.json({ asset: serializeProjectAsset(duplicate), deduplicated: true });
+    }
+
+    const asset = await prisma.projectAsset.create({
+      data: {
+        projectId: project.id,
+        kind: saved.kind,
+        storagePath: saved.storagePath,
+        publicUrl: saved.publicUrl,
+        originalFilename: saved.originalFilename,
+        mimeType: saved.mimeType,
+        width: saved.width,
+        height: saved.height,
+        fileSize: saved.fileSize,
+        checksum: saved.checksum,
+        status: 'active',
+        sourceType: 'remote-import',
+        sourcePath: sourceUrl,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    res.status(201).json({ asset: serializeProjectAsset(asset) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to import project asset' });
+  }
+});
+
+app.post('/api/admin/projects/:id/assets/sync', requireAuth, async (req, res) => {
+  try {
+    const project = await getProjectOr404(req.params.id, res);
+    if (!project) return;
+
+    ensureProjectAssetDirectories(project.slug, UPLOADS_DIR);
+    const summary = await syncProjectAssetFolder({
+      prisma,
+      project,
+      uploadsRoot: UPLOADS_DIR,
+    });
+
+    res.json({ projectId: project.id, summary });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to sync project assets' });
+  }
+});
+
+app.patch('/api/admin/projects/:projectId/assets/:assetId', requireAuth, async (req, res) => {
+  try {
+    const project = await getProjectOr404(req.params.projectId, res);
+    if (!project) return;
+
+    const existing = await prisma.projectAsset.findFirst({
+      where: {
+        id: req.params.assetId,
+        projectId: project.id,
+      },
+    });
+
+    if (!existing) return res.status(404).json({ error: 'Asset not found' });
+
+    const asset = await prisma.projectAsset.update({
+      where: { id: existing.id },
+      data: {
+        altText: req.body?.altText ?? existing.altText,
+        caption: req.body?.caption ?? existing.caption,
+        includeInAi: typeof req.body?.includeInAi === 'boolean' ? req.body.includeInAi : existing.includeInAi,
+        sortOrder: Number.isFinite(Number(req.body?.sortOrder)) ? Number(req.body.sortOrder) : existing.sortOrder,
+        status: req.body?.status || existing.status,
+        updatedAt: new Date().toISOString(),
+      },
+      include: {
+        _count: { select: { usages: true } },
+      },
+    });
+
+    res.json({ asset: serializeProjectAsset(asset) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update project asset' });
+  }
+});
+
+app.delete('/api/admin/projects/:projectId/assets/:assetId', requireAuth, async (req, res) => {
+  try {
+    const project = await getProjectOr404(req.params.projectId, res);
+    if (!project) return;
+
+    const asset = await prisma.projectAsset.findFirst({
+      where: {
+        id: req.params.assetId,
+        projectId: project.id,
+      },
+      include: {
+        _count: { select: { usages: true } },
+      },
+    });
+
+    if (!asset) return res.status(404).json({ error: 'Asset not found' });
+    if (asset._count.usages > 0) return res.status(409).json({ error: 'Asset is still used in project blocks' });
+
+    await prisma.projectAsset.update({
+      where: { id: asset.id },
+      data: {
+        status: 'archived',
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete project asset' });
+  }
 });
 
 // Blog CRUD

@@ -73,9 +73,12 @@ export const homepageDraft = {
     text:
       'This homepage shifts the focus from a category catalog to a personal point of view: Alexandra as the lens, the translator, and the standard-setter across concept, documentation, and construction rhythm.',
     portraitPrimary:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=80',
-    portraitSecondary:
-      'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80',
+      '/uploads/home/alexandra.jpg',
+    materialImages: [
+      '/uploads/projects/pure-elegance-kitchen/images/original/001-1000-alexandradiz-859e92c9414fd48c332d8f31a1bd5a7b.jpg',
+      '/uploads/projects/wooden-comfort-kitchen-fremont/images/original/001-1000-alexandradiz-933209ff0db963dda1e69e1744e91a0c.jpg',
+      '/uploads/projects/bathroom-in-victorian-style-palo-alto/images/original/001-1000-alexandradiz-328f38254dbed2250885e1eb31b6699e.jpg',
+    ],
     quote:
       'Every decision should feel inevitable by the time it reaches the client.',
     highlights: [

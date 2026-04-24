@@ -1,0 +1,1 @@
+ALTER TABLE "ProjectAsset" ADD COLUMN "includeInAi" BOOLEAN NOT NULL DEFAULT true;
