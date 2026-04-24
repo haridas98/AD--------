@@ -80,6 +80,14 @@
   color: rgba(255, 243, 233, 0.72);
 }
 
+.heroCopy .metricCard strong {
+  color: #fff4ea;
+}
+
+.heroCopy .metricCard span {
+  color: rgba(255, 243, 233, 0.72);
+}
+
 .heroCopy .secondaryButton {
   border-color: rgba(255, 243, 231, 0.2);
   color: #fff4ea;
@@ -94,7 +102,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 16px;
-  color: rgba(66, 51, 38, 0.8);
+  color: color-mix(in srgb, var(--theme-text-primary) 62%, var(--theme-accent));
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -499,8 +507,7 @@
 
 .detailCard {
   padding: 22px 0;
-  border-top: 1px solid var(--theme-border);
-  border-right: 0;
+  border: 0;
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
