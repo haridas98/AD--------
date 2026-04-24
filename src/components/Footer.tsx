@@ -1,15 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { SiteInfo } from '../types';
+import { portfolioHeaderItems } from '../lib/portfolioRoutes';
 import styles from './Footer.module.scss';
 
 const FOOTER_LINKS = [
-  { name: 'Kitchens', href: '/kitchens' },
-  { name: 'Full House', href: '/full-house-remodeling' },
-  { name: 'Bathrooms', href: '/bathrooms' },
-  { name: 'ADU', href: '/adu1' },
-  { name: 'Fireplaces', href: '/fireplaces' },
+  ...portfolioHeaderItems,
   { name: 'Before & After', href: '/projects-before-and-after' },
+  { name: 'Blog', href: '/blog' },
   { name: 'Contact', href: '/contact' },
 ];
 

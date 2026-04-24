@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import Lightbox from '../components/Lightbox';
 import BeforeAfterBlock from '../components/blocks/BeforeAfterBlock';
+import { getCanonicalPortfolioProjectPathForCategory } from '../lib/portfolioRoutes';
 
 export default function BeforeAfterPage() {
-  const { projects, site } = useAppStore();
+  const { categories, projects, site } = useAppStore();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const categoryMap = new Map(categories.map((category) => [category.id, category]));
 
   const beforeAfterItems = projects.flatMap((project) => {
     const content = typeof project.content === 'string' ? JSON.parse(project.content) : project.content;
@@ -31,23 +34,10 @@ export default function BeforeAfterPage() {
     setLightboxOpen(true);
   };
 
-  function getCategorySlug(categoryId: string) {
-    const map: Record<string, string> = {
-      kitchens: 'kitchens',
-      'full-house-remodeling': 'full-house-remodeling',
-      bathrooms: 'bathrooms',
-      adu1: 'adu1',
-      'projects-before-and-after': 'projects-before-and-after',
-      fireplaces: 'fireplaces',
-    };
-
-    return map[categoryId] || categoryId;
-  }
-
   return (
     <>
       <Helmet>
-        <title>Before & After — {site?.name || 'Alexandra Diz'}</title>
+        <title>Before & After - {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content="Before and after transformations of our interior design projects" />
       </Helmet>
 
@@ -73,9 +63,9 @@ export default function BeforeAfterPage() {
                 transition={{ delay: index * 0.05 }}
               >
                 <div className="before-after-info">
-                  <a href={`/${getCategorySlug(item.categoryId)}/${item.projectSlug}`}>
+                  <Link to={getCanonicalPortfolioProjectPathForCategory(categoryMap.get(item.categoryId), item.projectSlug)}>
                     <h3>{item.projectTitle}</h3>
-                  </a>
+                  </Link>
                   {item.title && <p>{item.title}</p>}
                 </div>
 

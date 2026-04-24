@@ -5,15 +5,16 @@ import { motion } from 'framer-motion';
 import { BlockRenderer } from '../components/blocks';
 import { useAppStore } from '../store/useAppStore';
 import { parseProjectContent } from '../lib/projectBlockTemplates';
+import { resolvePortfolioSectionFromPathname } from '../lib/portfolioRoutes';
 import styles from './ProjectPage.module.scss';
 
 export default function ProjectPage() {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
-  const { projects, site, loading } = useAppStore();
+  const { categories, projects, site, loading } = useAppStore();
 
-  const catSlug = location.pathname.split('/')[1];
-  const category = useAppStore.getState().categories.find((item) => item.slug === catSlug || item.id === catSlug);
+  const section = resolvePortfolioSectionFromPathname(location.pathname);
+  const category = categories.find((item) => item.slug === section?.legacySlug || item.id === section?.legacySlug);
   const project = projects.find((item) => item.slug === slug);
 
   if (!project && (loading || !site)) {
@@ -26,14 +27,12 @@ export default function ProjectPage() {
 
   if (!project) return <Navigate to="/" replace />;
 
-  const blocks = useMemo(() => {
-    return parseProjectContent(project.content);
-  }, [project.content]);
+  const blocks = useMemo(() => parseProjectContent(project.content), [project.content]);
 
   return (
     <>
       <Helmet>
-        <title>{project.seoTitle || project.title} — {site?.name || 'Alexandra Diz'}</title>
+        <title>{project.seoTitle || project.title} - {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content={project.seoDescription || category?.name || ''} />
         <meta property="og:title" content={project.title} />
         {project.seoDescription ? <meta property="og:description" content={project.seoDescription} /> : null}
