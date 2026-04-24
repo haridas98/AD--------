@@ -89,6 +89,12 @@
   transform: translateY(0);
 }
 
+.navItemWrap:focus-within .submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .submenuLink,
 .mobileSubmenuLink {
   display: block;

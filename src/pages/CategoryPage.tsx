@@ -4,37 +4,36 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import { PortfolioProjectCard } from '../components/PortfolioProjectCard';
+import {
+  getCanonicalPortfolioProjectPathForCategory,
+  resolvePortfolioSectionFromPathname,
+} from '../lib/portfolioRoutes';
 import styles from './CategoryPage.module.scss';
-
-const CATEGORY_NAMES: Record<string, string> = {
-  kitchens: 'Kitchens',
-  'full-house-remodeling': 'Full House Remodeling',
-  bathrooms: 'Bathrooms',
-  adu1: 'ADU',
-  'projects-before-and-after': 'Before & After',
-  fireplaces: 'Fireplaces',
-};
 
 export default function CategoryPage() {
   const location = useLocation();
-  const { projects, site } = useAppStore();
+  const { categories, projects, site } = useAppStore();
 
-  const catSlug = location.pathname.split('/')[1];
-  const category = useAppStore.getState().categories.find((c) => c.slug === catSlug || c.id === catSlug);
-  const name = CATEGORY_NAMES[catSlug] || category?.name || catSlug;
+  const section = resolvePortfolioSectionFromPathname(location.pathname);
+  const category = categories.find((item) => item.slug === section?.legacySlug || item.id === section?.legacySlug);
+  const name = category?.name || section?.label || 'Projects';
 
-  const catProjects = projects.filter((p) => p.categoryId === (category?.id || catSlug) && p.isPublished);
+  const catProjects = projects.filter(
+    (project) => project.categoryId === (category?.id || section?.legacySlug) && project.isPublished,
+  );
 
-  function getCover(p: any) {
-    const c = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
-    return c?.find((b: any) => b.type === 'heroImage')?.data?.image || '';
+  function getCover(project: any) {
+    const content = typeof project.content === 'string' ? JSON.parse(project.content) : project.content;
+    return content?.find((block: any) => block.type === 'heroImage')?.data?.image || '';
   }
 
   if (!catProjects.length) {
     return (
       <main className={`${styles.page} page-shell page-shell--offset`}>
         <div className="page-shell__portfolio">
-          <motion.h1 className="text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Section not found</motion.h1>
+          <motion.h1 className="text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            Section not found
+          </motion.h1>
         </div>
       </main>
     );
@@ -43,7 +42,7 @@ export default function CategoryPage() {
   return (
     <>
       <Helmet>
-        <title>{name} — {site?.name || 'Alexandra Diz'}</title>
+        <title>{name} - {site?.name || 'Alexandra Diz'}</title>
         <meta name="description" content={`${name} projects by Alexandra Diz`} />
       </Helmet>
       <main className={`${styles.page} page-shell page-shell--offset`}>
@@ -60,7 +59,7 @@ export default function CategoryPage() {
               return (
                 <PortfolioProjectCard
                   key={project.id}
-                  to={`/${catSlug}/${project.slug}`}
+                  to={getCanonicalPortfolioProjectPathForCategory(category, project.slug)}
                   title={project.title}
                   image={cover}
                   eyebrow={name}

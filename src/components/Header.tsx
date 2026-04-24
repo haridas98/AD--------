@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import styles from './Header.module.scss';
+import { PORTFOLIO_ROOT_PATH, portfolioHeaderItems } from '../lib/portfolioRoutes';
 
 interface MenuSection {
   name: string;
@@ -26,16 +27,17 @@ export default function Header() {
   const closeMenu = () => setMenuOpen(false);
 
   const menuItems: MenuSection[] = [
-    { name: 'Projects', href: '/' },
-    { name: 'Kitchens', href: '/kitchens' },
-    { name: 'Full house remodeling', desktopName: 'Full House', href: '/full-house-remodeling' },
-    { name: 'Bathroom', href: '/bathrooms' },
-    { name: 'ADU', href: '/adu1' },
-    { name: 'Projects before and after', desktopName: 'Before & After', href: '/projects-before-and-after' },
-    { name: 'Video Series', desktopName: 'Video', href: '/video-series' },
+    { name: 'Home', href: '/' },
+    {
+      name: 'Projects',
+      href: PORTFOLIO_ROOT_PATH,
+      sub: portfolioHeaderItems.map((item) => ({ name: item.name, href: item.href })),
+    },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Video', href: '/video' },
     {
       name: 'Services',
-      href: '/process',
+      href: '/services',
       sub: [
         { name: 'Full Service Interior Design', href: '/process' },
         { name: 'Bathroom Remodeling', href: '/process_bath' },
@@ -43,9 +45,8 @@ export default function Header() {
       ],
     },
     {
-      name: 'About me',
-      desktopName: 'About',
-      href: '/aboutme',
+      name: 'About',
+      href: '/about',
       sub: [
         { name: 'Press | Media', href: '/press' },
         { name: 'Testimonials', href: '/testimonials' },
@@ -53,11 +54,10 @@ export default function Header() {
       ],
     },
     { name: 'Contact', href: '/contact' },
-    { name: 'Fireplaces', href: '/fireplaces' },
   ];
 
   return (
-    <header className={`${styles.siteHeader} ${scrolled ? styles.scrolled : ''}`}>
+    <header className={`${styles.siteHeader} ${scrolled ? styles.scrolled : ''}`} data-site-header>
       <div className={styles.inner}>
         <NavLink to="/" className={styles.brand} onClick={closeMenu}>
           Alexandra Diz
@@ -65,11 +65,16 @@ export default function Header() {
 
         <nav className={styles.desktopNav}>
           {menuItems.map((item) => (
-            <div key={item.name} className={styles.navItemWrap}>
+            <div
+              key={item.name}
+              className={styles.navItemWrap}
+              data-nav-projects={item.name === 'Projects' ? 'true' : undefined}
+            >
               <NavLink
                 to={item.href}
                 className={({ isActive }) => `${styles.navLink}${isActive ? ` ${styles.active}` : ''}`}
                 onClick={closeMenu}
+                end={item.href === '/'}
               >
                 {item.desktopName || item.name}
               </NavLink>
@@ -130,6 +135,7 @@ export default function Header() {
               to={item.href}
               className={({ isActive }) => `${styles.mobileNavLink}${isActive ? ` ${styles.active}` : ''}`}
               onClick={closeMenu}
+              end={item.href === '/'}
             >
               {item.name}
             </NavLink>

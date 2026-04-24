@@ -1,136 +1,140 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
-import { PortfolioLeadCard } from '../components/PortfolioLeadCard';
-import { PortfolioProjectCard } from '../components/PortfolioProjectCard';
+import type { BlogPost, Category, Project } from '../types';
+import { collectProjectImages, parseProjectContent } from '../lib/projectBlockTemplates';
+import {
+  getCanonicalPortfolioProjectPathForCategory,
+} from '../lib/portfolioRoutes';
+import { homepageDraft } from '../content/homepageDraft';
+import { HomeHero } from '../components/home/HomeHero';
+import { HomeIntro } from '../components/home/HomeIntro';
+import { HomeServices } from '../components/home/HomeServices';
+import { HomeProcess } from '../components/home/HomeProcess';
+import { HomeProjectsGateway } from '../components/home/HomeProjectsGateway';
+import { HomeTestimonials } from '../components/home/HomeTestimonials';
+import { HomeBlogPreview } from '../components/home/HomeBlogPreview';
+import { HomeFinalCta } from '../components/home/HomeFinalCta';
 import styles from './HomePage.module.scss';
 
+function getProjectCover(project: Project) {
+  const blocks = parseProjectContent(project.content);
+  return collectProjectImages(blocks)[0] || '';
+}
+
+function stripHtml(value: string) {
+  return value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function getProjectSummary(project: Project) {
+  const blocks = parseProjectContent(project.content);
+
+  for (const block of blocks) {
+    const candidates = [
+      block.data?.note,
+      block.data?.content,
+      block.data?.text,
+      block.data?.description,
+      block.data?.subtitle,
+    ];
+
+    const summary = candidates.find((item) => typeof item === 'string' && stripHtml(item).length > 30);
+
+    if (summary) {
+      return `${stripHtml(summary).slice(0, 150)}${stripHtml(summary).length > 150 ? '...' : ''}`;
+    }
+  }
+
+  return 'A curated remodel story shaped around layout clarity, material confidence, and a premium residential finish.';
+}
+
+function getCategoryLabel(project: Project, categoryMap: Map<string, Category>) {
+  return categoryMap.get(project.categoryId)?.name || 'Selected Project';
+}
+
+function formatDateLabel(post: BlogPost) {
+  if (!post.publishedAt) return 'Editorial Preview';
+
+  return new Date(post.publishedAt).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 export default function HomePage() {
-  const { categories, projects, site } = useAppStore();
-  const [slide, setSlide] = useState(0);
+  const { site, categories, projects, blogPosts } = useAppStore();
+  const categoryMap = new Map(categories.map((category) => [category.id, category]));
+  const publishedProjects = projects.filter((project) => project.isPublished);
+  const latestProjects = [...publishedProjects]
+    .sort((a, b) => {
+      if (a.isFeatured !== b.isFeatured) return Number(b.isFeatured) - Number(a.isFeatured);
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    })
+    .slice(0, 3)
+    .map((project, index) => ({
+      title: project.title,
+      category: getCategoryLabel(project, categoryMap),
+      location: project.cityName || 'California',
+      year: project.year ? String(project.year) : 'Current',
+      summary: getProjectSummary(project),
+      href: getCanonicalPortfolioProjectPathForCategory(categoryMap.get(project.categoryId), project.slug),
+      image: getProjectCover(project) || undefined,
+      accent: homepageDraft.projects.placeholders[index]?.accent || '#d7c0a9',
+    }));
+  const projectItems = latestProjects.length > 0 ? latestProjects : homepageDraft.projects.placeholders;
 
-  const featured = projects.filter((p) => p.isFeatured && p.isPublished);
+  const publishedPosts = blogPosts
+    .filter((post) => post.isPublished)
+    .sort((a, b) => {
+      const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return bTime - aTime;
+    })
+    .slice(0, 3)
+    .map((post) => ({
+      title: post.title,
+      excerpt: post.excerpt || 'A short editorial note from the studio journal.',
+      href: `/blog/${post.slug}`,
+      tag: post.tags?.split(',')[0]?.trim() || 'Journal',
+      coverImage: post.coverImage,
+      dateLabel: formatDateLabel(post),
+    }));
+  const blogItems = publishedPosts.length > 0 ? publishedPosts : homepageDraft.blog.placeholders;
 
-  useEffect(() => {
-    if (featured.length < 2) return;
-    const t = setInterval(() => setSlide((s) => (s + 1) % featured.length), 5000);
-    return () => clearInterval(t);
-  }, [featured.length]);
-
-  function getCover(p: any) {
-    const c = typeof p.content === 'string' ? JSON.parse(p.content) : p.content;
-    return c?.find((b: any) => b.type === 'heroImage')?.data?.image || '';
-  }
-
-  function getCategorySlug(catId: string) {
-    const map: Record<string, string> = {
-      kitchens: '/kitchens',
-      'full-house-remodeling': '/full-house-remodeling',
-      bathrooms: '/bathrooms',
-      adu1: '/adu1',
-      'projects-before-and-after': '/projects-before-and-after',
-      fireplaces: '/fireplaces',
-    };
-    return map[catId] || `/${catId}`;
-  }
-
-  function getProjectLink(project: any) {
-    return `${getCategorySlug(project.categoryId)}/${project.slug}`;
-  }
+  const heroMetrics = [
+    { value: String(publishedProjects.length || 12), label: 'Published projects' },
+    { value: String(categories.length || 5), label: 'Core disciplines' },
+    { value: String(blogPosts.filter((post) => post.isPublished).length || 3), label: 'Journal entries' },
+  ];
+  const introMetrics = publishedProjects.length > 0
+    ? [
+        { value: String(publishedProjects.filter((project) => project.isFeatured).length || 1), label: 'Featured case studies' },
+        { value: String(new Set(publishedProjects.map((project) => project.categoryId)).size || categories.length || 1), label: 'Project categories' },
+        { value: site?.name ? site.name.split(' ')[0] : 'Alexandra', label: 'Lead voice' },
+      ]
+    : homepageDraft.intro.fallbackMetrics;
 
   return (
     <>
       <Helmet>
-        <title>{site?.name || 'Alexandra Diz'} — Interior Architecture & Remodeling</title>
-        <meta name="description" content="Refined California interiors with practical planning, material clarity, and timeless detail." />
+        <title>{site?.name || 'Alexandra Diz'} - Interior Architecture & Remodeling</title>
+        <meta
+          name="description"
+          content="Personal-brand homepage for Alexandra Diz: refined interiors, remodel leadership, curated project stories, and a premium client process."
+        />
       </Helmet>
 
-      {/* Hero Slider */}
-      <section className="hero-slider" onClick={(e) => {
-        if (featured.length < 2) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        if (x < rect.width * 0.3) setSlide((s) => (s - 1 + featured.length) % featured.length);
-        else if (x > rect.width * 0.7) setSlide((s) => (s + 1) % featured.length);
-      }}>
-        <AnimatePresence mode="wait">
-          {featured.length > 0 && (
-            <motion.div key={slide} className="hero-slider-slide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
-              <img src={getCover(featured[slide])} alt={featured[slide].title} />
-              <div className="hero-slider-overlay" />
-              <div className="container hero-slider-content">
-                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>{featured[slide].title}</motion.h1>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                  <Link to={getProjectLink(featured[slide])} className="btn-primary" onClick={(e) => e.stopPropagation()}>View Project</Link>
-                </motion.div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {featured.length > 1 && (
-          <div className="hero-slider-dots">
-            {featured.map((_, i) => (
-              <button key={i} className={`hero-slider-dot${slide === i ? ' active' : ''}`} onClick={(e) => { e.stopPropagation(); setSlide(i); }} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Category Sections — Project Cards */}
-      <section className={styles.sections}>
-        {categories.map((category) => {
-          const catProjects = projects.filter((p) => p.categoryId === category.id && p.isPublished);
-          if (!catProjects.length) return null;
-          const projectsWithCover = catProjects.filter((project) => getCover(project));
-          const leadProject = projectsWithCover.find((project) => project.isFeatured) || projectsWithCover[0];
-          const supportingProjects = projectsWithCover.filter((project) => project.id !== leadProject?.id).slice(0, 4);
-          if (!leadProject) return null;
-
-          return (
-            <motion.div key={category.id} className={styles.section} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-              <div className="page-shell">
-                <div className="page-shell__portfolio">
-                  <div className={styles.sectionHead}>
-                    <h2>{category.name}</h2>
-                    <Link to={getCategorySlug(category.id)} className="btn-see-more">
-                      <span>See more {category.name.toLowerCase()}</span>
-                      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    </Link>
-                  </div>
-
-                  <PortfolioLeadCard
-                    to={getProjectLink(leadProject)}
-                    title={leadProject.title}
-                    image={getCover(leadProject)}
-                    categoryName={category.name}
-                    cityName={leadProject.cityName}
-                    year={leadProject.year}
-                  />
-
-                  {supportingProjects.length > 0 && (
-                    <div className={styles.supportingGrid}>
-                      {supportingProjects.map((project) => (
-                        <PortfolioProjectCard
-                          key={project.id}
-                          to={getProjectLink(project)}
-                          title={project.title}
-                          image={getCover(project)}
-                          eyebrow={category.name}
-                          cityName={project.cityName}
-                          year={project.year}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </section>
+      <main className={styles.page}>
+        <HomeHero data={homepageDraft.hero} metrics={heroMetrics} styles={styles} />
+        <HomeIntro data={homepageDraft.intro} metrics={introMetrics} styles={styles} />
+        <HomeServices data={homepageDraft.services} styles={styles} />
+        <HomeProcess data={homepageDraft.process} styles={styles} />
+        <HomeProjectsGateway data={homepageDraft.projects} items={projectItems} styles={styles} />
+        <HomeTestimonials data={homepageDraft.testimonials} styles={styles} />
+        <HomeBlogPreview data={homepageDraft.blog} items={blogItems} styles={styles} />
+        <HomeFinalCta data={homepageDraft.finalCta} styles={styles} />
+      </main>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAppStore } from './store/useAppStore';
@@ -17,6 +17,13 @@ import ContactPage from './pages/ContactPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import AdminPage from './pages/AdminPage';
+import ProjectsLandingPage from './pages/ProjectsLandingPage';
+import {
+  PORTFOLIO_ROOT_PATH,
+  getCanonicalPortfolioProjectPath,
+  portfolioSections,
+  type PortfolioSectionKey,
+} from './lib/portfolioRoutes';
 
 function PageTransition({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -77,25 +84,47 @@ export default function App() {
             <PageTransition>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/kitchens" element={<CategoryPage />} />
-                <Route path="/full-house-remodeling" element={<CategoryPage />} />
-                <Route path="/bathrooms" element={<CategoryPage />} />
-                <Route path="/adu1" element={<CategoryPage />} />
+                <Route path={PORTFOLIO_ROOT_PATH} element={<ProjectsLandingPage />} />
+                {portfolioSections.map((section) => (
+                  <Route
+                    key={section.canonicalCategoryPath}
+                    path={section.canonicalCategoryPath}
+                    element={<CategoryPage />}
+                  />
+                ))}
+                {portfolioSections.map((section) => (
+                  <Route
+                    key={section.canonicalProjectPathPattern}
+                    path={section.canonicalProjectPathPattern}
+                    element={<ProjectPage />}
+                  />
+                ))}
+                {portfolioSections.map((section) => (
+                  <Route
+                    key={section.legacyCategoryPath}
+                    path={section.legacyCategoryPath}
+                    element={<Navigate to={section.canonicalCategoryPath} replace />}
+                  />
+                ))}
+                {portfolioSections.map((section) => (
+                  <Route
+                    key={section.legacyProjectPathPattern}
+                    path={section.legacyProjectPathPattern}
+                    element={<LegacyProjectRedirect sectionKey={section.key} />}
+                  />
+                ))}
                 <Route path="/projects-before-and-after" element={<BeforeAfterPage />} />
-                <Route path="/fireplaces" element={<CategoryPage />} />
-                <Route path="/kitchens/:slug" element={<ProjectPage />} />
-                <Route path="/full-house-remodeling/:slug" element={<ProjectPage />} />
-                <Route path="/bathrooms/:slug" element={<ProjectPage />} />
-                <Route path="/adu1/:slug" element={<ProjectPage />} />
                 <Route path="/projects-before-and-after/:slug" element={<ProjectPage />} />
-                <Route path="/fireplaces/:slug" element={<ProjectPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/video" element={<VideoSeriesPage />} />
                 <Route path="/video-series" element={<VideoSeriesPage />} />
+                <Route path="/services" element={<ServicesPage serviceType="process" />} />
                 <Route path="/process" element={<ServicesPage serviceType="process" />} />
                 <Route path="/process_bath" element={<ServicesPage serviceType="process_bath" />} />
                 <Route path="/process_kitchen" element={<ServicesPage serviceType="process_kitchen" />} />
                 <Route path="/press" element={<AboutPage aboutType="press" />} />
                 <Route path="/testimonials" element={<AboutPage aboutType="testimonials" />} />
+                <Route path="/about" element={<AboutPage aboutType="aboutme" />} />
                 <Route path="/aboutme" element={<AboutPage aboutType="aboutme" />} />
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogPostPage />} />
@@ -122,4 +151,10 @@ function AdminWrapper() {
   };
   useEffect(() => { setData({ projects, categories, blogPosts, themeSettings }); }, [projects, categories, blogPosts, themeSettings]);
   return <AdminPage data={data} refresh={refresh} />;
+}
+
+function LegacyProjectRedirect({ sectionKey }: { sectionKey: PortfolioSectionKey }) {
+  const { slug = '' } = useParams<{ slug: string }>();
+
+  return <Navigate to={getCanonicalPortfolioProjectPath(sectionKey, slug)} replace />;
 }
