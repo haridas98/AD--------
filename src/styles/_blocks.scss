@@ -7,7 +7,7 @@
 /* Hero Image Block */
 .project-hero {
   position: relative;
-  min-height: clamp(320px, 50svh, 620px);
+  min-height: clamp(460px, 68svh, 760px);
   display: flex;
   align-items: flex-end;
   margin-bottom: clamp(40px, 7vw, 88px);
@@ -24,13 +24,9 @@
 .project-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(10, 10, 10, 0.04) 0%,
-    rgba(10, 10, 10, 0.08) 42%,
-    rgba(10, 10, 10, 0.24) 68%,
-    rgba(10, 10, 10, 0.72) 100%
-  );
+  background:
+    radial-gradient(circle at 50% 54%, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.62) 72%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.42) 45%, rgba(0, 0, 0, 0.76) 100%);
   z-index: 1;
 }
 
@@ -59,22 +55,23 @@
 
 .project-hero-content h1 {
   font-family: 'GilroyExtraBold', sans-serif;
-  font-size: 38px;
+  font-size: clamp(54px, 8vw, 118px);
   font-weight: 800;
-  margin: 0 0 15px;
+  margin: 0 0 clamp(16px, 2vw, 28px);
   color: #fff;
-  letter-spacing: 0.02em;
-  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.34);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  text-shadow: 0 12px 38px rgba(0, 0, 0, 0.62);
 }
 
 .project-hero-content p {
   font-family: 'GilroyLight', sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.88);
-  max-width: 700px;
+  font-size: clamp(18px, 1.45vw, 24px);
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 880px;
   margin: 0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+  text-shadow: 0 8px 26px rgba(0, 0, 0, 0.62);
 }
 
 /* Project Meta Block */
@@ -109,17 +106,33 @@
 
 .block-typography h2 {
   font-family: 'GilroyExtraBold', sans-serif;
-  font-size: 22px;
+  font-size: clamp(34px, 5vw, 74px);
   font-weight: 800;
-  margin: 0 0 15px;
+  margin: 0 0 clamp(18px, 2.4vw, 32px);
   color: var(--project-text-primary);
+  line-height: 0.96;
+  letter-spacing: -0.035em;
 }
 
 .block-typography p {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: clamp(17px, 1.35vw, 22px);
+  line-height: 1.55;
   color: var(--project-text-secondary);
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .project-hero {
+    min-height: clamp(420px, 72svh, 620px);
+  }
+
+  .project-hero-content h1 {
+    font-size: clamp(44px, 14vw, 68px);
+  }
+
+  .project-hero-content p {
+    font-size: 16px;
+  }
 }
 
 /* Image Grid Block */

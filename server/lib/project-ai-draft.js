@@ -363,7 +363,7 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
   const fallbackDescription = [
     `${title} brings ${String(category).toLowerCase()} into a composed, functional interior${locationPhrase(location)}.`,
     'The story focuses on proportion, material calm, practical flow, and the details that make the space feel resolved.',
-    instructionHint ? `The requested direction emphasizes ${instructionHint}.` : '',
+    instructionHint ? instructionHint : '',
   ].filter(Boolean).join(' ');
   const description = cleanText(metadata.description) || fallbackDescription;
   const overviewTitle = cleanText(metadata.overviewTitle) || 'Project overview';

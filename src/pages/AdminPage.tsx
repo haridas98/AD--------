@@ -1608,9 +1608,14 @@ export default function AdminPage({ data, refresh }: any) {
               <button onClick={newBlog} style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '12px' }}>+ New</button>
             </div>
             {adminData.blogPosts?.map((post: any) => (
-              <div key={post.id} onClick={() => editBlog(post)} style={{ padding: '10px', borderRadius: '8px', cursor: 'pointer', background: blogSelId === post.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '4px' }}>
-                <div style={{ color: '#fff', fontSize: '13px' }}>{post.title}</div>
-                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>{post.isPublished ? 'Published' : 'Draft'}</div>
+              <div key={post.id} onClick={() => editBlog(post)} style={{ display: 'grid', gridTemplateColumns: '58px 1fr', gap: '10px', alignItems: 'center', padding: '10px', borderRadius: '10px', cursor: 'pointer', background: blogSelId === post.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '6px' }}>
+                <div style={{ width: '58px', aspectRatio: '4 / 3', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  {post.coverImage ? <img src={post.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : null}
+                </div>
+                <div>
+                  <div style={{ color: '#fff', fontSize: '13px', lineHeight: 1.25 }}>{post.title}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', marginTop: '4px' }}>{post.isPublished ? 'Published' : 'Draft'}{post.coverImage ? ' · cover' : ' · no cover'}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -1650,7 +1655,10 @@ export default function AdminPage({ data, refresh }: any) {
                 </div>
 
                 <div style={{ display: 'grid', gap: '8px' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>Cover image</div>
+                  <div>
+                    <div style={{ color: '#fff', fontSize: '13px', fontWeight: 700 }}>Preview image</div>
+                    <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginTop: '3px' }}>Used on the blog card and article hero.</div>
+                  </div>
                   <BasicCoverFieldEditor
                     url={blogForm.coverImage}
                     crop={ensureCrop()}

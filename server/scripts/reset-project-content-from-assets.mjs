@@ -52,8 +52,7 @@ function parseArgs(argv) {
     limit: 0,
     only: '',
     geminiDelayMs: Number(process.env.GEMINI_DELAY_MS || 0) || 0,
-    instructions:
-      'Create a premium but concise portfolio page. Prefer image-led blocks. Use circle details only for projects with enough strong photos.',
+    instructions: '',
   };
 
   for (const arg of argv) {
