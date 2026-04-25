@@ -1,15 +1,28 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import type { BlockRenderContext } from '.';
 
 interface MetaInfoBlockProps {
   data: {
     items?: Array<{ label: string; value: string }>;
     metaText?: string;
   };
+  context?: BlockRenderContext;
 }
 
-export default function MetaInfoBlock({ data }: MetaInfoBlockProps) {
-  const items = data.items?.length
+export default function MetaInfoBlock({ data, context }: MetaInfoBlockProps) {
+  const project = context?.project;
+  const projectItems = project
+    ? [
+        project.categoryName ? { label: 'Category', value: project.categoryName } : null,
+        project.cityName ? { label: 'Location', value: project.cityName } : null,
+        project.year ? { label: 'Year', value: String(project.year) } : null,
+      ].filter(Boolean) as Array<{ label: string; value: string }>
+    : [];
+
+  const items = projectItems.length
+    ? projectItems
+    : data.items?.length
     ? data.items
     : String(data.metaText || '')
         .split('\n')

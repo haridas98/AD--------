@@ -30,11 +30,21 @@ export interface BlockItem {
   id?: string;
 }
 
-interface BlockRendererProps {
-  blocks: BlockItem[];
+export interface BlockRenderContext {
+  project?: {
+    title?: string;
+    cityName?: string;
+    year?: string | number | null;
+    categoryName?: string;
+  };
 }
 
-export function BlockRenderer({ blocks }: BlockRendererProps) {
+interface BlockRendererProps {
+  blocks: BlockItem[];
+  context?: BlockRenderContext;
+}
+
+export function BlockRenderer({ blocks, context }: BlockRendererProps) {
   if (!blocks?.length) return null;
 
   return (
@@ -46,7 +56,7 @@ export function BlockRenderer({ blocks }: BlockRendererProps) {
           return null;
         }
 
-        return <Component key={block.id || `${block.type}-${index}`} data={block.data} />;
+        return <Component key={block.id || `${block.type}-${index}`} data={block.data} context={context} />;
       })}
     </>
   );

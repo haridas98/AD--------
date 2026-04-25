@@ -71,8 +71,8 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
   const currentBlocks = parseProjectContent(project.content);
   const imagePool = collectProjectImages(currentBlocks);
   const images = createImageSeries(imagePool, Math.max(beforeAfterCount + 10, 10), title);
-  const location = project.cityName || 'California';
-  const year = String(project.year || 'In progress');
+  const location = project.cityName || '';
+  const year = project.year ? String(project.year) : '';
   const categoryLabel = categoryName || 'Project';
 
   return [
@@ -81,7 +81,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       type: 'heroImage',
       data: {
         title,
-        subtitle: `${title} is arranged as a complete project page with a full set of editable sections.`,
+        subtitle: `${title} brings together proportion, materials, light, and practical flow in a composed interior story.`,
         image: images[0]?.url || '',
         alt: title,
       },
@@ -90,12 +90,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       id: 'base-meta-info',
       type: 'metaInfo',
       data: {
-        items: [
-          { label: 'Category', value: categoryLabel },
-          { label: 'Location', value: location },
-          { label: 'Year', value: year },
-          { label: 'Status', value: project.isPublished === false ? 'Draft presentation' : 'Published presentation' },
-        ],
+        source: 'project',
       },
     },
     {
@@ -104,7 +99,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       data: {
         eyebrow: categoryLabel,
         title: `${title} overview`,
-        note: `${title} is presented as a detailed portfolio case so the owner can see the full structure of the project page and edit each section later.`,
+        note: `${title} is shaped around clear composition, tactile finishes, and a design rhythm that supports everyday use.`,
         image: images[1]?.url || images[0]?.url || '',
       },
     },
@@ -113,7 +108,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       type: 'typography',
       data: {
         title: 'What was done',
-        content: 'Planning, composition, finishes, storage logic, lighting rhythm, and the overall mood of the space. Replace this text with the final project description later.',
+        content: 'Planning, composition, finishes, storage logic, lighting rhythm, and the overall mood of the space.',
         size: 'lg',
       },
     },
@@ -122,7 +117,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       type: 'sideBySide',
       data: {
         title: 'Design direction',
-        text: 'Use this block for the main design idea, the client brief, or the logic behind the selected materials and layout decisions.',
+        text: 'The design direction balances calm materials, clear sightlines, practical storage, and details that make the interior feel resolved.',
         image: images[2]?.url || images[0]?.url || '',
         imagePosition: 'right',
       },
@@ -140,7 +135,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       type: 'refinedSlider',
       data: {
         title: 'Project walkthrough',
-        description: 'Use this slider for the main image story of the project.',
+        description: 'A calm visual walkthrough of the finished space.',
         thumbnailPosition: 'bottom',
         images: images.slice(0, 6),
       },
@@ -173,7 +168,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       type: 'typography',
       data: {
         title: 'Result',
-        content: 'Use this section for the final summary of the project, the finished atmosphere, and the outcome for the client.',
+        content: 'The finished interior reads as balanced, intentional, and practical: a space where atmosphere and daily use support each other.',
         size: 'md',
       },
     },
@@ -182,7 +177,7 @@ export function buildProjectBaseBlocks(project: ProjectLike, categoryName: strin
       type: 'ctaSection',
       data: {
         title: 'Planning a similar remodel?',
-        text: 'This section is ready for the final project CTA and can be adjusted later in the editor.',
+        text: 'Share your goals, constraints, and references, and we will shape them into a clear interior direction.',
         buttonText: 'Contact us',
         buttonLink: '/contact',
       },

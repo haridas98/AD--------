@@ -26,7 +26,7 @@ function categoryLabel(project) {
 }
 
 function projectLocation(project) {
-  return project.cityName || 'California';
+  return cleanText(project.cityName);
 }
 
 function activeImageAssets(assets = []) {
@@ -68,6 +68,23 @@ function uniqueImages(images) {
     seen.add(key);
     return true;
   });
+}
+
+function oneBasedIndexes(startIndex, count, total) {
+  if (!total || count <= 0) return [];
+  const indexes = [];
+  for (let index = startIndex; index <= total && indexes.length < count; index += 1) {
+    indexes.push(index);
+  }
+  return indexes;
+}
+
+function hashText(value) {
+  return String(value || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+}
+
+function locationPhrase(location) {
+  return location ? ` in ${location}` : '';
 }
 
 function imageFromPlan(images, imageIndexes = [], fallbackIndex = 0) {
@@ -149,12 +166,7 @@ function buildBlockFromPlan(plan, index, images, defaults) {
       id,
       type,
       data: {
-        items: [
-          { label: 'Category', value: defaults.category },
-          { label: 'Location', value: defaults.location },
-          { label: 'Year', value: defaults.year },
-          { label: 'Status', value: defaults.status },
-        ],
+        source: 'project',
       },
     };
   }
@@ -203,7 +215,7 @@ function buildBlockFromPlan(plan, index, images, defaults) {
       type,
       data: {
         title: text(plan.title, 'Project walkthrough'),
-        description: text(plan.description, 'A visual sequence from the project asset library.'),
+        description: text(plan.description, 'A calm visual walkthrough of the finished space.'),
         thumbnailPosition: ['left', 'right', 'bottom'].includes(plan.thumbnailPosition) ? plan.thumbnailPosition : 'bottom',
         images: selectedImages.slice(0, 8),
       },
@@ -255,7 +267,15 @@ function buildBlockFromPlan(plan, index, images, defaults) {
     };
   }
 
-  if (type === 'editorialNote' && selectedImage) {
+  if (type === 'editorialNote') {
+    const imageData = selectedImage
+      ? {
+          image: selectedImage.url,
+          assetId: selectedImage.assetId,
+          alt: selectedImage.alt || defaults.title,
+        }
+      : {};
+
     return {
       id,
       type,
@@ -263,9 +283,7 @@ function buildBlockFromPlan(plan, index, images, defaults) {
         eyebrow: text(plan.eyebrow, defaults.category),
         title: text(plan.title, defaults.overviewTitle),
         note: text(plan.note || plan.text || plan.content, defaults.description),
-        image: selectedImage.url,
-        assetId: selectedImage.assetId,
-        alt: selectedImage.alt || defaults.title,
+        ...imageData,
       },
     };
   }
@@ -286,16 +304,49 @@ function buildBlockFromPlan(plan, index, images, defaults) {
   return null;
 }
 
-function fallbackBlockPlan(imageCount) {
-  const blocks = [
-    { type: 'typography' },
-  ];
+function fallbackBlockPlan(imageCount, title = '') {
+  const blocks = [];
+  const hasImages = imageCount > 0;
+  let cursor = 1;
 
-  if (imageCount >= 1) blocks.unshift({ type: 'heroImage', imageIndexes: [1] });
-  if (imageCount >= 2) blocks.push({ type: 'imageGrid', imageIndexes: [1, 2, 3, 4] });
-  if (imageCount >= 4) blocks.push({ type: 'sideBySide', imageIndexes: [2] });
-  if (imageCount >= 6) blocks.push({ type: 'refinedSlider', imageIndexes: [1, 2, 3, 4, 5, 6] });
-  if (imageCount >= 8) blocks.push({ type: 'circleDetail', imageIndexes: [1, 2, 3, 4, 5] });
+  if (hasImages) {
+    blocks.push({ type: 'heroImage', imageIndexes: [cursor] });
+    cursor += 1;
+  }
+
+  blocks.push({ type: 'metaInfo' });
+
+  blocks.push({
+    type: 'editorialNote',
+    imageIndexes: hasImages && cursor <= imageCount ? [cursor] : [],
+  });
+  if (hasImages && cursor <= imageCount) cursor += 1;
+
+  const gridIndexes = oneBasedIndexes(cursor, Math.min(6, Math.max(4, imageCount - cursor + 1)), imageCount);
+  if (gridIndexes.length) {
+    blocks.push({ type: 'imageGrid', title: 'Selected views', imageIndexes: gridIndexes });
+    cursor += gridIndexes.length;
+  }
+
+  const remainingAfterGrid = imageCount - cursor + 1;
+  if (remainingAfterGrid >= 3) {
+    const visualIndexes = oneBasedIndexes(cursor, Math.min(8, remainingAfterGrid), imageCount);
+    const useMosaic = visualIndexes.length >= 4 && hashText(title) % 2 === 0;
+    blocks.push(useMosaic
+      ? { type: 'mosaicPreset', title: 'Composition highlights', preset: hashText(title) % 3 === 0 ? 'b' : 'a', imageIndexes: visualIndexes.slice(0, 4) }
+      : { type: 'refinedSlider', title: 'Design sequence', description: 'A calm visual walkthrough of the finished space.', imageIndexes: visualIndexes });
+    cursor += visualIndexes.length;
+  }
+
+  const sideIndexes = oneBasedIndexes(cursor, 2, imageCount);
+  if (sideIndexes.length) {
+    blocks.push({ type: 'sideBySide', title: 'Material balance', imagePosition: 'right', imageIndexes: [sideIndexes[0]] });
+  }
+  if (sideIndexes.length > 1) {
+    blocks.push({ type: 'sideBySide', title: 'Spatial rhythm', imagePosition: 'left', imageIndexes: [sideIndexes[1]] });
+  }
+
+  blocks.push({ type: 'typography', title: 'Design language' });
   blocks.push({ type: 'ctaSection' });
 
   return blocks;
@@ -305,33 +356,29 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
   const title = cleanText(project.title) || 'Project';
   const category = categoryLabel(project);
   const location = projectLocation(project);
-  const year = project.year ? String(project.year) : 'In progress';
-  const status = project.isPublished === false ? 'Draft presentation' : 'Published presentation';
-  const images = activeImageAssets(assets).slice(0, 12).map((asset, index) => toImageBlockAsset(asset, title, index));
+  const year = project.year ? String(project.year) : '';
+  const images = activeImageAssets(assets).slice(0, 20).map((asset, index) => toImageBlockAsset(asset, title, index));
   const cover = images[0] || null;
   const instructionHint = cleanText(instructions);
   const fallbackDescription = [
-    `${title} is a ${String(category).toLowerCase()} project in ${location}.`,
-    'The page is prepared as a clean portfolio draft with a short editorial overview and a selected image grid.',
-    instructionHint ? `Direction: ${instructionHint}` : '',
+    `${title} brings ${String(category).toLowerCase()} into a composed, functional interior${locationPhrase(location)}.`,
+    'The story focuses on proportion, material calm, practical flow, and the details that make the space feel resolved.',
+    instructionHint ? `The requested direction emphasizes ${instructionHint}.` : '',
   ].filter(Boolean).join(' ');
   const description = cleanText(metadata.description) || fallbackDescription;
   const overviewTitle = cleanText(metadata.overviewTitle) || 'Project overview';
-  const scopeTitle = cleanText(metadata.scopeTitle) || 'What was done';
-  const scopeText = cleanText(metadata.scopeText) || 'Planning, composition, finishes, storage logic, lighting rhythm, and the overall mood of the space.';
-  const designTitle = cleanText(metadata.designTitle) || 'Design direction';
-  const designText = cleanText(metadata.designText) || 'Use this block for the main design idea, the client brief, or the logic behind the selected materials and layout decisions.';
+  const designTitle = cleanText(metadata.designTitle) || 'Material balance';
+  const designText = cleanText(metadata.designText) || 'The composition is built around clean sightlines, useful storage, layered light, and finishes that support the daily rhythm of the home.';
   const detailsTitle = cleanText(metadata.detailsTitle) || 'Key details';
   const detailsDescription = cleanText(metadata.detailsDescription) || 'Important accents, materials, and small moments of the project.';
   const mosaicTitle = cleanText(metadata.mosaicTitle) || 'Composition highlights';
   const ctaTitle = cleanText(metadata.ctaTitle) || 'Planning a similar remodel?';
-  const ctaText = cleanText(metadata.ctaText) || 'This section is ready for the final project CTA and can be adjusted later in the editor.';
+  const ctaText = cleanText(metadata.ctaText) || 'Share your goals, constraints, and references, and we will shape them into a clear interior direction.';
   const defaults = {
     title,
     category,
     location,
     year,
-    status,
     description,
     overviewTitle,
     designTitle,
@@ -344,7 +391,7 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
   };
   const plannedBlocks = Array.isArray(metadata.blocks) && metadata.blocks.length
     ? metadata.blocks
-    : fallbackBlockPlan(images.length);
+    : fallbackBlockPlan(images.length, title);
   const plannedContent = plannedBlocks
     .map((block, index) => buildBlockFromPlan(block, index, images, defaults))
     .filter(Boolean);
@@ -353,7 +400,7 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
     return {
       content: plannedContent,
       seoTitle: cleanText(metadata.seoTitle) || `${title} | Alexandra Diz`,
-      seoDescription: cleanText(metadata.seoDescription) || `${title}: ${String(category).toLowerCase()} portfolio project in ${location} by Alexandra Diz.`,
+      seoDescription: cleanText(metadata.seoDescription) || `${title}: ${String(category).toLowerCase()} portfolio project${locationPhrase(location)} by Alexandra Diz.`,
       seoKeywords: cleanKeywords(metadata.seoKeywords) || [title, category, location, 'Alexandra Diz', 'interior design', 'remodeling'].filter(Boolean).join(', '),
     };
   }
@@ -376,12 +423,7 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
       id: 'ai-meta-info',
       type: 'metaInfo',
       data: {
-        items: [
-          { label: 'Category', value: category },
-          { label: 'Location', value: location },
-          { label: 'Year', value: year },
-          { label: 'Status', value: status },
-        ],
+        source: 'project',
       },
     },
     {
@@ -391,15 +433,6 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
         title: overviewTitle,
         content: description,
         size: 'md',
-      },
-    },
-    {
-      id: 'ai-scope',
-      type: 'typography',
-      data: {
-        title: scopeTitle,
-        content: scopeText,
-        size: 'lg',
       },
     },
     imageAt(images, 1)
@@ -431,26 +464,9 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
           type: 'refinedSlider',
           data: {
             title: 'Project walkthrough',
-            description: 'A simple visual sequence from the project asset library.',
+            description: 'A calm visual walkthrough of the finished space.',
             thumbnailPosition: 'bottom',
             images: images.slice(0, 6),
-          },
-        }
-      : null,
-    images.length >= 6
-      ? {
-          id: 'ai-circle-detail',
-          type: 'circleDetail',
-          data: {
-            title: detailsTitle,
-            description: detailsDescription,
-            items: images.slice(0, 5).map((image, index) => ({
-              label: '',
-              image: image.url,
-              alt: image.alt,
-              assetId: image.assetId,
-              crop: normalizeCrop(),
-            })),
           },
         }
       : null,
@@ -480,7 +496,7 @@ export function generateProjectPageDraft({ project, assets = [], instructions = 
   return {
     content,
     seoTitle: cleanText(metadata.seoTitle) || `${title} | Alexandra Diz`,
-    seoDescription: cleanText(metadata.seoDescription) || `${title}: ${String(category).toLowerCase()} portfolio project in ${location} by Alexandra Diz.`,
+    seoDescription: cleanText(metadata.seoDescription) || `${title}: ${String(category).toLowerCase()} portfolio project${locationPhrase(location)} by Alexandra Diz.`,
     seoKeywords: cleanKeywords(metadata.seoKeywords) || [title, category, location, 'Alexandra Diz', 'interior design', 'remodeling'].filter(Boolean).join(', '),
   };
 }
@@ -505,7 +521,7 @@ export function generateTextDraft({
     return `${title} highlight`;
   }
 
-  const base = `${title} is presented as a ${String(category).toLowerCase()} project in ${location}, with attention to composition, materials, light, and the practical rhythm of the space.`;
+  const base = `${title} is a ${String(category).toLowerCase()} project${locationPhrase(location)}, shaped around composition, materials, light, and the practical rhythm of the space.`;
 
   if (request) {
     return `${base} ${request}`;

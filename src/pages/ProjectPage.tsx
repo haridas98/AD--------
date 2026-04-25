@@ -28,6 +28,7 @@ export default function ProjectPage() {
   if (!project) return <Navigate to="/" replace />;
 
   const blocks = useMemo(() => parseProjectContent(project.content), [project.content]);
+  const projectCategory = categories.find((item) => item.id === project.categoryId) || category;
 
   return (
     <>
@@ -56,7 +57,17 @@ export default function ProjectPage() {
         transition={{ duration: 0.4 }}
       >
         <div className={styles.content}>
-          <BlockRenderer blocks={blocks} />
+          <BlockRenderer
+            blocks={blocks}
+            context={{
+              project: {
+                title: project.title,
+                cityName: project.cityName,
+                year: project.year,
+                categoryName: projectCategory?.name,
+              },
+            }}
+          />
         </div>
       </motion.main>
     </>
