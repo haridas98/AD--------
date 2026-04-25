@@ -40,10 +40,30 @@ export function parseBlogContentBlocks(content: any): BlockItem[] {
 
   try {
     const parsed = JSON.parse(content);
+    if (parsed && Array.isArray(parsed.blocks)) return parsed.blocks;
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
+}
+
+export type BlogArticleSection = {
+  title: string;
+  text: string;
+};
+
+export function parseBlogArticleSections(content: any): BlogArticleSection[] {
+  if (!content) return [];
+  if (typeof content === 'string') {
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed && Array.isArray(parsed.article)) return parsed.article;
+    } catch {
+      return extractSections(content);
+    }
+  }
+  if (Array.isArray(content?.article)) return content.article;
+  return [];
 }
 
 export function buildBlogBaseBlocks(post: any, images: string[] = []): BlockItem[] {

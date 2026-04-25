@@ -7,7 +7,7 @@ import AdminThemeEditor from '../components/admin/AdminThemeEditor';
 import ProjectAssetLibrary from '../components/admin/ProjectAssetLibrary';
 import ProjectAssetPicker from '../components/admin/ProjectAssetPicker';
 import { normalizeEditorCrop } from '../lib/adminImageCrop';
-import { buildBlogBaseBlocks, getBlogBlocksCover, parseBlogPostBlocks } from '../lib/blogBlockTemplates';
+import { buildBlogBaseBlocks, getBlogBlocksCover, parseBlogArticleSections, parseBlogPostBlocks } from '../lib/blogBlockTemplates';
 import { getCoverImageStyle } from '../lib/imageTransforms';
 import { buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
 import { PROJECT_STYLE_PRESET_OPTIONS } from '../lib/projectStylePresets';
@@ -705,6 +705,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [blogSelId, setBlogSelId] = useState('');
   const [blogForm, setBlogForm] = useState<any>(null);
   const [blogBlocks, setBlogBlocks] = useState<any[]>([]);
+  const [blogArticleSections, setBlogArticleSections] = useState<any[]>([]);
   const [activeBlogBlockId, setActiveBlogBlockId] = useState<string | null>(null);
   const [themeForm, setThemeForm] = useState(normalizeThemeSettings(data?.themeSettings));
   const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
@@ -1220,11 +1221,17 @@ export default function AdminPage({ data, refresh }: any) {
     setBlogSelId('');
     setBlogForm(nextForm);
     setBlogBlocks(buildBlogBaseBlocks(nextForm));
+    setBlogArticleSections([
+      { title: 'Main idea', text: '' },
+      { title: 'What to consider', text: '' },
+      { title: 'Designer note', text: '' },
+    ]);
     setActiveBlogBlockId('blog-hero');
   }
 
   function editBlog(post: any) {
     const nextBlocks = parseBlogPostBlocks(post);
+    const nextArticleSections = parseBlogArticleSections(post.content);
     setBlogSelId(post.id);
     setBlogForm({
       title: post.title || '',
@@ -1239,6 +1246,11 @@ export default function AdminPage({ data, refresh }: any) {
       tags: post.tags || '',
     });
     setBlogBlocks(nextBlocks.length ? nextBlocks : buildBlogBaseBlocks(post));
+    setBlogArticleSections(nextArticleSections.length ? nextArticleSections : [
+      { title: 'Main idea', text: post.excerpt || '' },
+      { title: 'What to consider', text: '' },
+      { title: 'Designer note', text: '' },
+    ]);
     setActiveBlogBlockId((nextBlocks[0]?.id as string) || 'blog-hero');
   }
 
@@ -1257,7 +1269,10 @@ export default function AdminPage({ data, refresh }: any) {
       const payload = {
         ...blogForm,
         coverImage: blogForm.coverImage || getBlogBlocksCover(blogBlocks),
-        content: JSON.stringify(blogBlocks || []),
+        content: JSON.stringify({
+          blocks: blogBlocks || [],
+          article: blogArticleSections.filter((section) => section.title || section.text),
+        }),
       };
       if (blogSelId) await api.updateBlog(blogSelId, payload);
       else await api.createBlog(payload);
@@ -1316,6 +1331,22 @@ export default function AdminPage({ data, refresh }: any) {
       content[index] = { ...content[index], data: { ...content[index].data, [field]: value } };
       return content;
     });
+  }
+
+  function setBlogArticleSection(index: number, field: string, value: string) {
+    setBlogArticleSections((prev: any[]) => {
+      const next = [...(prev || [])];
+      next[index] = { ...(next[index] || { title: '', text: '' }), [field]: value };
+      return next;
+    });
+  }
+
+  function addBlogArticleSection() {
+    setBlogArticleSections((prev: any[]) => [...(prev || []), { title: '', text: '' }]);
+  }
+
+  function removeBlogArticleSection(index: number) {
+    setBlogArticleSections((prev: any[]) => (prev || []).filter((_: any, i: number) => i !== index));
   }
 
   async function uploadBlogBlockImg(_blockIdx: number, field: string, file: File) {
@@ -1797,6 +1828,26 @@ export default function AdminPage({ data, refresh }: any) {
                     </div>
                   ))}
                   {(!blogBlocks || !blogBlocks.length) ? <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', textAlign: 'center', padding: '15px', margin: 0 }}>Click a block type above to start building</p> : null}
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                    <div>
+                      <h4 style={{ color: '#fff', margin: 0, fontSize: '14px' }}>Article Text</h4>
+                      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginTop: '3px' }}>Main readable article body. Visual blocks above are only for presentation.</div>
+                    </div>
+                    <button type="button" onClick={addBlogArticleSection} style={miniBtn}>+ Section</button>
+                  </div>
+                  {(blogArticleSections || []).map((section: any, sectionIndex: number) => (
+                    <div key={sectionIndex} style={{ ...panelStyle, marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ color: '#fff', fontSize: '13px', fontWeight: 700 }}>Section {sectionIndex + 1}</span>
+                        <button type="button" onClick={() => removeBlogArticleSection(sectionIndex)} style={{ ...miniBtn, color: '#e74c3c' }}>x</button>
+                      </div>
+                      <label style={labelStyle}>Heading<input value={section.title || ''} onChange={(event) => setBlogArticleSection(sectionIndex, 'title', event.target.value)} style={inputStyle} /></label>
+                      <label style={labelStyle}>Text<textarea rows={6} value={section.text || ''} onChange={(event) => setBlogArticleSection(sectionIndex, 'text', event.target.value)} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} /></label>
+                    </div>
+                  ))}
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={blogForm.isPublished} onChange={(e) => setBF('isPublished', e.target.checked)} /> Published</label>
 
