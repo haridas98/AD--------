@@ -1,6 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import { api } from '../lib/api';
 import AdminAssetSourcePanel from '../components/admin/AdminAssetSourcePanel';
 import AdminImageCropModal from '../components/admin/AdminImageCropModal';
@@ -9,6 +7,7 @@ import AdminThemeEditor from '../components/admin/AdminThemeEditor';
 import ProjectAssetLibrary from '../components/admin/ProjectAssetLibrary';
 import ProjectAssetPicker from '../components/admin/ProjectAssetPicker';
 import { normalizeEditorCrop } from '../lib/adminImageCrop';
+import { buildBlogBaseBlocks, getBlogBlocksCover, parseBlogPostBlocks } from '../lib/blogBlockTemplates';
 import { getCoverImageStyle } from '../lib/imageTransforms';
 import { buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
 import { PROJECT_STYLE_PRESET_OPTIONS } from '../lib/projectStylePresets';
@@ -705,7 +704,8 @@ export default function AdminPage({ data, refresh }: any) {
   const [form, setForm] = useState<any>(null);
   const [blogSelId, setBlogSelId] = useState('');
   const [blogForm, setBlogForm] = useState<any>(null);
-  const [blogContent, setBlogContent] = useState('');
+  const [blogBlocks, setBlogBlocks] = useState<any[]>([]);
+  const [activeBlogBlockId, setActiveBlogBlockId] = useState<string | null>(null);
   const [themeForm, setThemeForm] = useState(normalizeThemeSettings(data?.themeSettings));
   const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
@@ -715,6 +715,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [aiInstructions, setAiInstructions] = useState('');
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const blogBlockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const assetPickerResolver = useRef<((asset: ProjectAsset | null) => void) | null>(null);
 
   const categoryName = useMemo(
@@ -1152,6 +1153,19 @@ export default function AdminPage({ data, refresh }: any) {
     return response?.text || null;
   }
 
+  async function generateBlogBlockTextWithAi(context: any) {
+    const prompt = window.prompt('What should the blog text explain or improve?', context.currentValue || '');
+    if (prompt === null) return null;
+
+    const response = await api.generateAiText({
+      project: blogForm,
+      prompt,
+      ...context,
+    });
+
+    return response?.text || null;
+  }
+
   function applyBaseStructure() {
     setForm((prev: any) => ({
       ...prev,
@@ -1191,8 +1205,7 @@ export default function AdminPage({ data, refresh }: any) {
   }
 
   function newBlog() {
-    setBlogSelId('');
-    setBlogForm({
+    const nextForm = {
       title: '',
       slug: '',
       excerpt: '',
@@ -1203,11 +1216,15 @@ export default function AdminPage({ data, refresh }: any) {
       seoDescription: '',
       seoKeywords: '',
       tags: '',
-    });
-    setBlogContent('');
+    };
+    setBlogSelId('');
+    setBlogForm(nextForm);
+    setBlogBlocks(buildBlogBaseBlocks(nextForm));
+    setActiveBlogBlockId('blog-hero');
   }
 
   function editBlog(post: any) {
+    const nextBlocks = parseBlogPostBlocks(post);
     setBlogSelId(post.id);
     setBlogForm({
       title: post.title || '',
@@ -1221,7 +1238,8 @@ export default function AdminPage({ data, refresh }: any) {
       seoKeywords: post.seoKeywords || '',
       tags: post.tags || '',
     });
-    setBlogContent(post.content || '');
+    setBlogBlocks(nextBlocks.length ? nextBlocks : buildBlogBaseBlocks(post));
+    setActiveBlogBlockId((nextBlocks[0]?.id as string) || 'blog-hero');
   }
 
   function setBF(field: string, value: any) {
@@ -1236,7 +1254,11 @@ export default function AdminPage({ data, refresh }: any) {
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...blogForm, content: blogContent };
+      const payload = {
+        ...blogForm,
+        coverImage: blogForm.coverImage || getBlogBlocksCover(blogBlocks),
+        content: JSON.stringify(blogBlocks || []),
+      };
       if (blogSelId) await api.updateBlog(blogSelId, payload);
       else await api.createBlog(payload);
       await sync();
@@ -1258,6 +1280,68 @@ export default function AdminPage({ data, refresh }: any) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function addBlogBlock(type: string) {
+    setBlogBlocks((prev: any[]) => [...(prev || []), { type, data: {}, id: `blog-${type}-${Date.now()}` }]);
+  }
+
+  function removeBlogBlock(index: number) {
+    setBlogBlocks((prev: any[]) => (prev || []).filter((_: any, i: number) => i !== index));
+  }
+
+  function moveBlogBlock(index: number, direction: number) {
+    setBlogBlocks((prev: any[]) => {
+      const content = [...(prev || [])];
+      const nextIndex = index + direction;
+      if (nextIndex < 0 || nextIndex >= content.length) return prev;
+      [content[index], content[nextIndex]] = [content[nextIndex], content[index]];
+      return content;
+    });
+  }
+
+  function moveBlogBlockToIndex(fromIndex: number, toIndex: number) {
+    setBlogBlocks((prev: any[]) => {
+      const content = [...(prev || [])];
+      if (fromIndex < 0 || toIndex < 0 || fromIndex >= content.length || toIndex >= content.length) return prev;
+      const [moved] = content.splice(fromIndex, 1);
+      content.splice(toIndex, 0, moved);
+      return content;
+    });
+  }
+
+  function setBlogBlock(index: number, field: string, value: any) {
+    setBlogBlocks((prev: any[]) => {
+      const content = [...(prev || [])];
+      content[index] = { ...content[index], data: { ...content[index].data, [field]: value } };
+      return content;
+    });
+  }
+
+  async function uploadBlogBlockImg(_blockIdx: number, field: string, file: File) {
+    if (!file) return null;
+    setSaving(true);
+    try {
+      return await api.uploadImage(file, `${blogForm?.title || 'blog'}-${field}`);
+    } catch (err: any) {
+      alert(err.message);
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function applyBlogBaseStructure() {
+    const nextBlocks = buildBlogBaseBlocks(blogForm || {});
+    setBlogBlocks(nextBlocks);
+    setActiveBlogBlockId((nextBlocks[0]?.id as string) || 'blog-hero');
+  }
+
+  function scrollToBlogBlockEditor(blockId: string) {
+    setActiveBlogBlockId(blockId);
+    window.setTimeout(() => {
+      blogBlockRefs.current[blockId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 10);
   }
 
   async function saveBaToggles() {
@@ -1629,31 +1713,6 @@ export default function AdminPage({ data, refresh }: any) {
                 </div>
                 <label style={labelStyle}>Excerpt<textarea rows={2} value={blogForm.excerpt} onChange={(e) => setBF('excerpt', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
 
-                <div>
-                  <label style={{ display: 'block', color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginBottom: '6px' }}>Content</label>
-                  <div className="quill-wrapper">
-                    <ReactQuill
-                      theme="snow"
-                      value={blogContent}
-                      onChange={setBlogContent}
-                      modules={{
-                        toolbar: [
-                          [{ header: [1, 2, 3, false] }],
-                          ['bold', 'italic', 'underline', 'strike'],
-                          [{ color: [] }, { background: [] }],
-                          [{ list: 'ordered' }, { list: 'bullet' }],
-                          [{ align: [] }],
-                          ['blockquote', 'code-block'],
-                          ['link', 'image', 'video'],
-                          ['clean'],
-                        ],
-                      }}
-                      formats={['header', 'bold', 'italic', 'underline', 'strike', 'color', 'background', 'list', 'bullet', 'align', 'blockquote', 'code-block', 'link', 'image', 'video']}
-                      style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', minHeight: '300px' }}
-                    />
-                  </div>
-                </div>
-
                 <div style={{ display: 'grid', gap: '8px' }}>
                   <div>
                     <div style={{ color: '#fff', fontSize: '13px', fontWeight: 700 }}>Preview image</div>
@@ -1678,6 +1737,66 @@ export default function AdminPage({ data, refresh }: any) {
                       }
                     }}
                   />
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                    <div>
+                      <h4 style={{ color: '#fff', margin: 0, fontSize: '14px' }}>Article Blocks</h4>
+                      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginTop: '3px' }}>Same visual block system as project pages.</div>
+                    </div>
+                    <button type="button" onClick={applyBlogBaseStructure} style={{ ...miniBtn, borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}>
+                      Apply Base Structure
+                    </button>
+                  </div>
+                  <AdminProjectMiniMap
+                    blocks={blogBlocks || []}
+                    activeBlockId={activeBlogBlockId}
+                    onSelect={scrollToBlogBlockEditor}
+                    onReorder={moveBlogBlockToIndex}
+                  />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
+                    {BLOCK_TYPES.filter((blockType) => blockType.value !== 'metaInfo' && blockType.value !== 'beforeAfter').map((blockType) => (
+                      <button key={blockType.value} type="button" onClick={() => addBlogBlock(blockType.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '11px' }}>
+                        {blockType.label}
+                      </button>
+                    ))}
+                  </div>
+                  {(blogBlocks || []).map((block: any, index: number) => (
+                    <div
+                      key={block.id || index}
+                      onClick={() => setActiveBlogBlockId(block.id || `${block.type}-${index}`)}
+                      ref={(node) => {
+                        blogBlockRefs.current[block.id || `${block.type}-${index}`] = node;
+                      }}
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: activeBlogBlockId === (block.id || `${block.type}-${index}`) ? '1px solid rgba(198,164,123,0.45)' : '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ color: '#fff', fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>{block.type}</span>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button type="button" onClick={() => moveBlogBlock(index, -1)} disabled={index === 0} style={miniBtn}>up</button>
+                          <button type="button" onClick={() => moveBlogBlock(index, 1)} disabled={index === (blogBlocks || []).length - 1} style={miniBtn}>down</button>
+                          <button type="button" onClick={() => removeBlogBlock(index)} style={{ ...miniBtn, color: '#e74c3c' }}>x</button>
+                        </div>
+                      </div>
+                      <BlockEditor
+                        block={block}
+                        idx={index}
+                        onUpdate={setBlogBlock}
+                        onUpload={uploadBlogBlockImg}
+                        onGenerateText={generateBlogBlockTextWithAi}
+                        formTitle={blogForm.title}
+                        compact={isCompact}
+                      />
+                    </div>
+                  ))}
+                  {(!blogBlocks || !blogBlocks.length) ? <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', textAlign: 'center', padding: '15px', margin: 0 }}>Click a block type above to start building</p> : null}
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={blogForm.isPublished} onChange={(e) => setBF('isPublished', e.target.checked)} /> Published</label>
 
