@@ -31,6 +31,8 @@ export type DraftTestimonial = {
   quote: string;
   name: string;
   role: string;
+  image?: string | null;
+  date?: string;
 };
 
 export type DraftProjectPlaceholder = {
@@ -53,25 +55,25 @@ export type DraftBlogPlaceholder = {
 export const homepageDraft = {
   hero: {
     eyebrow: 'Alexandra Diz / Interior Architecture',
-    title: 'Spaces with authority, softness, and a clear point of view.',
+    title: 'Interiors with calm, structure, and a clear point of view.',
     description:
-      'A personal-brand homepage for clients who want the rigor of remodeling, the polish of editorial interiors, and a process that feels composed from the first call.',
+      'Design-led remodels shaped around proportion, materials, and daily comfort.',
     primaryCta: { label: 'Start Your Project', to: '/contact' },
-    secondaryCta: { label: 'View Selected Projects', to: '/projects' },
+    secondaryCta: { label: 'View Projects', to: '/projects' },
     videoPoster:
-      'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1800&q=80',
+      '/uploads/home/alexandra.jpg',
     media: {
       kicker: 'Studio Reel Placeholder',
-      title: 'Premium motion placeholder',
+      title: 'Studio perspective',
       caption:
-        'Use this surface for a short brand film or a quiet behind-the-scenes edit. The block is intentionally styled so the homepage still feels finished before final media arrives.',
+        'A quiet place for a short behind-the-scenes film later.',
     },
   },
   intro: {
     label: 'Why Clients Come Here',
-    title: 'The brand sits between design leadership and remodel execution.',
+    title: 'A personal studio for homes that need both taste and method.',
     text:
-      'This homepage shifts the focus from a category catalog to a personal point of view: Alexandra as the lens, the translator, and the standard-setter across concept, documentation, and construction rhythm.',
+      'Alexandra helps clients turn complex remodeling decisions into a calm, edited interior direction.',
     portraitPrimary:
       '/uploads/home/alexandra.jpg',
     materialImages: [
@@ -175,9 +177,9 @@ export const homepageDraft = {
   },
   projects: {
     label: 'Projects Gateway',
-    title: 'Selected work should feel like proof, not inventory.',
+    title: 'Selected work, edited down to the essentials.',
     text:
-      'Use live project data when possible, but frame it as a curated gateway into the strongest remodeling stories.',
+      'A short path into kitchens, bathrooms, full-home remodels, ADU projects, and fireplace transformations.',
     cta: { label: 'Browse All Projects', to: '/projects' },
     placeholders: [
       {
@@ -211,7 +213,7 @@ export const homepageDraft = {
   },
   testimonials: {
     label: 'Testimonials',
-    title: 'Trust is built through taste, clarity, and follow-through.',
+    title: 'Client notes from completed work.',
     items: [
       {
         quote:

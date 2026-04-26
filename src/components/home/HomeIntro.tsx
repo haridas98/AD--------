@@ -25,7 +25,7 @@ export function HomeIntro({ data, metrics, styles }: HomeIntroProps) {
               <span className={styles.sectionLabel}>About the Founder</span>
               <img
                 src={data.portraitPrimary}
-                alt="Placeholder portrait for Alexandra Diz"
+                alt="Alexandra Diz in an interior project"
                 className={styles.introPortraitPrimary}
               />
             </div>
@@ -53,8 +53,8 @@ export function HomeIntro({ data, metrics, styles }: HomeIntroProps) {
 
           <div className={styles.directQuote}>
             <span className={styles.sectionLabel}>Direct Quote</span>
-            <p>“{data.quote}”</p>
-            <strong>— Alexandra Diz</strong>
+            <p>&ldquo;{data.quote}&rdquo;</p>
+            <strong>- Alexandra Diz</strong>
           </div>
 
           <div className={styles.materialStrip}>

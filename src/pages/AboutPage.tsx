@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
+import { studioTestimonials } from '../content/testimonials';
 
 interface AboutPageProps { aboutType: string; }
 
@@ -264,7 +265,7 @@ function TestimonialsContent() {
       <h2 className="testimonials-page__title">What our clients say</h2>
 
       <div className="testimonials-list">
-        {testimonials.map((t, i) => (
+        {studioTestimonials.map((t, i) => (
           <div key={i} className="testimonial-item">
             <div className="testimonial-item__header">
               <div className="testimonial-item__date">{t.date}</div>
