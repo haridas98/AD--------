@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 
 interface SideBySideBlockProps {
   data: {
@@ -33,7 +34,12 @@ export default function SideBySideBlock({ data }: SideBySideBlockProps) {
     >
       {asset?.url && (
         <div className="block-side-by-side-image">
-          <img src={asset.url} alt={asset.alt || data.alt || data.title || ''} style={getCoverImageStyle(asset.crop)} />
+          <img
+            src={getPreviewImageUrl(asset.url)}
+            alt={asset.alt || data.alt || data.title || ''}
+            style={getCoverImageStyle(asset.crop)}
+            onError={(event) => handlePreviewFallback(event, asset.url)}
+          />
         </div>
       )}
       {data.text && (

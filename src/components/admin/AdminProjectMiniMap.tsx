@@ -120,6 +120,14 @@ export default function AdminProjectMiniMap({ blocks, activeBlockId, onSelect, o
                   </div>
                 ) : null}
 
+                {block.type === 'photoSequence' ? (
+                  <div className={styles.photoSequencePreview}>
+                    <span className={styles.photoSequenceWide} style={image ? { backgroundImage: `url(${image})` } : undefined} />
+                    <span />
+                    <span />
+                  </div>
+                ) : null}
+
                 {block.type === 'refinedSlider' ? (
                   <div className={styles.sliderPreview}>
                     <div className={styles.sliderStage} style={image ? { backgroundImage: `url(${image})` } : undefined} />

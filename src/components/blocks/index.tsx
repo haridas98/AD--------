@@ -9,6 +9,7 @@ import RefinedSliderBlock from './RefinedSliderBlock';
 import CircleDetailBlock from './CircleDetailBlock';
 import EditorialNoteBlock from './EditorialNoteBlock';
 import MosaicPresetBlock from './MosaicPresetBlock';
+import PhotoSequenceBlock from './PhotoSequenceBlock';
 
 export const blockComponents: Record<string, React.ComponentType<any>> = {
   heroImage: HeroImageBlock,
@@ -22,6 +23,7 @@ export const blockComponents: Record<string, React.ComponentType<any>> = {
   circleDetail: CircleDetailBlock,
   editorialNote: EditorialNoteBlock,
   mosaicPreset: MosaicPresetBlock,
+  photoSequence: PhotoSequenceBlock,
 };
 
 export interface BlockItem {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import styles from './RefinedSliderBlock.module.scss';
 import { normalizeImageAsset } from '../../lib/imageTransforms';
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 
 type SliderImage = {
   url: string;
@@ -76,9 +77,10 @@ export default function RefinedSliderBlock({ data }: RefinedSliderBlockProps) {
 
           <motion.img
             key={active.url}
-            src={active.url}
+            src={getPreviewImageUrl(active.url)}
             alt={active.alt || data.title || ''}
             className={styles.image}
+            onError={(event) => handlePreviewFallback(event, active.url)}
             initial={shouldReduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.42, ease: 'easeOut' }}
@@ -95,7 +97,7 @@ export default function RefinedSliderBlock({ data }: RefinedSliderBlockProps) {
                 className={`${styles.thumb}${imageIndex === index ? ` ${styles.thumbActive}` : ''}`}
                 onClick={() => setIndex(imageIndex)}
               >
-                <img src={image.url} alt={image.alt || `${data.title || 'Project'} thumbnail ${imageIndex + 1}`} />
+                <img src={getPreviewImageUrl(image.url)} alt={image.alt || `${data.title || 'Project'} thumbnail ${imageIndex + 1}`} onError={(event) => handlePreviewFallback(event, image.url)} />
               </button>
             ))}
           </div>

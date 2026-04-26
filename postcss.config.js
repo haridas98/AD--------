@@ -55,6 +55,7 @@ export default {
             /^_/,
             // Dynamic variant class generated via template literal in ImageGridBlock
             /^block-image-grid--/,
+            /^block-photo-sequence-row--/,
           ],
         },
         // CSS variables are used by JS

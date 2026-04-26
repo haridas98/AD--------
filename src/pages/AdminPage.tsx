@@ -26,6 +26,7 @@ const BLOCK_TYPES = [
   { value: 'circleDetail', label: 'Circle Detail' },
   { value: 'editorialNote', label: 'Editorial Note' },
   { value: 'mosaicPreset', label: 'Mosaic Preset' },
+  { value: 'photoSequence', label: 'Photo Sequence' },
 ];
 
 function toSlug(t: string) {
@@ -2053,6 +2054,7 @@ function BlockEditor({
     <>
       {field('Title', 'title', { ai: true })}
       {field('Subtitle', 'subtitle', { ai: true })}
+      {field('Hero Variant', 'variant', { select: true, options: [{ value: 'standard', label: 'Standard' }, { value: 'immersive', label: 'Fullscreen / transparent header' }], default: 'standard' })}
       {field('Alt Text', 'alt')}
       <BasicCoverFieldEditor
         url={data.image}
@@ -2201,6 +2203,73 @@ function BlockEditor({
   if (block.type === 'mosaicPreset') return (
     <MosaicPresetEditor data={data} idx={idx} onUpdate={onUpdate} onUpload={onUpload} onPickAsset={onPickAsset} formTitle={formTitle} compact={compact} />
   );
+  if (block.type === 'photoSequence') {
+    const rows = Array.isArray(data.items) ? data.items : [];
+    const updateRows = (nextRows: any[]) => onUpdate(idx, 'items', nextRows);
+    const normalizeRow = (row: any) => {
+      const layout = row?.layout === 'pair' ? 'pair' : 'wide';
+      const count = layout === 'pair' ? 2 : 1;
+      const images = Array.from({ length: count }, (_, imageIndex) => toEditableImage(row?.images?.[imageIndex]));
+      return { layout, images };
+    };
+
+    return (
+      <div style={{ display: 'grid', gap: '12px' }}>
+        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>
+          Horizontal row = one wide image. Vertical row = two portrait images side by side.
+        </div>
+        {rows.map((row: any, rowIndex: number) => {
+          const editableRow = normalizeRow(row);
+          return (
+            <div key={rowIndex} style={{ ...panelStyle, gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
+                <select
+                  value={editableRow.layout}
+                  onChange={(event) => {
+                    const nextLayout = event.target.value === 'pair' ? 'pair' : 'wide';
+                    const nextCount = nextLayout === 'pair' ? 2 : 1;
+                    const next = [...rows];
+                    next[rowIndex] = {
+                      layout: nextLayout,
+                      images: Array.from({ length: nextCount }, (_, imageIndex) => toEditableImage(editableRow.images[imageIndex])),
+                    };
+                    updateRows(next);
+                  }}
+                  style={{ ...inputStyle, maxWidth: 260 }}
+                >
+                  <option value="wide" style={{ background: '#141414' }}>Horizontal full-width photo</option>
+                  <option value="pair" style={{ background: '#141414' }}>Two vertical photos</option>
+                </select>
+                <button type="button" style={{ ...miniBtn, color: '#ff8a80' }} onClick={() => updateRows(rows.filter((_: any, nextIndex: number) => nextIndex !== rowIndex))}>Remove row</button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: editableRow.layout === 'pair' && !compact ? '1fr 1fr' : '1fr', gap: '10px' }}>
+                {editableRow.images.map((image, imageIndex) => (
+                  <EditableCoverFieldEditor
+                    key={imageIndex}
+                    value={image}
+                    aspectRatio={editableRow.layout === 'pair' ? '4 / 5' : '16 / 9'}
+                    cropEnabled={false}
+                    previewMaxWidth="100%"
+                    onChange={(nextImage) => {
+                      const next = rows.map((item: any, nextIndex: number) => (nextIndex === rowIndex ? normalizeRow(item) : item));
+                      next[rowIndex].images[imageIndex] = { ...nextImage, alt: nextImage.alt || formTitle };
+                      updateRows(next.map((item: any) => ({ layout: item.layout, images: item.images.filter((nextItem: any) => nextItem.url).map((nextItem: any) => ({ url: nextItem.url, alt: nextItem.alt || formTitle, crop: nextItem.crop, assetId: nextItem.assetId || '' })) })));
+                    }}
+                    onUpload={(file) => onUpload(idx, `photoSequence-${rowIndex}-${imageIndex}`, file)}
+                    onPickAsset={onPickAsset}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button type="button" style={miniBtn} onClick={() => updateRows([...rows, { layout: 'wide', images: [] }])}>+ Horizontal photo</button>
+          <button type="button" style={miniBtn} onClick={() => updateRows([...rows, { layout: 'pair', images: [] }])}>+ Two vertical photos</button>
+        </div>
+      </div>
+    );
+  }
 
   return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No fields</p>;
 }

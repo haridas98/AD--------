@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Lightbox from '../Lightbox';
+import { normalizeImageAsset } from '../../lib/imageTransforms';
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 
 interface ImageGridBlockProps {
   data: {
@@ -15,7 +17,10 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
 
   if (!data.images?.length) return null;
 
-  const images = data.images?.map((img: any) => typeof img === 'string' ? img : img.url) || [];
+  const normalizedImages = data.images.map((img: any) => normalizeImageAsset(img)).filter((img) => img?.url);
+  if (!normalizedImages.length) return null;
+
+  const images = normalizedImages.map((img) => img!.url);
   const cols = data.columns || 2;
 
   return (
@@ -27,7 +32,7 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        {data.images.map((img, i) => (
+        {normalizedImages.map((img, i) => (
           <motion.div
             key={i}
             className={`block-image-grid-item${cols === 1 ? ' block-image-grid-item--full' : ''}`}
@@ -35,7 +40,12 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <img src={img.url} alt={img.alt || ''} loading="lazy" />
+            <img
+              src={getPreviewImageUrl(img!.url)}
+              alt={img!.alt || ''}
+              loading="lazy"
+              onError={(event) => handlePreviewFallback(event, img!.url)}
+            />
             <div className="block-image-grid-item-overlay" />
           </motion.div>
         ))}

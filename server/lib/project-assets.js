@@ -169,6 +169,15 @@ export async function saveProjectAssetUpload({
   const absolutePath = path.join(targetDirectory, finalFilename);
   await fs.promises.writeFile(absolutePath, outputBuffer);
 
+  if (kind === IMAGE_KIND) {
+    const previewFilename = `${path.parse(finalFilename).name}-preview.webp`;
+    const previewPath = path.join(dirs.imageDerivedDir, previewFilename);
+    await sharp(outputBuffer)
+      .resize({ width: 1600, withoutEnlargement: true })
+      .webp({ quality: 74 })
+      .toFile(previewPath);
+  }
+
   const storagePath = getProjectAssetStoragePath(projectSlug, kind, finalFilename);
   const publicUrl = getProjectAssetPublicUrl(projectSlug, kind, finalFilename);
   const fileStat = await fs.promises.stat(absolutePath);
