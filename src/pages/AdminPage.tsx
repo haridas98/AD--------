@@ -973,6 +973,8 @@ export default function AdminPage({ data, refresh }: any) {
       seoKeywords: '',
       cityName: '',
       year: '',
+      completedAt: '',
+      deletedAt: '',
     };
     setSelId('');
     setForm({
@@ -1009,6 +1011,10 @@ export default function AdminPage({ data, refresh }: any) {
       seoKeywords: project.seoKeywords || '',
       cityName: project.cityName || '',
       year: project.year || '',
+      completedAt: project.completedAt || '',
+      createdAt: project.createdAt || '',
+      updatedAt: project.updatedAt || '',
+      deletedAt: project.deletedAt || '',
     });
     setProjectEditorTab('content');
     setAiInstructions('');
@@ -1098,7 +1104,7 @@ export default function AdminPage({ data, refresh }: any) {
   }
 
   async function deleteProject() {
-    if (!selId || !confirm('Delete this project?')) return;
+    if (!selId || !confirm('Mark this project as deleted and hide it from the public site?')) return;
     setSaving(true);
     try {
       await api.deleteProject(selId);
@@ -1190,11 +1196,12 @@ export default function AdminPage({ data, refresh }: any) {
           stylePreset: project.stylePreset || 'default',
           seoTitle: project.seoTitle || '',
           seoDescription: project.seoDescription || '',
-          seoKeywords: project.seoKeywords || '',
-          cityName: project.cityName || '',
-          year: project.year || '',
-          content: JSON.stringify(buildProjectBaseBlocks(project, nextCategoryName, 1)),
-        });
+        seoKeywords: project.seoKeywords || '',
+        cityName: project.cityName || '',
+        year: project.year || '',
+        completedAt: project.completedAt || '',
+        content: JSON.stringify(buildProjectBaseBlocks(project, nextCategoryName, 1)),
+      });
       }
       await sync();
       await refresh();
@@ -1506,10 +1513,11 @@ export default function AdminPage({ data, refresh }: any) {
                   {getCover(project) ? <img src={getCover(project)} alt="" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />}
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{project.cityName || ''} {project.year ? `(${project.year})` : ''}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{project.cityName || ''} {project.completedAt || project.year ? `(${project.completedAt || project.year})` : ''}</div>
                     <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                       <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: project.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: project.isPublished ? '#27ae60' : '#e74c3c' }}>{project.isPublished ? 'Published' : 'Draft'}</span>
                       {project.isFeatured ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span> : null}
+                      {project.deletedAt ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(231,76,60,0.18)', color: '#ff8a80' }}>Deleted</span> : null}
                     </div>
                   </div>
                 </div>
@@ -1528,6 +1536,14 @@ export default function AdminPage({ data, refresh }: any) {
                   <label style={labelStyle}>City<input value={form.cityName} onChange={(e) => setF('cityName', e.target.value)} placeholder="San Francisco" style={inputStyle} /></label>
                   <label style={labelStyle}>Year<input type="number" value={form.year} onChange={(e) => setF('year', e.target.value)} placeholder="2024" style={inputStyle} /></label>
                 </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr 1fr', gap: '12px' }}>
+                  <label style={labelStyle}>Project realized<input value={form.completedAt || ''} onChange={(e) => setF('completedAt', e.target.value)} placeholder="2020 or Spring 2020" style={inputStyle} /></label>
+                  <label style={labelStyle}>Created in DB<input value={form.createdAt || ''} readOnly style={{ ...inputStyle, opacity: 0.65 }} /></label>
+                  <label style={labelStyle}>Updated in DB<input value={form.updatedAt || ''} readOnly style={{ ...inputStyle, opacity: 0.65 }} /></label>
+                </div>
+                {form.deletedAt ? (
+                  <label style={labelStyle}>Deleted in DB<input value={form.deletedAt} readOnly style={{ ...inputStyle, opacity: 0.65, color: '#ff8a80' }} /></label>
+                ) : null}
                 <label style={labelStyle}>
                   Style Preset
                   <select value={form.stylePreset || 'default'} onChange={(e) => setF('stylePreset', e.target.value)} style={inputStyle}>
@@ -1707,7 +1723,7 @@ export default function AdminPage({ data, refresh }: any) {
 
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save Project'}</button>
-                  {selId ? <button type="button" onClick={deleteProject} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Delete</button> : null}
+                  {selId ? <button type="button" onClick={deleteProject} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Mark Deleted</button> : null}
                 </div>
               </form>
             </div>

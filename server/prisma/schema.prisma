@@ -39,12 +39,14 @@ model Project {
   locationId  String?
   cityName    String?
   year        Int?
+  completedAt String?
   isFeatured  Boolean  @default(false)
   isPublished Boolean  @default(true)
   stylePreset String   @default("default")
   sortOrder   Int      @default(0)
   createdAt   String   @default("")
   updatedAt   String   @default("")
+  deletedAt   String?
 
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   assets      ProjectAsset[]
@@ -64,6 +66,8 @@ model Project {
   @@index([isPublished])
   @@index([cityName])
   @@index([year])
+  @@index([completedAt])
+  @@index([deletedAt])
 }
 
 model ProjectAsset {

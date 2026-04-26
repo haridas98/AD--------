@@ -7,10 +7,9 @@ import {
   getCanonicalPortfolioProjectPathForCategory,
 } from '../lib/portfolioRoutes';
 import { homepageDraft } from '../content/homepageDraft';
+import { studioTestimonials } from '../content/testimonials';
 import { HomeHero } from '../components/home/HomeHero';
 import { HomeIntro } from '../components/home/HomeIntro';
-import { HomeServices } from '../components/home/HomeServices';
-import { HomeProcess } from '../components/home/HomeProcess';
 import { HomeProjectsGateway } from '../components/home/HomeProjectsGateway';
 import { HomeTestimonials } from '../components/home/HomeTestimonials';
 import { HomeBlogPreview } from '../components/home/HomeBlogPreview';
@@ -101,6 +100,16 @@ export default function HomePage() {
       dateLabel: formatDateLabel(post),
     }));
   const blogItems = publishedPosts.length > 0 ? publishedPosts : homepageDraft.blog.placeholders;
+  const testimonialData = {
+    ...homepageDraft.testimonials,
+    items: studioTestimonials.map((item) => ({
+      quote: item.text,
+      name: item.author,
+      role: [item.date, item.link].filter(Boolean).join(' / '),
+      image: item.image,
+      date: item.date,
+    })),
+  };
 
   const heroMetrics = [
     { value: String(publishedProjects.length || 12), label: 'Published projects' },
@@ -128,10 +137,8 @@ export default function HomePage() {
       <main className={styles.page}>
         <HomeHero data={homepageDraft.hero} metrics={heroMetrics} styles={styles} />
         <HomeIntro data={homepageDraft.intro} metrics={introMetrics} styles={styles} />
-        <HomeServices data={homepageDraft.services} styles={styles} />
-        <HomeProcess data={homepageDraft.process} styles={styles} />
         <HomeProjectsGateway data={homepageDraft.projects} items={projectItems} styles={styles} />
-        <HomeTestimonials data={homepageDraft.testimonials} styles={styles} />
+        <HomeTestimonials data={testimonialData} styles={styles} />
         <HomeBlogPreview data={homepageDraft.blog} items={blogItems} styles={styles} />
         <HomeFinalCta data={homepageDraft.finalCta} styles={styles} />
       </main>

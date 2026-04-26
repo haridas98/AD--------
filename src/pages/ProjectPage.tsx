@@ -64,6 +64,7 @@ export default function ProjectPage() {
                 title: project.title,
                 cityName: project.cityName,
                 year: project.year,
+                completedAt: project.completedAt,
                 categoryName: projectCategory?.name,
               },
             }}

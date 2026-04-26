@@ -88,26 +88,6 @@ export function HomeHero({ data, metrics, styles }: HomeHeroProps) {
             </motion.div>
           </motion.div>
 
-          <motion.div
-            className={styles.heroMediaCard}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.16, duration: 0.55, ease: 'easeOut' }}
-          >
-            <span className={styles.mediaKicker}>{data.media.kicker}</span>
-            <div
-              className={styles.mediaFrame}
-              style={{ backgroundImage: `linear-gradient(180deg, rgba(14, 10, 8, 0.2) 0%, rgba(14, 10, 8, 0.58) 100%), url(${data.videoPoster})` }}
-            >
-              <div className={styles.mediaGlow} />
-              <div className={styles.mediaGlowAlt} />
-              <div className={styles.mediaBadge}>Brand Film</div>
-            </div>
-            <div className={styles.mediaMeta}>
-              <strong>{data.media.title}</strong>
-              <p>{data.media.caption}</p>
-            </div>
-          </motion.div>
         </div>
       </div>
     </section>

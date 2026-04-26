@@ -45,6 +45,9 @@ export function HomeTestimonials({ data, styles }: HomeTestimonialsProps) {
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.4, ease: 'easeOut' }}
               >
+                {activeItem.image ? (
+                  <img src={activeItem.image} alt={activeItem.name} className={styles.testimonialAvatar} />
+                ) : null}
                 <p>{activeItem.quote}</p>
                 <div className={styles.testimonialMeta}>
                   <strong>{activeItem.name}</strong>

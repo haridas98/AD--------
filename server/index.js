@@ -194,7 +194,7 @@ app.get('/api/content', async (_req, res) => {
     const themeSettings = readThemeSettings();
     const [categories, projects, blogPosts] = await Promise.all([
       prisma.category.findMany({ where: { showInHeader: true }, orderBy: { sortOrder: 'asc' } }),
-      prisma.project.findMany({ where: { isPublished: true }, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] }),
+      prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ where: { isPublished: true }, orderBy: { publishedAt: 'desc' }, take: 10 }),
     ]);
     res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts, themeSettings });
@@ -204,7 +204,7 @@ app.get('/api/content', async (_req, res) => {
 app.get('/api/projects/:slug', async (req, res) => {
   try {
     const p = await prisma.project.findUnique({ where: { slug: req.params.slug } });
-    if (!p || !p.isPublished) return res.status(404).json({ error: 'Not found' });
+    if (!p || !p.isPublished || p.deletedAt) return res.status(404).json({ error: 'Not found' });
     res.json({ ...p, content: parseContent(p.content) });
   } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
@@ -278,8 +278,8 @@ app.put('/api/admin/theme-settings', requireAuth, async (req, res) => {
 app.get('/api/admin/stats', requireAuth, async (_req, res) => {
   try {
     const [projectCount, publishedCount, blogCount, categoryCount] = await Promise.all([
-      prisma.project.count(),
-      prisma.project.count({ where: { isPublished: true } }),
+      prisma.project.count({ where: { deletedAt: null } }),
+      prisma.project.count({ where: { isPublished: true, deletedAt: null } }),
       prisma.blogPost.count(),
       prisma.category.count(),
     ]);
@@ -310,9 +310,10 @@ app.post('/api/admin/projects', requireAuth, async (req, res) => {
   try {
     const b = req.body;
     if (!b.title || !b.categoryId) return res.status(400).json({ error: 'title & categoryId required' });
+    const now = new Date().toISOString();
     let slug = b.slug || normalizeSlug(b.title);
     if (await prisma.project.findUnique({ where: { slug } })) slug = `${slug}-${Date.now()}`;
-    const p = await prisma.project.create({ data: { title: b.title, slug, categoryId: b.categoryId, content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content || []), isFeatured: !!b.isFeatured, isPublished: b.isPublished !== false, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
+    const p = await prisma.project.create({ data: { title: b.title, slug, categoryId: b.categoryId, content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content || []), isFeatured: !!b.isFeatured, isPublished: b.isPublished !== false, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null, completedAt: b.completedAt || null, createdAt: now, updatedAt: now, deletedAt: null } });
     ensureProjectAssetDirectories(p.slug, UPLOADS_DIR);
     res.status(201).json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
@@ -325,14 +326,14 @@ app.put('/api/admin/projects/:id', requireAuth, async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Not found' });
     let slug = b.slug ?? existing.slug;
     if (slug !== existing.slug && await prisma.project.findUnique({ where: { slug } })) return res.status(409).json({ error: 'Slug exists' });
-    const p = await prisma.project.update({ where: { id: req.params.id }, data: { title: b.title, slug, categoryId: b.categoryId, content: b.content ? (typeof b.content === 'string' ? b.content : JSON.stringify(b.content)) : undefined, isFeatured: b.isFeatured, isPublished: b.isPublished, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null } });
+    const p = await prisma.project.update({ where: { id: req.params.id }, data: { title: b.title, slug, categoryId: b.categoryId, content: b.content ? (typeof b.content === 'string' ? b.content : JSON.stringify(b.content)) : undefined, isFeatured: b.isFeatured, isPublished: b.isPublished, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null, completedAt: b.completedAt || null, updatedAt: new Date().toISOString(), deletedAt: b.deletedAt === '' ? null : b.deletedAt } });
     ensureProjectAssetDirectories(p.slug, UPLOADS_DIR);
     res.json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });
 
 app.delete('/api/admin/projects/:id', requireAuth, async (req, res) => {
-  try { await prisma.project.delete({ where: { id: req.params.id } }); res.json({ ok: true }); }
+  try { await prisma.project.update({ where: { id: req.params.id }, data: { deletedAt: new Date().toISOString(), isPublished: false, updatedAt: new Date().toISOString() } }); res.json({ ok: true }); }
   catch (err) { res.status(500).json({ error: err.code === 'P2025' ? 'Not found' : 'Failed' }); }
 });
 

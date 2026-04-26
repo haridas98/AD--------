@@ -35,6 +35,7 @@ export interface BlockRenderContext {
     title?: string;
     cityName?: string;
     year?: string | number | null;
+    completedAt?: string | null;
     categoryName?: string;
   };
 }
