@@ -54,9 +54,9 @@
 
 .stage {
   position: relative;
-  width: min(100%, 1120px);
-  height: clamp(300px, 50vw, 640px);
-  max-height: 68vh;
+  width: 100%;
+  height: clamp(360px, 48vw, 760px);
+  max-height: 72vh;
   overflow: hidden;
   border-radius: 18px;
   background:
@@ -101,8 +101,8 @@
 }
 
 .layout--bottom .thumbs {
-  width: min(100%, 1120px);
-  grid-template-columns: repeat(auto-fit, minmax(82px, 118px));
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 140px));
   justify-content: center;
 }
 

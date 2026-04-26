@@ -111,8 +111,12 @@
 }
 
 .project-hero--immersive .project-hero-content {
-  padding-top: var(--header-offset);
-  padding-bottom: clamp(32px, 5vw, 64px);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  justify-content: center;
+  padding: var(--header-offset) var(--page-gutter) clamp(32px, 5vw, 64px);
+  pointer-events: none;
 }
 
 .project-hero--immersive .project-hero-content h1 {
@@ -231,35 +235,28 @@
   border-radius: 4px;
   position: relative;
   width: 100%;
+  aspect-ratio: 4 / 3;
 }
 
 .block-image-grid-item img {
   width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
-  min-height: clamp(380px, 30vw, 660px);
+  height: 100%;
   object-fit: cover;
   display: block;
   transition: opacity 0.3s;
 }
 
-.block-image-grid--1 .block-image-grid-item img,
-.block-image-grid-item--full img {
+.block-image-grid--1 .block-image-grid-item,
+.block-image-grid-item--full {
   aspect-ratio: 16 / 10;
-  min-height: clamp(440px, 42vw, 820px);
 }
 
-.block-image-grid--3 .block-image-grid-item img {
+.block-image-grid--3 .block-image-grid-item {
   aspect-ratio: 4 / 5;
-  min-height: clamp(260px, 22vw, 440px);
 }
 
 .block-image-grid-item--full {
   grid-column: 1 / -1;
-}
-
-.block-image-grid-item--full img {
-  height: auto;
 }
 
 .block-image-grid-item-overlay {
@@ -676,8 +673,11 @@
 
   .block-image-grid-item img,
   .block-image-grid-item--full img {
-    height: auto;
-    min-height: 0;
+    height: 100%;
+  }
+
+  .block-image-grid-item,
+  .block-image-grid-item--full {
     aspect-ratio: 16 / 9;
   }
 
