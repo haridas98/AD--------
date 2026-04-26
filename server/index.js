@@ -109,6 +109,38 @@ fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 app.use(cors());
 app.use(express.json({ limit: '8mb' }));
+
+app.get('/uploads/projects/:projectSlug/images/derived/:previewFile', async (req, res, next) => {
+  try {
+    const projectSlug = normalizeSlug(req.params.projectSlug);
+    const previewFile = path.basename(req.params.previewFile || '');
+    if (!projectSlug || !previewFile.endsWith('-preview.webp')) return next();
+
+    const derivedDir = path.join(UPLOADS_DIR, 'projects', projectSlug, 'images', 'derived');
+    const originalDir = path.join(UPLOADS_DIR, 'projects', projectSlug, 'images', 'original');
+    const previewPath = path.join(derivedDir, previewFile);
+
+    if (fs.existsSync(previewPath)) return res.sendFile(previewPath);
+    if (!fs.existsSync(originalDir)) return next();
+
+    const originalBase = previewFile.replace(/-preview\.webp$/i, '');
+    const originalFile = (await fs.promises.readdir(originalDir))
+      .find((file) => path.parse(file).name === originalBase);
+    if (!originalFile) return next();
+
+    await fs.promises.mkdir(derivedDir, { recursive: true });
+    await sharp(path.join(originalDir, originalFile))
+      .resize({ width: 1600, withoutEnlargement: true })
+      .webp({ quality: 74 })
+      .toFile(previewPath);
+
+    return res.sendFile(previewPath);
+  } catch (error) {
+    console.error('Failed to generate image preview', error);
+    return next();
+  }
+});
+
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // ============ Helpers ============
