@@ -15,7 +15,7 @@
 
 .project-hero--immersive {
   min-height: 100svh;
-  margin-top: calc(var(--header-offset) * -1);
+  margin-top: 0;
   align-items: center;
 }
 
@@ -34,6 +34,46 @@
     radial-gradient(circle at 50% 54%, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.62) 72%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.42) 45%, rgba(0, 0, 0, 0.76) 100%);
   z-index: 1;
+}
+
+.project-hero-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  width: clamp(34px, 4vw, 54px);
+  height: clamp(54px, 8vw, 96px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  transform: translateY(-50%);
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.project-hero-nav:hover {
+  background: transparent;
+  border-color: transparent;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.project-hero-nav span {
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(30px, 3vw, 46px);
+  line-height: 0.8;
+  transform: translateY(-2px);
+}
+
+.project-hero-nav--prev {
+  left: clamp(16px, 3vw, 42px);
+}
+
+.project-hero-nav--next {
+  right: clamp(16px, 3vw, 42px);
 }
 
 .project-hero-content {
@@ -85,22 +125,6 @@
 
 .project-hero--immersive .project-hero-content p {
   display: none;
-}
-
-body:has(.project-hero--immersive) [data-site-header]:not(:hover) {
-  background: transparent;
-  border-bottom-color: transparent;
-  backdrop-filter: none;
-}
-
-body:has(.project-hero--immersive) [data-site-header]:not(:hover) a,
-body:has(.project-hero--immersive) [data-site-header]:not(:hover) button {
-  color: #fff;
-}
-
-body:has(.project-hero--immersive) [data-site-header]:not(:hover) button {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .project-hero-content p {
@@ -175,6 +199,16 @@ body:has(.project-hero--immersive) [data-site-header]:not(:hover) button {
 
   .project-hero-content p {
     font-size: 16px;
+  }
+
+  .project-hero-nav {
+    top: auto;
+    bottom: 20px;
+    transform: none;
+  }
+
+  .project-hero-nav:hover {
+    transform: scale(1.08);
   }
 }
 
@@ -569,6 +603,10 @@ body:has(.project-hero--immersive) [data-site-header]:not(:hover) button {
 /* Project Page wrapper */
 .project-page {
   padding-top: var(--header-offset);
+}
+
+.project-page:has(.project-hero--immersive) {
+  padding-top: 0 !important;
 }
 
 .project-content {

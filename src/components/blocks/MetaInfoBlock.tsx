@@ -16,8 +16,8 @@ export default function MetaInfoBlock({ data, context }: MetaInfoBlockProps) {
     ? [
         project.categoryName ? { label: 'Category', value: project.categoryName } : null,
         project.cityName ? { label: 'Location', value: project.cityName } : null,
-        project.completedAt ? { label: 'Completed', value: String(project.completedAt) } : null,
-        !project.completedAt && project.year ? { label: 'Completed', value: String(project.year) } : null,
+        project.completedAt ? { label: 'Realized', value: String(project.completedAt) } : null,
+        !project.completedAt && project.year ? { label: 'Realized', value: String(project.year) } : null,
       ].filter(Boolean) as Array<{ label: string; value: string }>
     : [];
 

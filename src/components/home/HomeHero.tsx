@@ -23,7 +23,7 @@ type HomeHeroProps = {
 
 export function HomeHero({ data, metrics, styles }: HomeHeroProps) {
   return (
-    <section className={styles.heroSection} data-home-hero>
+    <section className={styles.heroSection} data-home-hero="immersive">
       <div
         className={styles.heroBackdrop}
         style={{ backgroundImage: `linear-gradient(180deg, rgba(16, 14, 12, 0.28) 0%, rgba(16, 14, 12, 0.82) 100%), url(${data.videoPoster})` }}

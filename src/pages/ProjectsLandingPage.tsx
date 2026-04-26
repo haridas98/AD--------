@@ -9,12 +9,13 @@ import {
   getCanonicalPortfolioCategoryPathForCategory,
   getCanonicalPortfolioProjectPathForCategory,
 } from '../lib/portfolioRoutes';
+import { sortProjectsForPortfolio } from '../lib/projectOrdering';
 import styles from './ProjectsLandingPage.module.scss';
 
 export default function ProjectsLandingPage() {
   const { categories, projects, site } = useAppStore();
   const [slide, setSlide] = useState(0);
-  const featured = projects.filter((project) => project.isFeatured && project.isPublished);
+  const featured = sortProjectsForPortfolio(projects.filter((project) => project.isFeatured && project.isPublished && !project.deletedAt));
 
   useEffect(() => {
     if (featured.length < 2) return undefined;
@@ -97,7 +98,7 @@ export default function ProjectsLandingPage() {
 
       <section className={styles.sections}>
         {categories.map((category) => {
-          const catProjects = projects.filter((project) => project.categoryId === category.id && project.isPublished);
+          const catProjects = sortProjectsForPortfolio(projects.filter((project) => project.categoryId === category.id && project.isPublished && !project.deletedAt));
           if (!catProjects.length) return null;
 
           const projectsWithCover = catProjects.filter((project) => getCover(project));

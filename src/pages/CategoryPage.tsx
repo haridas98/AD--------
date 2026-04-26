@@ -8,6 +8,7 @@ import {
   getCanonicalPortfolioProjectPathForCategory,
   resolvePortfolioSectionFromPathname,
 } from '../lib/portfolioRoutes';
+import { getProjectDisplayYear, sortProjectsForPortfolio } from '../lib/projectOrdering';
 import styles from './CategoryPage.module.scss';
 
 export default function CategoryPage() {
@@ -18,8 +19,11 @@ export default function CategoryPage() {
   const category = categories.find((item) => item.slug === section?.legacySlug || item.id === section?.legacySlug);
   const name = category?.name || section?.label || 'Projects';
 
-  const catProjects = projects.filter(
-    (project) => project.categoryId === (category?.id || section?.legacySlug) && project.isPublished,
+  const catProjects = sortProjectsForPortfolio(projects.filter(
+    (project) => project.categoryId === (category?.id || section?.legacySlug) && project.isPublished && !project.deletedAt,
+  ));
+  const timelineYears = Array.from(
+    new Set(catProjects.map((project) => getProjectDisplayYear(project)).filter(Boolean)),
   );
 
   function getCover(project: any) {
@@ -51,6 +55,13 @@ export default function CategoryPage() {
             <h1 className="text-white">{name}</h1>
             {category?.description && <p className="text-secondary">{category.description}</p>}
           </motion.header>
+          {timelineYears.length > 1 ? (
+            <motion.aside className={styles.timeline} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}>
+              {timelineYears.map((year) => (
+                <span key={year}>{year}</span>
+              ))}
+            </motion.aside>
+          ) : null}
           <div className={styles.grid}>
             {catProjects.map((project) => {
               const cover = getCover(project);

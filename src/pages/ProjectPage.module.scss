@@ -29,3 +29,108 @@
 .page :global([data-project-block]:last-child) {
   margin-bottom: 0;
 }
+
+.projectPager {
+  width: min(100%, var(--portfolio-max-width));
+  margin: clamp(38px, 6vw, 78px) auto 0;
+  padding-inline: var(--page-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.projectPagerLink {
+  min-width: min(100%, 320px);
+  min-height: 56px;
+  padding: 12px 22px;
+  border: 1px solid color-mix(in srgb, var(--theme-text-primary) 24%, transparent);
+  background: transparent;
+  color: var(--theme-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  position: relative;
+  transition: color 0.3s ease, border-color 0.3s ease, transform 0.22s ease;
+}
+
+.projectPagerLink:hover {
+  transform: translateY(-2px);
+  border-color: var(--theme-accent);
+  color: var(--theme-accent);
+}
+
+.projectPagerLink span {
+  color: inherit;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.projectPagerLink strong {
+  display: none;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font-family: 'GilroyLight', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.projectPagerLink svg {
+  flex: 0 0 auto;
+  transition: transform 0.3s ease;
+}
+
+.projectPagerLink:hover svg {
+  transform: translateX(4px);
+}
+
+.projectPagerLink:nth-child(2) {
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .projectPager {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .projectPagerLink {
+    width: 100%;
+    min-height: 46px;
+    min-width: 0;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .projectPagerLink strong {
+    display: none;
+  }
+
+  .projectPagerLink span {
+    font-size: 10px;
+  }
+
+  .projectPagerLink span {
+    font-size: 0;
+  }
+
+  .projectPagerPrev span::after {
+    content: 'Previous';
+    font-size: 10px;
+  }
+
+  .projectPagerNext span::after {
+    content: 'Next';
+    font-size: 10px;
+  }
+}

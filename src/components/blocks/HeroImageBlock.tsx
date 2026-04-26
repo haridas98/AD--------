@@ -1,5 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import type { BlockRenderContext } from '.';
 import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
 import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 
@@ -16,13 +18,15 @@ interface HeroImageBlockProps {
       y?: number;
     };
   };
+  context?: BlockRenderContext;
 }
 
-export default function HeroImageBlock({ data }: HeroImageBlockProps) {
+export default function HeroImageBlock({ data, context }: HeroImageBlockProps) {
   const asset = normalizeImageAsset(typeof data.image === 'string' ? { url: data.image, alt: data.alt, crop: data.crop } : data.image);
   if (!asset?.url) return null;
   const displayTitle = shortenProjectHeroTitle(data.title || '');
   const isImmersive = data.variant === 'immersive';
+  const navigation = context?.projectNavigation;
 
   return (
     <motion.section
@@ -39,6 +43,16 @@ export default function HeroImageBlock({ data }: HeroImageBlockProps) {
         onError={(event) => handlePreviewFallback(event, asset.url)}
       />
       <div className="project-hero-overlay" />
+      {navigation?.previous ? (
+        <Link className="project-hero-nav project-hero-nav--prev" to={navigation.previous.href} aria-label={`Previous project: ${navigation.previous.title}`}>
+          <span aria-hidden="true">&lsaquo;</span>
+        </Link>
+      ) : null}
+      {navigation?.next ? (
+        <Link className="project-hero-nav project-hero-nav--next" to={navigation.next.href} aria-label={`Next project: ${navigation.next.title}`}>
+          <span aria-hidden="true">&rsaquo;</span>
+        </Link>
+      ) : null}
       {displayTitle && (
         <div className="container project-hero-content">
           <motion.h1

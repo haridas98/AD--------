@@ -4,13 +4,63 @@
   z-index: 1000;
   background: var(--theme-header-bg);
   backdrop-filter: blur(10px);
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition: background-color 0.45s ease, background 0.45s ease, border-color 0.45s ease, backdrop-filter 0.45s ease;
   border-bottom: 1px solid var(--theme-border);
 }
 
 .scrolled {
   background: var(--theme-header-bg-strong);
   border-bottom-color: var(--theme-border-strong);
+}
+
+.transparentOverHero {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+}
+
+.transparentOverHero .brand,
+.transparentOverHero .navLink,
+.transparentOverHero .themeToggle,
+.transparentOverHero .menuToggle {
+  color: #fff;
+}
+
+.transparentOverHero .themeToggle,
+.transparentOverHero .menuToggle {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.transparentOverHero:hover,
+.transparentOverHero:focus-within {
+  background: var(--theme-header-bg-strong);
+  border-bottom-color: var(--theme-border-strong);
+  backdrop-filter: blur(10px);
+}
+
+.transparentOverHero:hover .brand,
+.transparentOverHero:focus-within .brand {
+  color: var(--theme-text-primary);
+}
+
+.transparentOverHero:hover .navLink,
+.transparentOverHero:focus-within .navLink {
+  color: var(--theme-text-secondary);
+}
+
+.transparentOverHero:hover .active,
+.transparentOverHero:focus-within .active {
+  color: var(--theme-text-primary);
+}
+
+.transparentOverHero:hover .themeToggle,
+.transparentOverHero:hover .menuToggle,
+.transparentOverHero:focus-within .themeToggle,
+.transparentOverHero:focus-within .menuToggle {
+  color: var(--theme-text-primary);
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
 }
 
 .inner {

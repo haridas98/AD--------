@@ -194,7 +194,7 @@ app.get('/api/content', async (_req, res) => {
     const themeSettings = readThemeSettings();
     const [categories, projects, blogPosts] = await Promise.all([
       prisma.category.findMany({ where: { showInHeader: true }, orderBy: { sortOrder: 'asc' } }),
-      prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }] }),
+      prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ where: { isPublished: true }, orderBy: { publishedAt: 'desc' }, take: 10 }),
     ]);
     res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts, themeSettings });
@@ -257,7 +257,7 @@ app.get('/api/admin/content', requireAuth, async (_req, res) => {
     const themeSettings = readThemeSettings();
     const [categories, projects, blogPosts] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
-      prisma.project.findMany({ orderBy: { createdAt: 'desc' } }),
+      prisma.project.findMany({ orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ orderBy: { createdAt: 'desc' } }),
     ]);
     res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts, themeSettings });

@@ -11,6 +11,11 @@ import EditorialNoteBlock from './EditorialNoteBlock';
 import MosaicPresetBlock from './MosaicPresetBlock';
 import PhotoSequenceBlock from './PhotoSequenceBlock';
 
+export interface ProjectNavigationItem {
+  title: string;
+  href: string;
+}
+
 export const blockComponents: Record<string, React.ComponentType<any>> = {
   heroImage: HeroImageBlock,
   imageGrid: ImageGridBlock,
@@ -39,6 +44,10 @@ export interface BlockRenderContext {
     year?: string | number | null;
     completedAt?: string | null;
     categoryName?: string;
+  };
+  projectNavigation?: {
+    previous?: ProjectNavigationItem | null;
+    next?: ProjectNavigationItem | null;
   };
 }
 

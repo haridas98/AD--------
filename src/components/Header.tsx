@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import styles from './Header.module.scss';
@@ -15,16 +15,47 @@ interface MenuSection {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [transparentOverHero, setTransparentOverHero] = useState(false);
+  const location = useLocation();
   const themeMode = useAppStore((s) => s.themeMode);
   const toggleThemeMode = useAppStore((s) => s.toggleThemeMode);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    const updateHeaderState = () => {
+      setScrolled(window.scrollY > 30);
 
-  const closeMenu = () => setMenuOpen(false);
+      const hero = document.querySelector('.project-hero--immersive, [data-home-hero="immersive"]');
+      if (!hero) {
+        setTransparentOverHero(false);
+        return;
+      }
+
+      const headerHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-offset')) || 72;
+      const rect = hero.getBoundingClientRect();
+      setTransparentOverHero(rect.top <= headerHeight && rect.bottom > headerHeight + 4);
+    };
+
+    const onScroll = () => updateHeaderState();
+    const frameId = window.requestAnimationFrame(updateHeaderState);
+    const timeoutId = window.setTimeout(updateHeaderState, 250);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [location.pathname]);
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
 
   const menuItems: MenuSection[] = [
     { name: 'Home', href: '/' },
@@ -57,7 +88,7 @@ export default function Header() {
   ];
 
   return (
-    <header className={`${styles.siteHeader} ${scrolled ? styles.scrolled : ''}`} data-site-header>
+    <header className={`${styles.siteHeader} ${scrolled ? styles.scrolled : ''} ${transparentOverHero && !menuOpen ? styles.transparentOverHero : ''}`} data-site-header>
       <div className={styles.inner}>
         <NavLink to="/" className={styles.brand} onClick={closeMenu}>
           Alexandra Diz

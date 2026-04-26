@@ -6,6 +6,7 @@ import { collectProjectImages, parseProjectContent } from '../lib/projectBlockTe
 import {
   getCanonicalPortfolioProjectPathForCategory,
 } from '../lib/portfolioRoutes';
+import { sortProjectsForPortfolio } from '../lib/projectOrdering';
 import { homepageDraft } from '../content/homepageDraft';
 import { studioTestimonials } from '../content/testimonials';
 import { HomeHero } from '../components/home/HomeHero';
@@ -65,11 +66,7 @@ export default function HomePage() {
   const { site, categories, projects, blogPosts } = useAppStore();
   const categoryMap = new Map(categories.map((category) => [category.id, category]));
   const publishedProjects = projects.filter((project) => project.isPublished);
-  const latestProjects = [...publishedProjects]
-    .sort((a, b) => {
-      if (a.isFeatured !== b.isFeatured) return Number(b.isFeatured) - Number(a.isFeatured);
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    })
+  const latestProjects = sortProjectsForPortfolio(publishedProjects)
     .slice(0, 3)
     .map((project, index) => ({
       title: project.title,
