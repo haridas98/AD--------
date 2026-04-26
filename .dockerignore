@@ -8,6 +8,10 @@ yarn-error.log*
 dist
 build
 
+# Runtime uploads are mounted as Docker volumes in production.
+# Do not bake project media into the application image.
+public/uploads/projects
+
 # Environment files
 .env
 .env.local
