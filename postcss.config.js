@@ -54,6 +54,7 @@ export default {
             // Keep Vite CSS Modules output like "._page_xxxxx_1"
             /^_/,
             // Dynamic variant class generated via template literal in ImageGridBlock
+            /^block-image-grid/,
             /^block-image-grid--/,
             /^block-photo-sequence-row--/,
           ],
