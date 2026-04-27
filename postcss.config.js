@@ -51,6 +51,10 @@ export default {
             /^site-header/,
             /^desktop-nav/,
             /^nav-/,
+            // Project content blocks use dynamic class names and CSS Modules.
+            /^block-/,
+            /^project-/,
+            /^before-after/,
             // Keep Vite CSS Modules output like "._page_xxxxx_1"
             /^_/,
             // Dynamic variant class generated via template literal in ImageGridBlock
