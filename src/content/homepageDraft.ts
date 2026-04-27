@@ -61,7 +61,7 @@ export const homepageDraft = {
     primaryCta: { label: 'Start Your Project', to: '/contact' },
     secondaryCta: { label: 'View Projects', to: '/projects' },
     videoPoster:
-      '/uploads/home/alexandra.jpg',
+      '/home/alexandra.jpg',
     media: {
       kicker: 'Studio Reel Placeholder',
       title: 'Studio perspective',
@@ -75,7 +75,7 @@ export const homepageDraft = {
     text:
       'Alexandra helps clients turn complex remodeling decisions into a calm, edited interior direction.',
     portraitPrimary:
-      '/uploads/home/Alexandra-2.jpg',
+      '/home/Alexandra-2.jpg',
     materialImages: [
       '/uploads/projects/pure-elegance-kitchen/images/original/001-1000-alexandradiz-859e92c9414fd48c332d8f31a1bd5a7b.jpg',
       '/uploads/projects/wooden-comfort-kitchen-fremont/images/original/001-1000-alexandradiz-933209ff0db963dda1e69e1744e91a0c.jpg',
