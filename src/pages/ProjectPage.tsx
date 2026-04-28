@@ -30,6 +30,7 @@ export default function ProjectPage() {
       return { ...block, data: { ...block.data, variant: 'immersive' } };
     });
   }, [project?.content]);
+  const hasImmersiveHero = blocks[0]?.type === 'heroImage' && blocks[0]?.data?.variant === 'immersive';
   const orderedProjects = useMemo(
     () => project
       ? sortProjectsForPortfolio(projects.filter((item) => item.isPublished && !item.deletedAt && item.categoryId === project.categoryId))
@@ -84,7 +85,7 @@ export default function ProjectPage() {
         </script>
       </Helmet>
       <motion.main
-        className={`${styles.page} project-page`}
+        className={`${styles.page} ${hasImmersiveHero ? styles.pageImmersive : ''} project-page`}
         data-project-page
         data-project-preset={project.stylePreset || 'default'}
         initial={{ opacity: 0 }}

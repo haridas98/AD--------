@@ -19,11 +19,11 @@
   margin-top: 0;
 }
 
-.page:has(:global(.project-hero--immersive)) {
+.page.pageImmersive {
   padding-top: 0;
 }
 
-.page:has(:global(.project-hero--immersive)) :global(.project-hero--immersive:first-child) {
+.pageImmersive :global(.project-hero--immersive:first-child) {
   width: 100vw;
   min-height: 100svh;
   margin-left: calc(50% - 50vw);

@@ -1,0 +1,53 @@
+@import 'variables';
+
+/* ============================================
+   Shared Containers
+   ============================================ */
+
+.container {
+  width: min(100%, var(--portfolio-max-width));
+  margin: 0 auto;
+  padding-inline: var(--page-gutter);
+}
+
+.page-shell {
+  width: 100%;
+  padding-inline: var(--page-gutter);
+}
+
+.page-shell--offset {
+  padding-top: calc(var(--header-offset) + 24px);
+}
+
+.page-shell__portfolio {
+  width: min(100%, var(--portfolio-max-width));
+  margin: 0 auto;
+}
+
+.page-shell__text {
+  width: min(100%, var(--text-max-width));
+  margin: 0 auto;
+}
+
+.container.narrow {
+  width: min(100%, var(--text-max-width)) !important;
+  padding-inline: var(--page-gutter) !important;
+}
+
+.container.wide,
+.page-pad.wide {
+  width: min(100%, var(--portfolio-max-width)) !important;
+  padding-inline: var(--page-gutter) !important;
+}
+
+@media (max-width: $breakpoint-tablet) {
+  :root {
+    --page-gutter: 24px;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  :root {
+    --page-gutter: 16px;
+  }
+}

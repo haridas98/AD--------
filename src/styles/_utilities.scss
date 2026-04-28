@@ -1,0 +1,21 @@
+@import 'variables';
+
+/* ============================================
+   Utilities
+   ============================================ */
+
+.text-white {
+  color: var(--theme-text-primary);
+}
+
+.text-secondary {
+  color: var(--theme-text-secondary);
+}
+
+.text-muted {
+  color: var(--theme-text-muted);
+}
+
+.text-accent {
+  color: $accent;
+}
