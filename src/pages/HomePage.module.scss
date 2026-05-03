@@ -1,7 +1,7 @@
 .page {
-  --home-line: color-mix(in srgb, var(--theme-text-primary) 14%, transparent);
-  --home-soft: color-mix(in srgb, var(--theme-text-primary) 6%, transparent);
-  --home-paper: color-mix(in srgb, var(--theme-bg) 92%, var(--theme-surface));
+  --home-line: color-mix(in srgb, var(--theme-text-primary) 13%, transparent);
+  --home-quiet: color-mix(in srgb, var(--theme-text-primary) 58%, transparent);
+  --home-stage: color-mix(in srgb, var(--theme-bg) 88%, #000);
   overflow: clip;
   color: var(--theme-text-primary);
   background: var(--theme-bg);
@@ -14,72 +14,84 @@
   place-items: center;
   overflow: hidden;
   isolation: isolate;
-  padding: calc(var(--header-offset) + 24px) var(--page-gutter) clamp(26px, 4vw, 58px);
+  padding: calc(var(--header-offset) + 22px) var(--page-gutter) clamp(26px, 5vw, 64px);
+}
+
+.heroImage,
+.heroShade {
+  position: absolute;
+  inset: 0;
 }
 
 .heroImage {
-  position: absolute;
-  inset: 0;
   z-index: -3;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 42%;
-  filter: saturate(0.86) contrast(1.02);
+  object-position: center 44%;
+  filter: saturate(0.82) contrast(1.04);
   will-change: transform;
 }
 
-.heroVeil {
-  position: absolute;
-  inset: 0;
+.heroShade {
   z-index: -2;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.16) 40%, rgba(0, 0, 0, 0.7)),
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.58) 78%);
+    radial-gradient(circle at 50% 52%, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.66) 74%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.16) 36%, rgba(0, 0, 0, 0.76));
 }
 
-.heroCopy {
-  width: min(920px, 100%);
-  color: #fff8ef;
+.heroText {
+  width: min(1040px, 100%);
+  color: #fff9f0;
   text-align: center;
 }
 
-.heroCopy span,
-.founderCopy > span,
-.sectionIntro > span,
-.testimonials > span,
-.closing span {
+.heroText span,
+.founderText span,
+.methodIntro span,
+.sectionHeader span,
+.testimonial > span {
   color: color-mix(in srgb, var(--theme-accent) 82%, currentColor);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
-.heroCopy h1,
-.manifesto p,
-.founderCopy h2,
-.sectionIntro h2,
-.testimonials blockquote,
-.closing h2 {
+.heroText h1,
+.founderText h2,
+.methodIntro h2,
+.sectionHeader h2,
+.atmosphere h2,
+.testimonial blockquote,
+.final h2 {
   margin: 0;
   font-family: Georgia, 'Times New Roman', serif;
   font-weight: 400;
-  letter-spacing: -0.052em;
+  letter-spacing: -0.055em;
 }
 
-.heroCopy h1 {
+.heroText h1 {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.22em;
   margin-top: 18px;
-  font-size: clamp(58px, 10.2vw, 148px);
+  font-size: clamp(54px, 9.6vw, 148px);
   line-height: 0.88;
 }
 
-.heroCopy p {
-  max-width: 42ch;
+.heroText h1 i {
+  font-style: normal;
+}
+
+.heroText p {
+  max-width: 48ch;
   margin: 24px auto 0;
-  color: rgba(255, 248, 239, 0.74);
-  font-size: clamp(16px, 1.4vw, 22px);
+  color: rgba(255, 249, 240, 0.86);
+  font-size: clamp(16px, 1.35vw, 22px);
   line-height: 1.55;
+  text-shadow: 0 1px 22px rgba(0, 0, 0, 0.54);
 }
 
 .heroActions {
@@ -89,13 +101,12 @@
   bottom: clamp(24px, 4vw, 54px);
   display: flex;
   justify-content: space-between;
-  pointer-events: none;
+  gap: 14px;
 }
 
 .heroActions a,
-.sectionIntro a,
-.closing a {
-  pointer-events: auto;
+.sectionHeader a,
+.final a {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -111,50 +122,59 @@
 }
 
 .heroActions a {
-  color: #fff8ef;
-  border-color: rgba(255, 248, 239, 0.5);
-  background: rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(12px);
+  color: #fff9f0;
+  border-color: rgba(255, 249, 240, 0.44);
+  background: rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(14px);
 }
 
 .heroActions a:hover,
-.sectionIntro a:hover,
-.closing a:hover {
+.sectionHeader a:hover,
+.final a:hover {
   transform: translateY(-2px);
 }
 
-.manifesto,
+.signal {
+  position: relative;
+  overflow: hidden;
+  border-block: 1px solid var(--home-line);
+  background: var(--home-stage);
+}
+
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+.marquee span {
+  padding: clamp(18px, 2.6vw, 34px) clamp(28px, 5vw, 84px);
+  color: var(--theme-text-primary);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(24px, 3.8vw, 62px);
+  white-space: nowrap;
+}
+
 .founder,
-.disciplineBar,
+.method,
 .work,
-.testimonials,
-.closing {
+.atmosphere,
+.testimonial,
+.final {
   width: min(100%, var(--portfolio-max-width));
   margin: 0 auto;
-  padding: clamp(58px, 8vw, 126px) var(--page-gutter);
-}
-
-.manifesto {
-  min-height: 62svh;
-  display: grid;
-  align-items: center;
-}
-
-.manifesto p {
-  max-width: 1160px;
-  font-size: clamp(42px, 7vw, 112px);
-  line-height: 0.96;
+  padding: clamp(64px, 9vw, 138px) var(--page-gutter);
 }
 
 .founder {
   display: grid;
-  grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1fr);
-  gap: clamp(28px, 5vw, 92px);
-  align-items: stretch;
+  grid-template-columns: minmax(300px, 0.58fr) minmax(0, 1fr);
+  gap: clamp(34px, 6vw, 112px);
+  align-items: center;
 }
 
 .founderImage {
-  min-height: clamp(520px, 72vw, 860px);
+  min-height: clamp(560px, 68vw, 880px);
   overflow: hidden;
   background: var(--theme-surface);
 }
@@ -164,75 +184,88 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: saturate(0.94) contrast(1.02);
+  filter: saturate(0.92) contrast(1.04);
 }
 
-.founderCopy {
+.founderText {
   display: grid;
-  align-content: center;
-  gap: clamp(24px, 3vw, 44px);
-  border-top: 1px solid var(--home-line);
-  border-bottom: 1px solid var(--home-line);
+  gap: clamp(22px, 3vw, 38px);
 }
 
-.founderCopy h2,
-.sectionIntro h2,
-.closing h2 {
-  max-width: 860px;
-  font-size: clamp(38px, 5.4vw, 86px);
-  line-height: 0.98;
+.founderText h2,
+.methodIntro h2,
+.sectionHeader h2,
+.final h2 {
+  max-width: 940px;
+  font-size: clamp(40px, 5.8vw, 96px);
+  line-height: 0.96;
 }
 
-.founderCopy ul {
+.founderText p {
+  max-width: 56ch;
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: clamp(16px, 1.2vw, 20px);
+  line-height: 1.74;
+}
+
+.method {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.48fr) minmax(0, 1fr);
+  gap: clamp(30px, 5vw, 80px);
+  border-block: 1px solid var(--home-line);
+}
+
+.methodIntro {
+  position: sticky;
+  top: calc(var(--header-offset) + 30px);
+  align-self: start;
+}
+
+.methodIntro h2 {
+  margin-top: 18px;
+}
+
+.methodGrid {
   display: grid;
   gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+}
+
+.methodGrid article {
+  display: grid;
+  grid-template-columns: 68px minmax(170px, 0.32fr) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+  padding: clamp(26px, 4vw, 52px) 0;
   border-top: 1px solid var(--home-line);
 }
 
-.founderCopy li {
-  display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  gap: 18px;
-  padding: 22px 0;
+.methodGrid article:last-child {
   border-bottom: 1px solid var(--home-line);
 }
 
-.founderCopy small {
+.methodGrid small {
   color: var(--theme-accent);
   font-size: 12px;
   letter-spacing: 0.18em;
 }
 
-.founderCopy strong {
+.methodGrid strong {
   color: var(--theme-text-primary);
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(24px, 2.5vw, 40px);
+  font-size: clamp(28px, 3.2vw, 54px);
   font-weight: 400;
+  line-height: 1;
 }
 
-.disciplineBar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  border-top: 1px solid var(--home-line);
-  border-bottom: 1px solid var(--home-line);
+.methodGrid p {
+  max-width: 42ch;
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: 15px;
+  line-height: 1.7;
 }
 
-.disciplineBar span {
-  min-height: 122px;
-  display: flex;
-  align-items: center;
-  color: var(--theme-text-primary);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(23px, 2.4vw, 38px);
-}
-
-.sectionIntro {
+.sectionHeader {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 18px;
@@ -240,12 +273,12 @@
   margin-bottom: clamp(26px, 4vw, 58px);
 }
 
-.sectionIntro > span,
-.sectionIntro h2 {
+.sectionHeader span,
+.sectionHeader h2 {
   grid-column: 1;
 }
 
-.sectionIntro a {
+.sectionHeader a {
   grid-row: 1 / span 2;
   grid-column: 2;
   align-self: end;
@@ -255,14 +288,14 @@
 .workGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(12px, 1.6vw, 24px);
+  gap: clamp(12px, 1.7vw, 26px);
 }
 
 .workGrid article {
-  min-height: clamp(420px, 39vw, 660px);
+  min-height: clamp(410px, 39vw, 650px);
 }
 
-.workGrid .workLarge {
+.workGrid .featuredWork {
   grid-column: span 2;
 }
 
@@ -285,7 +318,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 42%, rgba(0, 0, 0, 0.7));
+  background: linear-gradient(180deg, transparent 38%, rgba(0, 0, 0, 0.74));
 }
 
 .workGrid a:hover img {
@@ -320,21 +353,77 @@
   line-height: 1;
 }
 
-.testimonials {
+.atmosphere {
+  display: grid;
+  gap: clamp(18px, 2vw, 28px);
+  padding-top: 0;
+}
+
+.atmosphere article {
+  min-height: clamp(420px, 45vw, 720px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.62fr);
+  gap: clamp(18px, 3vw, 54px);
+  align-items: end;
+  padding-bottom: clamp(18px, 2vw, 28px);
+  border-bottom: 1px solid var(--home-line);
+}
+
+.atmosphere article:nth-child(even) {
+  grid-template-columns: minmax(300px, 0.62fr) minmax(0, 1.08fr);
+}
+
+.atmosphere article:nth-child(even) img {
+  order: 2;
+}
+
+.atmosphere img {
+  width: 100%;
+  height: 100%;
+  min-height: clamp(360px, 42vw, 660px);
+  object-fit: cover;
+  background: var(--theme-surface);
+}
+
+.atmosphere div {
+  display: grid;
+  gap: 18px;
+}
+
+.atmosphere span {
+  color: var(--theme-accent);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+
+.atmosphere h2 {
+  font-size: clamp(36px, 5vw, 82px);
+  line-height: 0.98;
+}
+
+.atmosphere p {
+  max-width: 42ch;
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: clamp(16px, 1.15vw, 19px);
+  line-height: 1.68;
+}
+
+.testimonial {
   display: grid;
   gap: 30px;
   text-align: center;
   border-top: 1px solid var(--home-line);
 }
 
-.testimonials blockquote {
+.testimonial blockquote {
   max-width: 1120px;
   margin: 0 auto;
-  font-size: clamp(34px, 5.4vw, 84px);
+  font-size: clamp(34px, 5.3vw, 84px);
   line-height: 1.03;
 }
 
-.testimonialNav {
+.testimonial > div {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -342,29 +431,29 @@
   color: var(--theme-text-secondary);
 }
 
-.testimonialNav strong {
+.testimonial strong {
   font-size: 13px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.testimonialNav div {
+.testimonial nav {
   display: flex;
   gap: 8px;
 }
 
-.testimonialNav button {
+.testimonial button {
   width: 26px;
   height: 2px;
   padding: 0;
   background: var(--home-line);
 }
 
-.testimonialNav .activeDot {
+.testimonial .activeDot {
   background: var(--theme-accent);
 }
 
-.closing {
+.final {
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -372,18 +461,35 @@
   border-top: 1px solid var(--home-line);
 }
 
-.closing a {
+.final a {
   color: var(--theme-bg);
   background: var(--theme-text-primary);
 }
 
-@media (max-width: 1160px) {
-  .founder {
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (max-width: 1120px) {
+  .founder,
+  .method,
+  .atmosphere article,
+  .atmosphere article:nth-child(even) {
     grid-template-columns: 1fr;
   }
 
-  .founderCopy {
-    padding-block: clamp(34px, 5vw, 64px);
+  .atmosphere article:nth-child(even) img {
+    order: initial;
+  }
+
+  .methodIntro {
+    position: static;
   }
 
   .workGrid {
@@ -393,25 +499,25 @@
 
 @media (max-width: 760px) {
   .hero {
+    place-items: end start;
     min-height: 100svh;
-    align-items: end;
-    place-items: end center;
-    padding-bottom: 34px;
+    padding-bottom: 28px;
   }
 
   .heroImage {
     object-position: 56% center;
   }
 
-  .heroCopy {
+  .heroText {
     text-align: left;
   }
 
-  .heroCopy h1 {
+  .heroText h1 {
+    justify-content: flex-start;
     font-size: clamp(48px, 16vw, 76px);
   }
 
-  .heroCopy p {
+  .heroText p {
     margin-inline: 0;
     font-size: 16px;
   }
@@ -421,53 +527,44 @@
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
     margin-top: 26px;
   }
 
   .heroActions a {
     min-height: 48px;
+    padding-inline: 12px;
   }
 
-  .manifesto,
   .founder,
-  .disciplineBar,
+  .method,
   .work,
-  .testimonials,
-  .closing {
-    padding-block: clamp(50px, 13vw, 78px);
-  }
-
-  .manifesto {
-    min-height: auto;
-  }
-
-  .manifesto p,
-  .founderCopy h2,
-  .sectionIntro h2,
-  .closing h2 {
-    font-size: clamp(34px, 11vw, 58px);
+  .atmosphere,
+  .testimonial,
+  .final {
+    padding-block: clamp(52px, 13vw, 78px);
   }
 
   .founderImage {
-    min-height: 68svh;
+    min-height: 66svh;
   }
 
-  .disciplineBar {
+  .founderText h2,
+  .methodIntro h2,
+  .sectionHeader h2,
+  .final h2 {
+    font-size: clamp(34px, 11vw, 58px);
+  }
+
+  .methodGrid article {
     grid-template-columns: 1fr;
-    padding-block: 0;
+    gap: 12px;
   }
 
-  .disciplineBar span {
-    min-height: 86px;
-    border-bottom: 1px solid var(--home-line);
-  }
-
-  .sectionIntro {
+  .sectionHeader {
     grid-template-columns: 1fr;
   }
 
-  .sectionIntro a {
+  .sectionHeader a {
     grid-row: auto;
     grid-column: auto;
     justify-self: start;
@@ -477,7 +574,7 @@
     grid-template-columns: 1fr;
   }
 
-  .workGrid .workLarge {
+  .workGrid .featuredWork {
     grid-column: auto;
   }
 
@@ -485,16 +582,20 @@
     min-height: 68svh;
   }
 
-  .testimonials {
+  .atmosphere img {
+    min-height: 58svh;
+  }
+
+  .testimonial {
     text-align: left;
   }
 
-  .testimonials blockquote {
+  .testimonial blockquote {
     font-size: clamp(32px, 11vw, 54px);
   }
 
-  .testimonialNav,
-  .closing {
+  .testimonial > div,
+  .final {
     align-items: flex-start;
     justify-content: flex-start;
     flex-direction: column;
