@@ -1,196 +1,250 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useAppStore } from '../store/useAppStore';
-import type { Category, Project } from '../types';
-import { collectProjectImages, parseProjectContent } from '../lib/projectBlockTemplates';
+import { motion } from 'framer-motion';
+import { studioTestimonials } from '../content/testimonials';
+import { getPreviewImageUrl, handlePreviewFallback } from '../lib/imageUrls';
 import { getCanonicalPortfolioProjectPathForCategory } from '../lib/portfolioRoutes';
 import { sortProjectsForPortfolio } from '../lib/projectOrdering';
-import { getPreviewImageUrl, handlePreviewFallback } from '../lib/imageUrls';
-import { studioTestimonials } from '../content/testimonials';
+import { useAppStore } from '../store/useAppStore';
+import type { BlogPost, Category, Project } from '../types';
 import styles from './HomePage.module.scss';
 
-const founderInProject = '/home/Alexandra-2.jpg';
-const founderPortrait = '/home/alexandra.jpg';
+const founderImage = '/home/Alexandra-2.jpg';
 
-const signatureWords = ['quiet authority', 'warm materials', 'exact proportions', 'rooms that breathe'];
-
-const methodCards = [
-  ['01', 'See', 'the hidden rhythm of the house'],
-  ['02', 'Cut', 'the decisions that dilute the room'],
-  ['03', 'Compose', 'light, storage, texture, and silence'],
+const fallbackImages = [
+  '/images/legacy/kitchen-3d-1.jpg',
+  '/images/legacy/kitchen-3d-4.jpg',
+  '/images/legacy/bath-3d-1.jpg',
+  '/images/legacy/process-phase4-1.jpg',
 ];
 
-const atmosphereCards = [
-  ['Before the sketch', 'A room is read for pressure, habits, and the moments that need relief.'],
-  ['During the build', 'The design stays legible while budgets, trades, and timing become real.'],
-  ['After the reveal', 'The result should feel inevitable, not decorated.'],
+const services = [
+  ['Interior Architecture', 'Planning, proportions, storage, lighting, and the logic of how a home should work.'],
+  ['Kitchen Remodeling', 'Clean layouts, durable materials, refined finishes, and a kitchen that feels natural every day.'],
+  ['Bathroom Design', 'Calm rooms with careful tile, stone, fixtures, and practical comfort built into the plan.'],
+  ['Full Home Direction', 'A complete visual system for clients who want one clear point of view across the house.'],
 ];
+
+const process = [
+  ['01', 'Listen', 'We define how the house should feel before choosing finishes.'],
+  ['02', 'Edit', 'The strongest ideas stay. Everything decorative without purpose leaves.'],
+  ['03', 'Compose', 'Materials, light, layout, and details are balanced into one direction.'],
+  ['04', 'Guide', 'The project stays readable from first concept to final installation.'],
+];
+
+function isImageUrl(value: unknown): value is string {
+  return typeof value === 'string' && /\.(jpe?g|png|webp|gif)(\?.*)?$/i.test(value);
+}
+
+function collectImages(value: unknown, images: string[] = []) {
+  if (isImageUrl(value)) images.push(value);
+  if (Array.isArray(value)) value.forEach((item) => collectImages(item, images));
+  if (value && typeof value === 'object') {
+    Object.values(value as Record<string, unknown>).forEach((item) => collectImages(item, images));
+  }
+  return images;
+}
+
+function getProjectImages(project: Project) {
+  const contentImages = collectImages(project.content);
+  return [...new Set(contentImages)].filter(Boolean);
+}
 
 function getProjectCover(project: Project) {
-  const blocks = parseProjectContent(project.content);
-  return collectProjectImages(blocks)[0] || '';
+  return getProjectImages(project)[0] || fallbackImages[0];
 }
 
-function getCategoryLabel(project: Project, categoryMap: Map<string, Category>) {
-  return categoryMap.get(project.categoryId)?.name || 'Project';
+function getCategoryName(project: Project, categories: Category[]) {
+  return categories.find((category) => category.id === project.categoryId)?.name || project.categoryId;
 }
 
-function useRotatingIndex(length: number, delay = 6400) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (length < 2) return undefined;
-    const timer = window.setInterval(() => setIndex((value) => (value + 1) % length), delay);
-    return () => window.clearInterval(timer);
-  }, [delay, length]);
-
-  return [index, setIndex] as const;
+function getPostCover(post?: BlogPost) {
+  return post?.coverImage || fallbackImages[2];
 }
 
 export default function HomePage() {
-  const { site, categories, projects } = useAppStore();
-  const { scrollYProgress } = useScroll();
-  const heroScale = useTransform(scrollYProgress, [0, 0.32], [1.02, 1.12]);
-  const heroLift = useTransform(scrollYProgress, [0, 0.28], ['0%', '-14%']);
-  const portraitShift = useTransform(scrollYProgress, [0.1, 0.55], ['8%', '-6%']);
-  const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
-  const selectedProjects = useMemo(
-    () => sortProjectsForPortfolio(projects.filter((project) => project.isPublished && !project.deletedAt)).slice(0, 6),
+  const { site, projects, categories, blogPosts } = useAppStore();
+
+  const featuredProjects = useMemo(
+    () =>
+      sortProjectsForPortfolio(projects.filter((project) => project.isPublished !== false && !project.deletedAt))
+        .slice(0, 5),
     [projects],
   );
-  const projectImages = selectedProjects.map(getProjectCover).filter(Boolean);
-  const visualPool = projectImages.length ? projectImages : [founderInProject, founderPortrait];
-  const [testimonialIndex, setTestimonialIndex] = useRotatingIndex(studioTestimonials.length);
-  const activeTestimonial = studioTestimonials[testimonialIndex] || studioTestimonials[0];
+
+  const visualImages = useMemo(() => {
+    const projectImages = featuredProjects.flatMap((project) => getProjectImages(project)).slice(0, 8);
+    return [...projectImages, ...fallbackImages].slice(0, 8);
+  }, [featuredProjects]);
+
+  const posts = useMemo(
+    () => blogPosts.filter((post) => post.isPublished !== false).slice(0, 3),
+    [blogPosts],
+  );
+
+  const leadProject = featuredProjects[0];
+  const leadImage = leadProject ? getProjectCover(leadProject) : visualImages[0];
+  const leadPreview = getPreviewImageUrl(leadImage);
 
   return (
     <>
       <Helmet>
-        <title>{site?.name || 'Alexandra Diz'} - Interior Design Studio</title>
+        <title>{site?.name || 'Alexandra Diz'} - Interior Architecture</title>
         <meta
           name="description"
-          content="Alexandra Diz creates composed residential interiors with clear spatial thinking, edited materials, and calm execution."
+          content="Interior architecture and design direction by Alexandra Diz for considered private homes."
         />
       </Helmet>
 
       <main className={styles.page}>
-        <section className={styles.hero} data-home-hero="immersive">
-          <motion.img
-            className={styles.heroImage}
-            src={founderInProject}
-            alt="Alexandra Diz inside a completed interior"
-            style={{ scale: heroScale }}
-          />
-          <div className={styles.heroShade} />
-          <motion.div className={styles.heroText} style={{ y: heroLift }}>
-            <motion.span
-              initial={{ opacity: 0, letterSpacing: '0.42em' }}
-              animate={{ opacity: 1, letterSpacing: '0.2em' }}
-              transition={{ duration: 0.9 }}
-            >
-              Alexandra Diz Studio
-            </motion.span>
-            <h1 aria-label="A home should feel inevitable.">
-              {['A', 'home', 'should', 'feel', 'inevitable.'].map((word, index) => (
-                <motion.i
-                  key={word}
-                  initial={{ opacity: 0, y: 34 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.85, delay: 0.08 * index, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {word}
-                </motion.i>
-              ))}
-            </h1>
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.55 }}
-            >
-              Interior design for people who want fewer random choices and more rooms that make sense.
-            </motion.p>
-          </motion.div>
+        <section className={styles.hero}>
           <motion.div
-            className={styles.heroActions}
-            initial={{ opacity: 0, y: 18 }}
+            className={styles.heroCopy}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.75 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Link to="/projects">Enter portfolio</Link>
-            <Link to="/contact">Start quietly</Link>
+            <span>Alexandra Diz / Interior Architecture</span>
+            <h1>Design direction for homes that feel personal and resolved.</h1>
+            <p>
+              Alexandra works with homeowners who want a calm, edited process: clear planning,
+              thoughtful materials, and interiors that feel natural instead of over-designed.
+            </p>
+            <div className={styles.heroActions}>
+              <Link to="/projects">View portfolio</Link>
+              <Link to="/contact">Start a project</Link>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className={styles.heroGallery}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+          >
+            <img src={founderImage} alt="Alexandra Diz inside an interior project" />
+            <img
+              src={fallbackImages[0]}
+              alt="Kitchen interior detail"
+            />
+            <img
+              src={fallbackImages[2]}
+              alt="Bathroom interior detail"
+            />
           </motion.div>
         </section>
 
-        <section className={styles.signal}>
-          <div className={styles.marquee} aria-hidden="true">
-            {[...signatureWords, ...signatureWords].map((word, index) => <span key={`${word}-${index}`}>{word}</span>)}
-          </div>
+        <motion.section
+          className={styles.intro}
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.65 }}
+        >
+          <span>Studio note</span>
+          <p>
+            The work begins with how the home should feel: calmer circulation, better light,
+            stronger materials, and fewer decisions competing for attention.
+          </p>
+        </motion.section>
+
+        <section className={styles.services}>
+          {services.map(([title, text], index) => (
+            <motion.article
+              key={title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-70px' }}
+              transition={{ duration: 0.55, delay: index * 0.06 }}
+            >
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <h2>{title}</h2>
+              <p>{text}</p>
+            </motion.article>
+          ))}
         </section>
 
         <section className={styles.founder}>
-          <motion.div className={styles.founderImage} style={{ y: portraitShift }}>
-            <img src={founderPortrait} alt="Alexandra Diz portrait" />
-          </motion.div>
-          <div className={styles.founderText}>
-            <span>Not a catalog. A point of view.</span>
-            <h2>Alexandra designs the feeling first, then the room.</h2>
+          <motion.img
+            src={founderImage}
+            alt="Alexandra Diz in a kitchen interior"
+            initial={{ opacity: 0, clipPath: 'inset(0 0 18% 0)' }}
+            whileInView={{ opacity: 1, clipPath: 'inset(0 0 0% 0)' }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.65 }}
+          >
+            <span>About Alexandra</span>
+            <h2>Design is not more decoration. It is better judgment.</h2>
             <p>
-              The work is measured, visual, and direct: choose what belongs, remove what competes,
-              and make the home feel finished before the furniture arrives.
+              Her role is to translate taste, lifestyle, construction limits, and budget into one
+              calm direction. The result should feel personal without becoming noisy.
             </p>
-          </div>
+          </motion.div>
         </section>
 
-        <section className={styles.method}>
-          <div className={styles.methodIntro}>
-            <span>Method</span>
-            <h2>Three moves. No noise.</h2>
+        <section className={styles.visualRail} aria-label="Selected studio details">
+          {visualImages.slice(0, 4).map((image, index) => (
+            <motion.img
+              key={`${image}-${index}`}
+              src={getPreviewImageUrl(image)}
+              onError={(event) => handlePreviewFallback(event, image)}
+              alt=""
+              initial={{ opacity: 0, y: index % 2 ? 34 : -34 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.7, delay: index * 0.05 }}
+            />
+          ))}
+        </section>
+
+        <section className={styles.process}>
+          <div className={styles.sectionHead}>
+            <span>Process</span>
+            <h2>A quieter way to make confident design decisions.</h2>
           </div>
-          <div className={styles.methodGrid}>
-            {methodCards.map(([number, title, text], index) => (
-              <motion.article
-                key={title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-12%' }}
-                transition={{ duration: 0.58, delay: index * 0.08 }}
-              >
-                <small>{number}</small>
-                <strong>{title}</strong>
+          <div className={styles.processGrid}>
+            {process.map(([number, title, text]) => (
+              <article key={title}>
+                <span>{number}</span>
+                <h3>{title}</h3>
                 <p>{text}</p>
-              </motion.article>
+              </article>
             ))}
           </div>
         </section>
 
-        <section className={styles.work}>
-          <div className={styles.sectionHeader}>
+        <section className={styles.featured}>
+          <div className={styles.sectionHead}>
             <span>Selected work</span>
-            <h2>Proof of restraint.</h2>
-            <Link to="/projects">All projects</Link>
+            <h2>Portfolio as evidence, not decoration.</h2>
           </div>
-          <div className={styles.workGrid}>
-            {selectedProjects.slice(0, 4).map((project, index) => {
-              const image = getProjectCover(project) || visualPool[index % visualPool.length];
+          <div className={styles.projectGrid}>
+            {featuredProjects.slice(0, 4).map((project, index) => {
+              const image = getProjectCover(project);
               return (
                 <motion.article
                   key={project.id}
-                  className={index === 0 ? styles.featuredWork : undefined}
-                  initial={{ opacity: 0, clipPath: 'inset(10% 0 10% 0)' }}
-                  whileInView={{ opacity: 1, clipPath: 'inset(0% 0 0% 0)' }}
-                  viewport={{ once: true, margin: '-10%' }}
-                  transition={{ duration: 0.75, delay: index * 0.06 }}
+                  className={index === 0 ? styles.projectLead : undefined}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.58, delay: index * 0.06 }}
                 >
-                  <Link to={getCanonicalPortfolioProjectPathForCategory(categoryMap.get(project.categoryId), project.slug)}>
+                  <Link to={getCanonicalPortfolioProjectPathForCategory(project.categoryId, project.slug)}>
                     <img
                       src={getPreviewImageUrl(image)}
-                      alt={project.title}
                       onError={(event) => handlePreviewFallback(event, image)}
+                      alt={project.title}
                     />
                     <div>
-                      <span>{getCategoryLabel(project, categoryMap)}</span>
+                      <span>{getCategoryName(project, categories)}</span>
                       <h3>{project.title}</h3>
                     </div>
                   </Link>
@@ -198,63 +252,56 @@ export default function HomePage() {
               );
             })}
           </div>
+          <Link className={styles.textLink} to="/projects">Open all projects</Link>
         </section>
 
-        <section className={styles.atmosphere}>
-          {atmosphereCards.map(([title, text], index) => {
-            const image = visualPool[index % visualPool.length];
-            return (
-              <motion.article
-                key={title}
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-12%' }}
-                transition={{ duration: 0.62, delay: index * 0.08 }}
-              >
-                <img
-                  src={getPreviewImageUrl(image)}
-                  alt=""
-                  onError={(event) => handlePreviewFallback(event, image)}
-                />
-                <div>
-                  <span>0{index + 1}</span>
-                  <h2>{title}</h2>
-                  <p>{text}</p>
-                </div>
-              </motion.article>
-            );
-          })}
+        <section className={styles.quote}>
+          <p>“A finished home should look inevitable, as if every decision had only one honest answer.”</p>
+          <span>Alexandra Diz</span>
         </section>
 
-        <section className={styles.testimonial}>
-          <span>Client signal</span>
-          <motion.blockquote
-            key={testimonialIndex}
-            initial={{ opacity: 0, y: 22, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.55 }}
-          >
-            "{activeTestimonial.text}"
-          </motion.blockquote>
-          <div>
-            <strong>{activeTestimonial.author}</strong>
-            <nav aria-label="Testimonials">
-              {studioTestimonials.map((item, index) => (
-                <button
-                  key={`${item.author}-${index}`}
-                  type="button"
-                  className={index === testimonialIndex ? styles.activeDot : undefined}
-                  aria-label={`Show testimonial ${index + 1}`}
-                  onClick={() => setTestimonialIndex(index)}
-                />
-              ))}
-            </nav>
+        <section className={styles.testimonials}>
+          <div className={styles.sectionHead}>
+            <span>Client words</span>
+            <h2>Short notes from real projects.</h2>
+          </div>
+          <div className={styles.testimonialGrid}>
+            {studioTestimonials.slice(0, 3).map((testimonial) => (
+              <article key={`${testimonial.author}-${testimonial.date}`}>
+                <p>{testimonial.text}</p>
+                <span>{testimonial.author}</span>
+              </article>
+            ))}
           </div>
         </section>
 
-        <section className={styles.final}>
-          <h2>Bring the home. Leave with a direction.</h2>
-          <Link to="/contact">Book a conversation</Link>
+        <section className={styles.journal}>
+          <div className={styles.sectionHead}>
+            <span>Journal</span>
+            <h2>Design notes for clients preparing a remodel.</h2>
+          </div>
+          <div className={styles.postGrid}>
+            {posts.map((post) => (
+              <Link key={post.id} to={`/blog/${post.slug}`}>
+                <img src={getPostCover(post)} alt={post.title} />
+                <span>{post.publishedAt ? new Date(post.publishedAt).getFullYear() : 'Journal'}</span>
+                <h3>{post.title}</h3>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.cta}>
+          <img
+            src={leadPreview}
+            onError={(event) => handlePreviewFallback(event, leadImage)}
+            alt=""
+          />
+          <div>
+            <span>Next step</span>
+            <h2>Bring the house. Alexandra will help find the direction.</h2>
+            <Link to="/contact">Book a conversation</Link>
+          </div>
         </section>
       </main>
     </>
