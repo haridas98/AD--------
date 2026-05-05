@@ -1,4 +1,4 @@
-import { type MouseEvent, type PointerEvent, type SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type MouseEvent, type PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -94,13 +94,6 @@ function getSourceLabel(label?: string | null) {
   return String(label || 'Source').replace(/^@/, '');
 }
 
-function setImageFallback(event: SyntheticEvent<HTMLImageElement>, fallbackUrl: string) {
-  const image = event.currentTarget;
-  if (!fallbackUrl || image.dataset.fallbackApplied === 'true') return;
-  image.dataset.fallbackApplied = 'true';
-  image.src = getPreviewImageUrl(fallbackUrl);
-}
-
 function getShortProjectTitle(title?: string | null) {
   const value = String(title || '').trim();
   if (!value) return 'Project';
@@ -113,6 +106,17 @@ function getShortProjectTitle(title?: string | null) {
     .trim();
 
   return withoutLocation || value;
+}
+
+function getProjectImageRef(project: Project): HomepageImageValue | null {
+  const url = getProjectCover(project);
+  if (!url) return null;
+
+  return {
+    url,
+    projectId: project.id,
+    alt: getShortProjectTitle(project.title),
+  };
 }
 
 function getHomepageImageUrl(value?: HomepageImageValue | null) {
@@ -133,6 +137,11 @@ function getHomepageImageAlt(value?: HomepageImageValue | null) {
 function getHomepageImageKey(value?: HomepageImageValue | null) {
   const url = getHomepageImageUrl(value);
   return url ? `${getHomepageImageProjectId(value)}:${url}` : '';
+}
+
+function getHomepageImageDedupKey(value?: HomepageImageValue | null) {
+  const projectId = getHomepageImageProjectId(value);
+  return projectId ? `project:${projectId}` : getHomepageImageKey(value);
 }
 
 function getProjectHrefById(projectId: string, projects: Project[], categoryMap: Map<string, Category>) {
@@ -213,12 +222,16 @@ export default function HomePage() {
     ? getProjectCover(activeProject) || images[activeProjectIndex] || heroImage
     : heroImage;
   const activeProjectHref = activeProject ? getProjectPath(activeProject, categoryMap) : null;
-  const detailImages = [...(homepageSettings.detail.images || []), ...images, ...fallbackImages]
+  const detailProjectImages = publishedProjects
+    .map(getProjectImageRef)
+    .filter((item): item is HomepageImageValue => Boolean(item))
+    .slice(0, 14);
+  const detailImages = [...detailProjectImages, ...(homepageSettings.detail.images || []), ...images, ...fallbackImages]
     .filter((item, index, source) => {
-      const key = getHomepageImageKey(item);
-      return key && source.findIndex((next) => getHomepageImageKey(next)) === index;
+      const key = getHomepageImageDedupKey(item);
+      return key && source.findIndex((next) => getHomepageImageDedupKey(next) === key) === index;
     })
-    .slice(0, 6);
+    .slice(0, 12);
   const activeDetailImage = detailImages[activeDetailIndex] || detailImages[0] || heroImage;
   const testimonialItems = testimonials.filter((testimonial) => testimonial.isPublished !== false);
   const visibleTestimonials = testimonialItems.slice(0, homepageSettings.testimonials.count);
@@ -231,7 +244,6 @@ export default function HomePage() {
     : [];
   const activeVisualIndex = activeProjectImages.length ? getWrappedIndex(activeTestimonialImageIndex, activeProjectImages.length) : 0;
   const activeVisual = activeProjectImages[activeVisualIndex] || activeTestimonial?.image || alexandra.portrait;
-  const activeVisualFallback = activeProjectImages.length ? activeTestimonial?.image || alexandra.portrait : alexandra.portrait;
   const projectRailItems = getLoopedWindow(showcaseProjects, activeProjectIndex - 2, 5);
   const detailThumbItems = getLoopedWindow(detailImages, activeDetailIndex - 2, 5);
   const testimonialRailItems = getLoopedWindow(visibleTestimonials, activeTestimonialIndex - 2, 5);
@@ -723,16 +735,18 @@ export default function HomePage() {
                   {activeProjectLink && !activeProjectLink.external ? (
                     <Link className={styles.testimonialVisualLink} to={activeProjectLink.href} aria-label="Open reviewed project">
                       <img
+                        key={activeVisual}
                         src={getPreviewImageUrl(activeVisual)}
                         alt=""
-                        onError={(event) => setImageFallback(event, activeVisualFallback)}
+                        onError={(event) => handlePreviewFallback(event, activeVisual || alexandra.portrait)}
                       />
                     </Link>
                   ) : (
                     <img
+                      key={activeVisual}
                       src={getPreviewImageUrl(activeVisual)}
                       alt=""
-                      onError={(event) => setImageFallback(event, activeVisualFallback)}
+                      onError={(event) => handlePreviewFallback(event, activeVisual || alexandra.portrait)}
                     />
                   )}
                   {activeProjectImages.length > 1 ? (

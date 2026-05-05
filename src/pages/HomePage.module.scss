@@ -985,17 +985,23 @@
 .testimonialLinks {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  align-items: center;
+  gap: 8px 12px;
   margin-top: auto;
   padding-top: 24px;
 }
 
 .testimonialLinks a {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
   color: var(--theme-accent);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  line-height: 1;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .sourceLink {
@@ -1005,8 +1011,9 @@
 }
 
 .sourceLink span {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   display: inline-grid;
   place-items: center;
   border-radius: 50%;
@@ -1042,14 +1049,16 @@
 }
 
 .testimonialTrack {
+  --testimonial-card-width: calc((100% - 48px) / 4);
+
   display: flex;
   width: 100%;
   gap: 12px;
-  margin-left: calc((100% - 24px) / -6);
+  margin-left: calc(var(--testimonial-card-width) / -2);
 }
 
 .testimonialRail button {
-  flex: 0 0 calc((100% - 24px) / 3);
+  flex: 0 0 var(--testimonial-card-width);
   min-height: 76px;
   padding: 16px;
   border: 1px solid var(--theme-border);
@@ -1299,9 +1308,11 @@
   }
 
   .testimonialControls {
-    position: static;
-    justify-self: start;
-    margin-top: -18px;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+    justify-content: space-between;
   }
 
   .testimonialRail {
@@ -1442,8 +1453,18 @@
   }
 
   .testimonialControls {
-    width: 100%;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+    gap: 8px;
     justify-content: space-between;
+    padding: 8px;
+  }
+
+  .testimonialControls button {
+    min-width: 48px;
+    height: 36px;
   }
 
   .testimonialRail {
@@ -1451,11 +1472,13 @@
   }
 
   .testimonialTrack {
-    margin-left: calc((100% - 12px) / -4);
+    --testimonial-card-width: calc((100% - 12px) / 2);
+
+    margin-left: calc(var(--testimonial-card-width) / -2);
   }
 
   .testimonialRail button {
-    flex-basis: calc((100% - 12px) / 2);
+    flex-basis: var(--testimonial-card-width);
     min-height: 72px;
     padding: 14px 12px;
   }
