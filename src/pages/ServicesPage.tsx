@@ -42,8 +42,8 @@ const servicesData: Record<string, {
           { num: '3.', text: 'Designer guides the client through the process of showroom visits and orders.' },
         ],
         images: [
-          '/images/legacy/process-phase2-1.jpg',
-          '/images/legacy/process-phase2-2.jpg',
+          '/images/legacy/kitchen-3d-1.jpg',
+          '/images/legacy/bath-3d-1.jpg',
         ],
       },
       {
@@ -175,11 +175,16 @@ export default function ServicesPage({ serviceType }: ServicesPageProps) {
           <div className="services-sections">
             {service.sections.map((section, i) => {
               const isRenderingSection = section.subheading.toLowerCase().includes('3d photorealistic');
+              const hasImages = Boolean(section.images?.length);
 
               return (
                 <motion.div
                   key={i}
-                  className={`service-section${isRenderingSection ? ' service-section--renderings' : ''}`}
+                  className={[
+                    'service-section',
+                    hasImages ? 'service-section--has-images' : 'service-section--text-only',
+                    isRenderingSection ? 'service-section--renderings' : '',
+                  ].filter(Boolean).join(' ')}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -204,7 +209,10 @@ export default function ServicesPage({ serviceType }: ServicesPageProps) {
                   {section.images && (
                     <div className={`service-section-images ${section.images.length > 1 ? 'service-section-images--multi' : 'service-section-images--single'}`}>
                       {section.images.map((img, j) => (
-                        <img key={j} src={img} alt="" className="service-img" />
+                        <figure key={j} className="service-figure">
+                          <img src={img} alt={`${section.subheading} ${j + 1}`} className="service-img" />
+                          <figcaption>{String(j + 1).padStart(2, '0')}</figcaption>
+                        </figure>
                       ))}
                     </div>
                   )}

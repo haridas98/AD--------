@@ -46,13 +46,15 @@ export default function BlogPostPage() {
               {articleSections.map((section: any, index: number) => (
                 <section key={`${section.title}-${index}`} className={styles.section}>
                   <h2>{section.title}</h2>
-                  {String(section.text || '')
-                    .split(/\n{2,}/)
-                    .map((paragraph) => paragraph.trim())
-                    .filter(Boolean)
-                    .map((paragraph, paragraphIndex) => (
-                      <p key={paragraphIndex}>{paragraph}</p>
-                    ))}
+                  <div className={styles.sectionText}>
+                    {String(section.text || '')
+                      .split(/\n{2,}/)
+                      .map((paragraph) => paragraph.trim())
+                      .filter(Boolean)
+                      .map((paragraph, paragraphIndex) => (
+                        <p key={paragraphIndex}>{paragraph}</p>
+                      ))}
+                  </div>
                 </section>
               ))}
             </article>
