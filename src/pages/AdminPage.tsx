@@ -9,10 +9,11 @@ import ProjectAssetPicker from '../components/admin/ProjectAssetPicker';
 import { normalizeEditorCrop } from '../lib/adminImageCrop';
 import { buildBlogBaseBlocks, getBlogBlocksCover, parseBlogArticleSections, parseBlogPostBlocks } from '../lib/blogBlockTemplates';
 import { getCoverImageStyle } from '../lib/imageTransforms';
+import { normalizeHomepageSettings } from '../lib/homepageSettings';
 import { buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
 import { PROJECT_STYLE_PRESET_OPTIONS } from '../lib/projectStylePresets';
 import { normalizeThemeSettings } from '../lib/themeTokens';
-import type { ProjectAsset } from '../types';
+import type { HomepageImageValue, HomepageSettings, Project, ProjectAsset, Testimonial } from '../types';
 
 const BLOCK_TYPES = [
   { value: 'heroImage', label: 'Hero Image' },
@@ -104,7 +105,7 @@ const slotGridStyle: React.CSSProperties = {
 };
 
 type CropData = { scale: number; x: number; y: number };
-type EditableImage = { url: string; alt?: string; crop: CropData; assetId?: string };
+type EditableImage = { url: string; alt?: string; crop: CropData; assetId?: string; projectId?: string };
 type CircleItem = { label?: string; image: string; alt?: string; crop: CropData; assetId?: string };
 
 function cleanCircleLabel(value?: string) {
@@ -117,9 +118,33 @@ function ensureCrop(crop?: any): CropData {
 }
 
 function toEditableImage(item?: any): EditableImage {
-  if (!item) return { url: '', alt: '', crop: ensureCrop(), assetId: '' };
-  if (typeof item === 'string') return { url: item, alt: '', crop: ensureCrop(), assetId: '' };
-  return { url: item.url || '', alt: item.alt || '', crop: ensureCrop(item.crop), assetId: item.assetId || '' };
+  if (!item) return { url: '', alt: '', crop: ensureCrop(), assetId: '', projectId: '' };
+  if (typeof item === 'string') return { url: item, alt: '', crop: ensureCrop(), assetId: '', projectId: '' };
+  return {
+    url: item.url || '',
+    alt: item.alt || '',
+    crop: ensureCrop(item.crop),
+    assetId: item.assetId || '',
+    projectId: item.projectId || '',
+  };
+}
+
+function homepageImageUrl(value?: HomepageImageValue | null) {
+  if (!value) return '';
+  return typeof value === 'string' ? value : value.url || '';
+}
+
+function homepageImageFromEditable(image: EditableImage): HomepageImageValue {
+  if (!image.url) return '';
+  if (image.assetId || image.projectId || image.alt) {
+    return {
+      url: image.url,
+      assetId: image.assetId || '',
+      projectId: image.projectId || '',
+      alt: image.alt || '',
+    };
+  }
+  return image.url;
 }
 
 function toCircleItem(item?: any): CircleItem {
@@ -255,7 +280,15 @@ function EditableCoverFieldEditor({
           onChange={async (e) => {
             if (!e.target.files?.[0]) return;
             const uploaded = await onUpload(e.target.files[0]);
-            if (uploaded?.url) onChange({ ...current, url: uploaded.url, crop: ensureCrop(), assetId: uploaded.id || uploaded.assetId || '' });
+            if (uploaded?.url) {
+              onChange({
+                ...current,
+                url: uploaded.url,
+                crop: ensureCrop(),
+                assetId: uploaded.id || uploaded.assetId || '',
+                projectId: '',
+              });
+            }
             e.currentTarget.value = '';
           }}
           style={{ display: 'none' }}
@@ -279,7 +312,7 @@ function EditableCoverFieldEditor({
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
-                onChange({ ...current, url: '', crop: ensureCrop(), assetId: '' });
+                onChange({ ...current, url: '', crop: ensureCrop(), assetId: '', projectId: '' });
               }}
               style={mediaOverlayButtonStyle('danger')}
             >
@@ -303,15 +336,16 @@ function EditableCoverFieldEditor({
             onChange({
               ...current,
               url: picked.url || picked.publicUrl,
-              alt: picked.altText || current.alt || '',
+              alt: picked.altText || picked.caption || current.alt || '',
               crop: ensureCrop(),
               assetId: picked.id || picked.assetId || '',
+              projectId: picked.projectId || current.projectId || '',
             });
             setIsSourceOpen(false);
           }
         } : undefined}
         onUrlApply={(nextUrl) => {
-          onChange({ ...current, url: nextUrl, crop: ensureCrop(), assetId: '' });
+          onChange({ ...current, url: nextUrl, crop: ensureCrop(), assetId: '', projectId: '' });
           setIsSourceOpen(false);
         }}
         onClose={() => setIsSourceOpen(false)}
@@ -485,6 +519,369 @@ function BasicCoverFieldEditor({
           setIsCropOpen(false);
         }}
       />
+    </div>
+  );
+}
+
+function HomeSettingsEditor({
+  value,
+  onChange,
+  onSave,
+  onUpload,
+  onPickProjectAsset,
+  saving,
+  isCompact,
+}: {
+  value: HomepageSettings;
+  onChange: (next: HomepageSettings) => void;
+  onSave: () => void;
+  onUpload: (file: File, field: string) => Promise<any>;
+  onPickProjectAsset?: () => Promise<ProjectAsset | null>;
+  saving: boolean;
+  isCompact: boolean;
+}) {
+  const settings = normalizeHomepageSettings(value);
+  const columnGrid = { display: 'grid', gridTemplateColumns: isCompact ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: '12px' };
+
+  const setGroupField = (group: keyof HomepageSettings, field: string, nextValue: any) => {
+    onChange({ ...settings, [group]: { ...(settings as any)[group], [field]: nextValue } });
+  };
+
+  const setCollageImage = (field: keyof HomepageSettings['collage']['images'], nextValue: HomepageImageValue) => {
+    setGroupField('collage', 'images', { ...settings.collage.images, [field]: nextValue });
+  };
+
+  const setApproachItem = (index: number, field: string, nextValue: string) => {
+    const nextItems = [...settings.approach.items];
+    nextItems[index] = { ...nextItems[index], [field]: nextValue };
+    setGroupField('approach', 'items', nextItems);
+  };
+
+  const setDetailImage = (index: number, nextValue: HomepageImageValue) => {
+    const nextImages = [...(settings.detail.images || [])];
+    nextImages[index] = nextValue;
+    setGroupField('detail', 'images', nextImages);
+  };
+
+  const inputField = (
+    label: string,
+    value: string | number,
+    onNext: (nextValue: any) => void,
+    opts: { textarea?: boolean; rows?: number; type?: string } = {},
+  ) => (
+    <label style={labelStyle}>
+      {label}
+      {opts.textarea ? (
+        <textarea
+          rows={opts.rows || 3}
+          value={String(value ?? '')}
+          onChange={(event) => onNext(event.target.value)}
+          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.45 }}
+        />
+      ) : (
+        <input
+          type={opts.type || 'text'}
+          value={value ?? ''}
+          onChange={(event) => onNext(opts.type === 'number' ? Number(event.target.value) : event.target.value)}
+          style={inputStyle}
+        />
+      )}
+    </label>
+  );
+
+  const imageField = (
+    label: string,
+    value: HomepageImageValue,
+    onNext: (nextValue: HomepageImageValue) => void,
+    uploadKey: string,
+    aspectRatio = '16 / 10',
+    allowProjectAsset = true,
+  ) => (
+    <div style={{ display: 'grid', gap: '8px' }}>
+      <div style={{ color: 'rgba(255,255,255,0.62)', fontSize: '13px' }}>{label}</div>
+      <EditableCoverFieldEditor
+        value={toEditableImage(value)}
+        aspectRatio={aspectRatio}
+        cropEnabled={false}
+        previewMaxWidth="100%"
+        onChange={(nextImage) => onNext(homepageImageFromEditable(nextImage))}
+        onUpload={(file) => onUpload(file, uploadKey)}
+        onPickAsset={allowProjectAsset && onPickProjectAsset ? async () => {
+          const asset = await onPickProjectAsset();
+          return asset ? { ...asset, url: asset.publicUrl } : null;
+        } : undefined}
+      />
+    </div>
+  );
+
+  const section = (title: string, children: React.ReactNode) => (
+    <section style={{ ...cardStyle, display: 'grid', gap: '14px' }}>
+      <h3 style={{ color: '#fff', margin: 0, fontSize: '16px' }}>{title}</h3>
+      {children}
+    </section>
+  );
+
+  return (
+    <div style={{ display: 'grid', gap: '18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div>
+          <h2 style={{ color: '#fff', margin: 0, fontSize: '22px' }}>Home page</h2>
+          <p style={{ color: 'rgba(255,255,255,0.5)', margin: '6px 0 0', fontSize: '13px' }}>Texts, images, sliders and reviews used on the main page.</p>
+        </div>
+        <button type="button" className="btn-primary" onClick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Home'}</button>
+      </div>
+
+      {section('Hero', (
+        <div style={columnGrid}>
+          {inputField('Center title', settings.hero.title, (next) => setGroupField('hero', 'title', next))}
+          {imageField('Hero image', settings.hero.image, (next) => setGroupField('hero', 'image', homepageImageUrl(next)), 'hero', '16 / 9', false)}
+        </div>
+      ))}
+
+      {section('Collage section', (
+        <div style={{ display: 'grid', gap: '14px' }}>
+          <div style={columnGrid}>
+            {inputField('Title', settings.collage.title, (next) => setGroupField('collage', 'title', next))}
+            {inputField('Quote', settings.collage.quote, (next) => setGroupField('collage', 'quote', next), { textarea: true, rows: 2 })}
+            {inputField('Main text', settings.collage.text, (next) => setGroupField('collage', 'text', next), { textarea: true, rows: 3 })}
+            {inputField('Card title', settings.collage.cardTitle, (next) => setGroupField('collage', 'cardTitle', next))}
+            {inputField('Card text', settings.collage.cardText, (next) => setGroupField('collage', 'cardText', next), { textarea: true, rows: 3 })}
+          </div>
+          <div style={{ ...columnGrid, gridTemplateColumns: isCompact ? '1fr' : 'repeat(5, minmax(0, 1fr))' }}>
+            {imageField('Primary', settings.collage.images.primary, (next) => setCollageImage('primary', next), 'collage-primary', '4 / 3')}
+            {imageField('Small 1', settings.collage.images.smallOne, (next) => setCollageImage('smallOne', next), 'collage-small-one', '1 / 1')}
+            {imageField('Wide', settings.collage.images.wide, (next) => setCollageImage('wide', next), 'collage-wide', '16 / 10')}
+            {imageField('Tall', settings.collage.images.tall, (next) => setCollageImage('tall', next), 'collage-tall', '4 / 5')}
+            {imageField('Small 2', settings.collage.images.smallTwo, (next) => setCollageImage('smallTwo', next), 'collage-small-two', '1 / 1')}
+          </div>
+        </div>
+      ))}
+
+      {section('Alexandra feature', (
+        <div style={columnGrid}>
+          {inputField('Quote', settings.feature.quote, (next) => setGroupField('feature', 'quote', next), { textarea: true, rows: 3 })}
+          {imageField('Alexandra image', settings.feature.image, (next) => setGroupField('feature', 'image', homepageImageUrl(next)), 'feature', '16 / 10', false)}
+          {inputField('Dark card title', settings.feature.darkTitle, (next) => setGroupField('feature', 'darkTitle', next))}
+          {inputField('Dark card text', settings.feature.darkText, (next) => setGroupField('feature', 'darkText', next), { textarea: true, rows: 3 })}
+          {inputField('Link label', settings.feature.linkLabel, (next) => setGroupField('feature', 'linkLabel', next))}
+          {inputField('Link URL', settings.feature.linkHref, (next) => setGroupField('feature', 'linkHref', next))}
+          {inputField('Light card title', settings.feature.lightTitle, (next) => setGroupField('feature', 'lightTitle', next))}
+          {inputField('Light card text', settings.feature.lightText, (next) => setGroupField('feature', 'lightText', next), { textarea: true, rows: 3 })}
+        </div>
+      ))}
+
+      {section('Project carousel', (
+        <div style={columnGrid}>
+          {inputField('Label', settings.showcase.label, (next) => setGroupField('showcase', 'label', next))}
+          {inputField('Title', settings.showcase.title, (next) => setGroupField('showcase', 'title', next), { textarea: true, rows: 2 })}
+          {inputField('Projects in carousel', settings.showcase.projectCount, (next) => setGroupField('showcase', 'projectCount', next), { type: 'number' })}
+        </div>
+      ))}
+
+      {section('Design reading block', (
+        <div style={{ display: 'grid', gap: '14px' }}>
+          <div style={columnGrid}>
+            {inputField('Label', settings.approach.label, (next) => setGroupField('approach', 'label', next))}
+            {inputField('Title', settings.approach.title, (next) => setGroupField('approach', 'title', next), { textarea: true, rows: 2 })}
+            {imageField('Background image', settings.approach.image, (next) => setGroupField('approach', 'image', next), 'approach', '16 / 10')}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
+            {settings.approach.items.slice(0, 3).map((item, index) => (
+              <div key={index} style={panelStyle}>
+                {inputField('Number', item.number, (next) => setApproachItem(index, 'number', next))}
+                {inputField('Title', item.title, (next) => setApproachItem(index, 'title', next))}
+                {inputField('Text', item.text, (next) => setApproachItem(index, 'text', next), { textarea: true, rows: 3 })}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {section('Detail gallery', (
+        <div style={{ display: 'grid', gap: '14px' }}>
+          <div style={columnGrid}>
+            {inputField('Label', settings.detail.label, (next) => setGroupField('detail', 'label', next))}
+            {inputField('Title', settings.detail.title, (next) => setGroupField('detail', 'title', next))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr 1fr' : 'repeat(6, minmax(0, 1fr))', gap: '10px' }}>
+            {Array.from({ length: 6 }, (_, index) => (
+              <div key={index}>
+                {imageField(`Image ${index + 1}`, settings.detail.images[index] || '', (next) => setDetailImage(index, next), `detail-${index}`, '4 / 3')}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {section('Reviews', (
+        <div style={{ display: 'grid', gap: '14px' }}>
+          <div style={columnGrid}>
+            {inputField('Label', settings.testimonials.label, (next) => setGroupField('testimonials', 'label', next))}
+            {inputField('Title', settings.testimonials.title, (next) => setGroupField('testimonials', 'title', next), { textarea: true, rows: 2 })}
+            {inputField('Visible reviews', settings.testimonials.count, (next) => setGroupField('testimonials', 'count', next), { type: 'number' })}
+          </div>
+          <p style={{ margin: 0, color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>Review cards and project links are edited in the Testimonials tab.</p>
+        </div>
+      ))}
+
+      {section('Final CTA', (
+        <div style={columnGrid}>
+          {inputField('Label', settings.cta.label, (next) => setGroupField('cta', 'label', next))}
+          {inputField('Title', settings.cta.title, (next) => setGroupField('cta', 'title', next), { textarea: true, rows: 2 })}
+          {inputField('Button label', settings.cta.buttonLabel, (next) => setGroupField('cta', 'buttonLabel', next))}
+          {inputField('Button URL', settings.cta.buttonHref, (next) => setGroupField('cta', 'buttonHref', next))}
+        </div>
+      ))}
+
+      <button type="button" className="btn-primary" onClick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Home'}</button>
+    </div>
+  );
+}
+
+function TestimonialsEditor({
+  testimonials,
+  projects,
+  onCreate,
+  onSave,
+  onDelete,
+  onUpload,
+  saving,
+  isCompact,
+}: {
+  testimonials: Testimonial[];
+  projects: Project[];
+  onCreate: () => void;
+  onSave: (id: string, payload: Partial<Testimonial>) => void;
+  onDelete: (id: string) => void;
+  onUpload: (file: File, field: string) => Promise<any>;
+  saving: boolean;
+  isCompact: boolean;
+}) {
+  const [drafts, setDrafts] = useState<Testimonial[]>([]);
+
+  useEffect(() => {
+    setDrafts([...(testimonials || [])].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
+  }, [testimonials]);
+
+  const columnGrid = {
+    display: 'grid',
+    gridTemplateColumns: isCompact ? '1fr' : 'repeat(2, minmax(0, 1fr))',
+    gap: '12px',
+  };
+
+  const updateDraft = (id: string, field: keyof Testimonial, value: any) => {
+    setDrafts((current) => current.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+  };
+
+  const getDraft = (id: string) => drafts.find((item) => item.id === id);
+
+  const inputField = (
+    label: string,
+    value: string | number | boolean | null | undefined,
+    onNext: (nextValue: any) => void,
+    opts: { textarea?: boolean; rows?: number; type?: string } = {},
+  ) => (
+    <label style={labelStyle}>
+      {label}
+      {opts.textarea ? (
+        <textarea
+          rows={opts.rows || 3}
+          value={String(value ?? '')}
+          onChange={(event) => onNext(event.target.value)}
+          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.45 }}
+        />
+      ) : (
+        <input
+          type={opts.type || 'text'}
+          value={String(value ?? '')}
+          onChange={(event) => onNext(opts.type === 'number' ? Number(event.target.value) : event.target.value)}
+          style={inputStyle}
+        />
+      )}
+    </label>
+  );
+
+  return (
+    <div style={{ display: 'grid', gap: '18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div>
+          <h2 style={{ color: '#fff', margin: 0, fontSize: '22px' }}>Testimonials</h2>
+          <p style={{ color: 'rgba(255,255,255,0.5)', margin: '6px 0 0', fontSize: '13px' }}>Reviews from the database, with optional project connection.</p>
+        </div>
+        <button type="button" className="btn-primary" onClick={onCreate} disabled={saving}>{saving ? 'Saving...' : '+ Add review'}</button>
+      </div>
+
+      <div style={{ display: 'grid', gap: '12px' }}>
+        {drafts.map((item, index) => (
+          <details key={item.id} open={index < 2} style={panelStyle}>
+            <summary style={{ cursor: 'pointer', color: '#fff', fontSize: '14px', fontWeight: 700 }}>
+              {String(index + 1).padStart(2, '0')} - {item.author || 'Client'}
+            </summary>
+            <div style={{ display: 'grid', gap: '12px', marginTop: '12px' }}>
+              <div style={columnGrid}>
+                {inputField('Author', item.author, (next) => updateDraft(item.id, 'author', next))}
+                {inputField('Date', item.date || '', (next) => updateDraft(item.id, 'date', next))}
+                {inputField('Text', item.text, (next) => updateDraft(item.id, 'text', next), { textarea: true, rows: 4 })}
+                {inputField('Sort order', item.sortOrder || 0, (next) => updateDraft(item.id, 'sortOrder', next), { type: 'number' })}
+                <label style={labelStyle}>
+                  Linked project
+                  <select
+                    value={item.projectId || ''}
+                    onChange={(event) => updateDraft(item.id, 'projectId', event.target.value)}
+                    style={inputStyle}
+                  >
+                    <option value="" style={{ background: '#141414' }}>No project</option>
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id} style={{ background: '#141414' }}>
+                        {project.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {inputField('Project link text', item.projectText || '', (next) => updateDraft(item.id, 'projectText', next))}
+                {inputField('Source label', item.link || '', (next) => updateDraft(item.id, 'link', next))}
+                {inputField('Source URL', item.linkHref || '', (next) => updateDraft(item.id, 'linkHref', next))}
+                {inputField('Legacy project URL', item.projectHref || '', (next) => updateDraft(item.id, 'projectHref', next))}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={item.isPublished !== false}
+                    onChange={(event) => updateDraft(item.id, 'isPublished', event.target.checked)}
+                  />
+                  Published
+                </label>
+              </div>
+
+              <div style={{ maxWidth: isCompact ? '100%' : '280px' }}>
+                <div style={{ color: 'rgba(255,255,255,0.62)', fontSize: '13px', marginBottom: '8px' }}>Avatar / fallback image</div>
+                <EditableCoverFieldEditor
+                  value={item.image || ''}
+                  aspectRatio="1 / 1"
+                  cropEnabled={false}
+                  previewMaxWidth="100%"
+                  onChange={(nextImage) => updateDraft(item.id, 'image', nextImage.url)}
+                  onUpload={(file) => onUpload(file, `testimonial-${item.id}`)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    const draft = getDraft(item.id);
+                    if (draft) onSave(item.id, draft);
+                  }}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Save review'}
+                </button>
+                <button type="button" style={{ ...miniBtn, color: '#ff8a80' }} onClick={() => onDelete(item.id)} disabled={saving}>Delete</button>
+              </div>
+            </div>
+          </details>
+        ))}
+      </div>
     </div>
   );
 }
@@ -688,13 +1085,100 @@ function RefinedSliderEditor({
   );
 }
 
+function HomepageProjectAssetPicker({
+  open,
+  projects,
+  selectedProjectId,
+  assets,
+  loading,
+  onProjectChange,
+  onClose,
+  onSelect,
+  onRefresh,
+}: {
+  open: boolean;
+  projects: Project[];
+  selectedProjectId: string;
+  assets: ProjectAsset[];
+  loading: boolean;
+  onProjectChange: (projectId: string) => void;
+  onClose: () => void;
+  onSelect: (asset: ProjectAsset) => void;
+  onRefresh: () => void;
+}) {
+  if (!open) return null;
+
+  const imageAssets = assets.filter((asset) => asset.kind === 'image' && asset.status === 'active');
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 240, display: 'grid', placeItems: 'center', padding: '24px', background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(12px)' }}>
+      <div style={{ width: 'min(1120px, 100%)', maxHeight: '86vh', overflow: 'auto', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.12)', background: '#171717', boxShadow: '0 34px 90px rgba(0,0,0,0.45)' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'center', padding: '18px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(23,23,23,0.94)', backdropFilter: 'blur(10px)' }}>
+          <div>
+            <div style={{ color: '#fff', fontSize: '16px', fontWeight: 800 }}>Choose project asset</div>
+            <div style={{ color: 'rgba(255,255,255,0.48)', fontSize: '12px', marginTop: '4px' }}>The selected image will link to this project on the public page.</div>
+          </div>
+          <button type="button" onClick={onClose} style={actionButtonStyle()}>
+            Close
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gap: '16px', padding: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) auto', gap: '10px', alignItems: 'end' }}>
+            <label style={labelStyle}>
+              Project
+              <select
+                value={selectedProjectId}
+                onChange={(event) => onProjectChange(event.target.value)}
+                style={inputStyle}
+              >
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id} style={{ background: '#141414' }}>
+                    {project.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" onClick={onRefresh} disabled={loading || !selectedProjectId} style={actionButtonStyle(true)}>
+              {loading ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+
+          {!selectedProjectId ? (
+            <div style={{ ...panelStyle, color: 'rgba(255,255,255,0.55)', textAlign: 'center', padding: '28px' }}>No project selected.</div>
+          ) : !imageAssets.length ? (
+            <div style={{ ...panelStyle, color: 'rgba(255,255,255,0.55)', textAlign: 'center', padding: '28px' }}>No active images in this project asset library.</div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+              {imageAssets.map((asset) => (
+                <button
+                  key={asset.id}
+                  type="button"
+                  onClick={() => onSelect(asset)}
+                  style={{ display: 'grid', gap: '8px', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  <span style={{ display: 'block', aspectRatio: '4 / 3', overflow: 'hidden', borderRadius: '8px', background: 'rgba(255,255,255,0.05)' }}>
+                    <img src={asset.publicUrl} alt={asset.altText || asset.originalFilename} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  </span>
+                  <span style={{ fontSize: '12px', lineHeight: 1.35, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.originalFilename}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: '11px' }}>{asset.width && asset.height ? `${asset.width} x ${asset.height}` : 'Project asset'}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage({ data, refresh }: any) {
   const [authed, setAuthed] = useState(!!api.getStoredToken());
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [tab, setTab] = useState('dashboard');
-  const [adminData, setAdminData] = useState(data || { projects: [], categories: [], blogPosts: [], themeSettings: normalizeThemeSettings() });
+  const [adminData, setAdminData] = useState(data || { projects: [], categories: [], blogPosts: [], testimonials: [], themeSettings: normalizeThemeSettings(), homepageSettings: normalizeHomepageSettings() });
   const [stats, setStats] = useState({ projectCount: 0, publishedCount: 0, blogCount: 0, categoryCount: 0 });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -709,16 +1193,22 @@ export default function AdminPage({ data, refresh }: any) {
   const [blogArticleSections, setBlogArticleSections] = useState<any[]>([]);
   const [activeBlogBlockId, setActiveBlogBlockId] = useState<string | null>(null);
   const [themeForm, setThemeForm] = useState(normalizeThemeSettings(data?.themeSettings));
+  const [homepageForm, setHomepageForm] = useState(normalizeHomepageSettings(data?.homepageSettings));
   const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [projectEditorTab, setProjectEditorTab] = useState<'content' | 'assets'>('content');
   const [projectAssets, setProjectAssets] = useState<ProjectAsset[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
+  const [homepageAssetPickerOpen, setHomepageAssetPickerOpen] = useState(false);
+  const [homepageAssetProjectId, setHomepageAssetProjectId] = useState('');
+  const [homepageProjectAssets, setHomepageProjectAssets] = useState<ProjectAsset[]>([]);
+  const [homepageAssetsLoading, setHomepageAssetsLoading] = useState(false);
   const [aiInstructions, setAiInstructions] = useState('');
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const blogBlockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const assetPickerResolver = useRef<((asset: ProjectAsset | null) => void) | null>(null);
+  const homepageAssetPickerResolver = useRef<((asset: ProjectAsset | null) => void) | null>(null);
 
   const categoryName = useMemo(
     () => adminData.categories?.find((category: any) => category.id === form?.categoryId)?.name || 'Project',
@@ -765,6 +1255,23 @@ export default function AdminPage({ data, refresh }: any) {
       alert(err.message || 'Failed to load project assets');
     } finally {
       setAssetsLoading(false);
+    }
+  }
+
+  async function loadHomepageProjectAssets(projectId = homepageAssetProjectId) {
+    if (!projectId) {
+      setHomepageProjectAssets([]);
+      return;
+    }
+
+    setHomepageAssetsLoading(true);
+    try {
+      const response = await api.getProjectAssets(projectId);
+      setHomepageProjectAssets(response.assets || []);
+    } catch (err: any) {
+      alert(err.message || 'Failed to load project assets');
+    } finally {
+      setHomepageAssetsLoading(false);
     }
   }
 
@@ -841,6 +1348,39 @@ export default function AdminPage({ data, refresh }: any) {
     assetPickerResolver.current = null;
   }
 
+  function getDefaultHomepageAssetProjectId() {
+    const projects = (adminData.projects || []).filter((project: Project) => !project.deletedAt);
+    if (homepageAssetProjectId && projects.some((project: Project) => project.id === homepageAssetProjectId)) {
+      return homepageAssetProjectId;
+    }
+    return projects.find((project: Project) => project.isPublished)?.id || projects[0]?.id || '';
+  }
+
+  function openHomepageProjectAssetPicker(): Promise<ProjectAsset | null> {
+    const projectId = getDefaultHomepageAssetProjectId();
+    if (!projectId) return Promise.resolve(null);
+
+    setHomepageAssetProjectId(projectId);
+    setHomepageAssetPickerOpen(true);
+    void loadHomepageProjectAssets(projectId);
+
+    return new Promise((resolve) => {
+      homepageAssetPickerResolver.current = resolve;
+    });
+  }
+
+  function closeHomepageProjectAssetPicker() {
+    setHomepageAssetPickerOpen(false);
+    homepageAssetPickerResolver.current?.(null);
+    homepageAssetPickerResolver.current = null;
+  }
+
+  function handleHomepageProjectAssetPicked(asset: ProjectAsset) {
+    setHomepageAssetPickerOpen(false);
+    homepageAssetPickerResolver.current?.(asset);
+    homepageAssetPickerResolver.current = null;
+  }
+
   useEffect(() => { if (authed) sync(); }, [authed]);
 
   useEffect(() => {
@@ -859,6 +1399,10 @@ export default function AdminPage({ data, refresh }: any) {
   useEffect(() => {
     setThemeForm(normalizeThemeSettings(adminData.themeSettings));
   }, [adminData.themeSettings]);
+
+  useEffect(() => {
+    setHomepageForm(normalizeHomepageSettings(adminData.homepageSettings));
+  }, [adminData.homepageSettings]);
 
   useEffect(() => {
     if (tab !== 'beforeafter') return;
@@ -903,6 +1447,83 @@ export default function AdminPage({ data, refresh }: any) {
     try {
       const response = await api.updateThemeSettings(themeForm);
       setThemeForm(normalizeThemeSettings(response.themeSettings));
+      await refresh();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveHomepageSettings() {
+    setSaving(true);
+    try {
+      const response = await api.updateHomepageSettings(homepageForm);
+      setHomepageForm(normalizeHomepageSettings(response.homepageSettings));
+      await refresh();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function uploadHomepageImage(file: File, field: string) {
+    setSaving(true);
+    try {
+      return await api.uploadImage(file, 'homepage', field);
+    } catch (err: any) {
+      alert(err.message);
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function createTestimonial() {
+    setSaving(true);
+    try {
+      await api.createTestimonial({
+        author: 'Client',
+        date: '',
+        text: 'New review text',
+        image: '',
+        link: '',
+        linkHref: '',
+        projectId: '',
+        projectHref: '',
+        projectText: '',
+        sortOrder: adminData.testimonials?.length || 0,
+        isPublished: true,
+      });
+      await sync();
+      await refresh();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveTestimonial(id: string, payload: Partial<Testimonial>) {
+    setSaving(true);
+    try {
+      await api.updateTestimonial(id, payload);
+      await sync();
+      await refresh();
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteTestimonial(id: string) {
+    if (!confirm('Delete this review?')) return;
+    setSaving(true);
+    try {
+      await api.deleteTestimonial(id);
+      await sync();
       await refresh();
     } catch (err: any) {
       alert(`Error: ${err.message}`);
@@ -1434,6 +2055,8 @@ export default function AdminPage({ data, refresh }: any) {
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard' },
+    { id: 'home', label: 'Home' },
+    { id: 'testimonials', label: 'Testimonials' },
     { id: 'projects', label: 'Projects' },
     { id: 'categories', label: 'Categories' },
     { id: 'beforeafter', label: 'Before & After' },
@@ -1482,6 +2105,31 @@ export default function AdminPage({ data, refresh }: any) {
             ))}
           </div>
         </div>
+      ) : null}
+
+      {tab === 'home' ? (
+        <HomeSettingsEditor
+          value={homepageForm}
+          onChange={setHomepageForm}
+          onSave={saveHomepageSettings}
+          onUpload={uploadHomepageImage}
+          onPickProjectAsset={openHomepageProjectAssetPicker}
+          saving={saving}
+          isCompact={isCompact}
+        />
+      ) : null}
+
+      {tab === 'testimonials' ? (
+        <TestimonialsEditor
+          testimonials={adminData.testimonials || []}
+          projects={adminData.projects || []}
+          onCreate={createTestimonial}
+          onSave={saveTestimonial}
+          onDelete={deleteTestimonial}
+          onUpload={uploadHomepageImage}
+          saving={saving}
+          isCompact={isCompact}
+        />
       ) : null}
 
       {tab === 'projects' ? (
@@ -1979,6 +2627,21 @@ export default function AdminPage({ data, refresh }: any) {
             alert(err.message);
           }
         }}
+      />
+
+      <HomepageProjectAssetPicker
+        open={homepageAssetPickerOpen}
+        projects={(adminData.projects || []).filter((project: Project) => !project.deletedAt)}
+        selectedProjectId={homepageAssetProjectId}
+        assets={homepageProjectAssets}
+        loading={homepageAssetsLoading}
+        onProjectChange={(projectId) => {
+          setHomepageAssetProjectId(projectId);
+          void loadHomepageProjectAssets(projectId);
+        }}
+        onClose={closeHomepageProjectAssetPicker}
+        onSelect={handleHomepageProjectAssetPicked}
+        onRefresh={() => void loadHomepageProjectAssets(homepageAssetProjectId)}
       />
 
       {loading ? <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>Loading...</div> : null}

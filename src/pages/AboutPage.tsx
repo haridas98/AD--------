@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
-import { studioTestimonials } from '../content/testimonials';
+import { getCanonicalPortfolioProjectPathForCategory } from '../lib/portfolioRoutes';
+import type { Category, Project, Testimonial } from '../types';
 
 interface AboutPageProps { aboutType: string; }
 
 export default function AboutPage({ aboutType }: AboutPageProps) {
-  const { site } = useAppStore();
+  const { site, testimonials, projects, categories } = useAppStore();
 
   const navItems = [
     { id: 'press', name: 'Press | Media' },
@@ -40,7 +41,7 @@ export default function AboutPage({ aboutType }: AboutPageProps) {
 
           {aboutType === 'aboutme' && <AboutMeContent />}
           {aboutType === 'press' && <PressContent />}
-          {aboutType === 'testimonials' && <TestimonialsContent />}
+          {aboutType === 'testimonials' && <TestimonialsContent testimonials={testimonials} projects={projects} categories={categories} />}
         </div>
       </motion.main>
     </>
@@ -258,14 +259,46 @@ const testimonials = [
   },
 ];
 
-function TestimonialsContent() {
+function getTestimonialProjectLink(testimonial: Testimonial, projects: Project[], categories: Category[]) {
+  const project = testimonial.projectId ? projects.find((item) => item.id === testimonial.projectId) : null;
+  if (project) {
+    return {
+      href: getCanonicalPortfolioProjectPathForCategory(categories.find((category) => category.id === project.categoryId), project.slug),
+      label: testimonial.projectText || 'Press to see the project',
+      external: false,
+    };
+  }
+
+  const href = testimonial.projectHref || '';
+  if (!href || href === '#') return null;
+
+  return {
+    href,
+    label: testimonial.projectText || 'Press to see the project',
+    external: /^https?:\/\//i.test(href),
+  };
+}
+
+function TestimonialsContent({
+  testimonials,
+  projects,
+  categories,
+}: {
+  testimonials: Testimonial[];
+  projects: Project[];
+  categories: Category[];
+}) {
+  const visibleTestimonials = testimonials.filter((item) => item.isPublished !== false);
+
   return (
     <motion.div className="testimonials-page" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
       <h2 className="testimonials-page__subtitle">REVIEWS</h2>
       <h2 className="testimonials-page__title">What our clients say</h2>
 
       <div className="testimonials-list">
-        {studioTestimonials.map((t, i) => (
+        {visibleTestimonials.map((t, i) => {
+          const projectLink = getTestimonialProjectLink(t, projects, categories);
+          return (
           <div key={i} className="testimonial-item">
             <div className="testimonial-item__header">
               <div className="testimonial-item__date">{t.date}</div>
@@ -286,15 +319,16 @@ function TestimonialsContent() {
                     </a>
                   )}
                 </div>
-                {t.projectHref && (
-                  <a href={t.projectHref} target="_blank" rel="noopener noreferrer" className="btn-see-project">
-                    {t.projectText || 'Press to see the project'}
+                {projectLink && (
+                  <a href={projectLink.href} target={projectLink.external ? '_blank' : undefined} rel={projectLink.external ? 'noopener noreferrer' : undefined} className="btn-see-project">
+                    {projectLink.label}
                   </a>
                 )}
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </motion.div>
   );

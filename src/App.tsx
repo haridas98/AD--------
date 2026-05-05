@@ -63,8 +63,10 @@ export default function App() {
           categories: data.categories || [],
           projects: data.projects || [],
           blogPosts: data.blogPosts || [],
+          testimonials: data.testimonials || [],
           pages: data.pages || {},
           themeSettings: data.themeSettings,
+          homepageSettings: data.homepageSettings,
         });
       } catch (err: any) { setError(err.message); }
       finally { setLoading(false); }
@@ -140,16 +142,16 @@ export default function App() {
 }
 
 function AdminWrapper() {
-  const { projects, categories, blogPosts, themeSettings, setContent } = useAppStore();
-  const [data, setData] = useState({ projects, categories, blogPosts, themeSettings });
+  const { projects, categories, blogPosts, testimonials, themeSettings, homepageSettings, setContent } = useAppStore();
+  const [data, setData] = useState({ projects, categories, blogPosts, testimonials, themeSettings, homepageSettings });
   const refresh = async () => {
     try {
       const d = await api.getAdminContent();
-      setContent({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts, themeSettings: d.themeSettings });
-      setData({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts, themeSettings: d.themeSettings });
+      setContent({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts, testimonials: d.testimonials || [], themeSettings: d.themeSettings, homepageSettings: d.homepageSettings });
+      setData({ projects: d.projects, categories: d.categories, blogPosts: d.blogPosts, testimonials: d.testimonials || [], themeSettings: d.themeSettings, homepageSettings: d.homepageSettings });
     } catch (e) { console.error(e); }
   };
-  useEffect(() => { setData({ projects, categories, blogPosts, themeSettings }); }, [projects, categories, blogPosts, themeSettings]);
+  useEffect(() => { setData({ projects, categories, blogPosts, testimonials, themeSettings, homepageSettings }); }, [projects, categories, blogPosts, testimonials, themeSettings, homepageSettings]);
   return <AdminPage data={data} refresh={refresh} />;
 }
 

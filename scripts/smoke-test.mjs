@@ -61,6 +61,12 @@ async function run() {
     assert(Array.isArray(content.categories), 'categories must be an array');
     assert(Array.isArray(content.projects), 'projects must be an array');
     assert(Array.isArray(content.blogPosts), 'blogPosts must be an array');
+    assert(Array.isArray(content.testimonials), 'testimonials must be an array');
+    assert(content.testimonials.length >= 1, 'testimonials must include database reviews');
+    assert(
+      content.testimonials.every((item) => Object.prototype.hasOwnProperty.call(item, 'projectId')),
+      'testimonials must expose projectId for project-linked reviews',
+    );
 
     const badLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
@@ -80,4 +86,3 @@ run().catch((err) => {
   console.error(`Smoke test failed: ${err.message}`);
   process.exit(1);
 });
-
