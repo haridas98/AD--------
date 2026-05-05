@@ -173,33 +173,44 @@ export default function ServicesPage({ serviceType }: ServicesPageProps) {
           {service.intro && <p className="services-intro">{service.intro}</p>}
 
           <div className="services-sections">
-            {service.sections.map((section, i) => (
-              <motion.div key={i} className="service-section" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-                <div className="service-section-card">
-                  <p className="service-section-heading">{section.heading}</p>
-                  <p className="service-section-subheading">{section.subheading}</p>
-                  {section.items ? (
-                    <div className="service-items">
-                      {section.items.map((item, j) => (
-                        <p key={j} className="service-item">
-                          <span className="service-item-num">{item.num}</span>
-                          {item.text}
-                        </p>
+            {service.sections.map((section, i) => {
+              const isRenderingSection = section.subheading.toLowerCase().includes('3d photorealistic');
+
+              return (
+                <motion.div
+                  key={i}
+                  className={`service-section${isRenderingSection ? ' service-section--renderings' : ''}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <div className="service-section-card">
+                    <p className="service-section-heading">{section.heading}</p>
+                    <p className="service-section-subheading">{section.subheading}</p>
+                    {section.items ? (
+                      <div className="service-items">
+                        {section.items.map((item, j) => (
+                          <p key={j} className="service-item">
+                            <span className="service-item-num">{item.num}</span>
+                            {item.text}
+                          </p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="service-section-text">{section.text}</p>
+                    )}
+                  </div>
+                  {section.images && (
+                    <div className={`service-section-images ${section.images.length > 1 ? 'service-section-images--multi' : 'service-section-images--single'}`}>
+                      {section.images.map((img, j) => (
+                        <img key={j} src={img} alt="" className="service-img" />
                       ))}
                     </div>
-                  ) : (
-                    <p className="service-section-text">{section.text}</p>
                   )}
-                </div>
-                {section.images && (
-                  <div className={`service-section-images ${section.images.length > 1 ? 'service-section-images--multi' : 'service-section-images--single'}`}>
-                    {section.images.map((img, j) => (
-                      <img key={j} src={img} alt="" className="service-img" />
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </motion.main>

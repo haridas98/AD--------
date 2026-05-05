@@ -51,7 +51,7 @@ export default function AdminAssetSourcePanel({
             </button>
             {onLibraryClick ? (
               <button type="button" onClick={onLibraryClick} className={styles.secondaryAction}>
-                Choose from library
+                Choose project asset
               </button>
             ) : null}
             <button type="button" onClick={() => setMode('url')} className={styles.secondaryAction}>

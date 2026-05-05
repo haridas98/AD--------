@@ -56,8 +56,24 @@ export interface AssetBlockReference {
   image?: string;
   video?: string;
 }
-export interface Project { id: string; title: string; slug: string; categoryId: string; isFeatured: boolean; isPublished: boolean; sortOrder: number; stylePreset?: ProjectStylePreset; content: string | BlockItem[]; seoTitle?: string; seoDescription?: string; seoKeywords?: string; cityName?: string; year?: number; completedAt?: string | null; createdAt: string; updatedAt: string; deletedAt?: string | null; }
+export interface Project { id: string; title: string; slug: string; categoryId: string; isFeatured: boolean; isPublished: boolean; sortOrder: number; stylePreset?: ProjectStylePreset; content: string | BlockItem[]; assets?: ProjectAsset[]; seoTitle?: string; seoDescription?: string; seoKeywords?: string; cityName?: string; year?: number; completedAt?: string | null; createdAt: string; updatedAt: string; deletedAt?: string | null; }
 export interface BlogPost { id: string; title: string; slug: string; excerpt?: string; coverImage?: string; content: string; isPublished: boolean; publishedAt?: string; seoTitle?: string; seoDescription?: string; seoKeywords?: string; tags?: string; }
+export interface Testimonial {
+  id: string;
+  author: string;
+  date?: string | null;
+  text: string;
+  link?: string | null;
+  linkHref?: string | null;
+  image?: string | null;
+  projectId?: string | null;
+  projectHref?: string | null;
+  projectText?: string | null;
+  sortOrder: number;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface StaticPage { title: string; body: string; }
 export type ThemeMode = 'dark' | 'light';
 export interface ThemeTokens {
@@ -76,4 +92,52 @@ export interface ThemeSettings {
   dark: ThemeTokens;
   light: ThemeTokens;
 }
-export interface ContentData { site: SiteInfo; sections: Section[]; categories: Category[]; projects: Project[]; pages: Record<string, StaticPage>; blogPosts: BlogPost[]; themeSettings?: ThemeSettings; }
+export interface HomepageTestimonial {
+  date: string;
+  text: string;
+  author: string;
+  link?: string | null;
+  linkHref?: string | null;
+  image?: string | null;
+  projectHref?: string | null;
+  projectText?: string;
+}
+export interface HomepageImageRef {
+  url: string;
+  assetId?: string;
+  projectId?: string;
+  alt?: string;
+}
+export type HomepageImageValue = string | HomepageImageRef;
+export interface HomepageSettings {
+  hero: { title: string; image: string };
+  collage: {
+    title: string;
+    text: string;
+    quote: string;
+    cardTitle: string;
+    cardText: string;
+    images: { primary: HomepageImageValue; smallOne: HomepageImageValue; wide: HomepageImageValue; tall: HomepageImageValue; smallTwo: HomepageImageValue };
+  };
+  feature: {
+    quote: string;
+    image: string;
+    darkTitle: string;
+    darkText: string;
+    linkLabel: string;
+    linkHref: string;
+    lightTitle: string;
+    lightText: string;
+  };
+  showcase: { label: string; title: string; projectCount: number };
+  approach: {
+    label: string;
+    title: string;
+    image: HomepageImageValue;
+    items: Array<{ number: string; title: string; text: string }>;
+  };
+  detail: { label: string; title: string; images: HomepageImageValue[] };
+  testimonials: { label: string; title: string; count: number; items: HomepageTestimonial[] };
+  cta: { label: string; title: string; buttonLabel: string; buttonHref: string };
+}
+export interface ContentData { site: SiteInfo; sections: Section[]; categories: Category[]; projects: Project[]; pages: Record<string, StaticPage>; blogPosts: BlogPost[]; testimonials: Testimonial[]; themeSettings?: ThemeSettings; homepageSettings?: HomepageSettings; }

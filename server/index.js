@@ -13,6 +13,7 @@ import { syncProjectAssetFolder } from './lib/project-asset-sync.js';
 import { generateProjectPageDraft, generateTextDraft } from './lib/project-ai-draft.js';
 import { generateGeminiBlockText, generateGeminiProjectMetadata } from './lib/gemini-provider.js';
 import { assertThemeShape, readThemeSettings, writeThemeSettings } from './theme-settings.js';
+import { DEFAULT_TESTIMONIALS, readHomepageSettings, writeHomepageSettings } from './homepage-settings.js';
 
 function readLocalEnvFile() {
   const envPath = path.resolve('.env');
@@ -210,6 +211,309 @@ function serializeProjectAsset(asset) {
   };
 }
 
+const projectImageAssetsInclude = {
+  assets: {
+    where: {
+      kind: 'image',
+      status: 'active',
+    },
+    orderBy: [
+      { sortOrder: 'asc' },
+      { createdAt: 'asc' },
+    ],
+  },
+};
+
+function serializeProject(project) {
+  const { assets = [], ...rest } = project;
+  return {
+    ...rest,
+    content: parseContent(project.content),
+    assets: assets.map(serializeProjectAsset),
+  };
+}
+
+const homepageFallbackImages = [
+  '/images/legacy/kitchen-3d-3.jpeg',
+  '/images/legacy/kitchen-3d-1.jpg',
+  '/images/legacy/kitchen-3d-5.jpg',
+  '/images/legacy/bath-3d-1.jpg',
+  '/images/legacy/process-phase4-1.jpg',
+  '/images/legacy/process-phase1-1.jpg',
+  '/home/Alexandra-2.jpg',
+  '/home/alexandra.jpg',
+];
+
+function uniqueStrings(items) {
+  return Array.from(new Set(items.filter(Boolean)));
+}
+
+function homepageImageUrl(value) {
+  if (!value) return '';
+  return typeof value === 'string' ? value : value.url || '';
+}
+
+function homepageImageWithProject(value, urlToProjectId) {
+  const url = homepageImageUrl(value);
+  if (!url) return '';
+
+  if (value && typeof value === 'object') {
+    return {
+      ...value,
+      url,
+      projectId: value.projectId || urlToProjectId.get(url) || '',
+    };
+  }
+
+  const projectId = urlToProjectId.get(url);
+  return projectId ? { url, projectId } : url;
+}
+
+function homepageFallbackImage(value, fallback, urlToProjectId) {
+  const url = homepageImageUrl(value);
+  return homepageImageWithProject(url ? value : fallback, urlToProjectId);
+}
+
+function collectImagesFromValue(value, images = []) {
+  if (!value) return images;
+  if (typeof value === 'string') {
+    if (/^(https?:\/\/|\/)/i.test(value) && /\.(jpe?g|png|webp|gif)(\?|#|$)/i.test(value)) images.push(value);
+    return images;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectImagesFromValue(item, images));
+    return images;
+  }
+  if (typeof value === 'object') {
+    Object.values(value).forEach((item) => collectImagesFromValue(item, images));
+  }
+  return images;
+}
+
+function resolveHomepageSettingsImages(homepageSettings, projects) {
+  const urlToProjectId = new Map();
+  const projectImages = projects.flatMap((project) => {
+    const assetImages = (project.assets || []).map((asset) => asset.publicUrl).filter(Boolean);
+    const nextImages = collectImagesFromValue(parseContent(project.content));
+    [...assetImages, ...nextImages].forEach((url) => {
+      if (!urlToProjectId.has(url)) urlToProjectId.set(url, project.id);
+    });
+    return [...assetImages, ...nextImages];
+  });
+  const images = uniqueStrings([...projectImages, ...homepageFallbackImages]).slice(0, 14);
+  const heroImage = homepageSettings.hero?.image || '/home/Alexandra-2.jpg';
+
+  return {
+    ...homepageSettings,
+    collage: {
+      ...homepageSettings.collage,
+      images: {
+        primary: homepageFallbackImage(homepageSettings.collage?.images?.primary, images[1] || heroImage, urlToProjectId),
+        smallOne: homepageFallbackImage(homepageSettings.collage?.images?.smallOne, images[4] || heroImage, urlToProjectId),
+        wide: homepageFallbackImage(homepageSettings.collage?.images?.wide, images[2] || heroImage, urlToProjectId),
+        tall: homepageFallbackImage(homepageSettings.collage?.images?.tall, images[3] || heroImage, urlToProjectId),
+        smallTwo: homepageFallbackImage(homepageSettings.collage?.images?.smallTwo, images[5] || heroImage, urlToProjectId),
+      },
+    },
+    approach: {
+      ...homepageSettings.approach,
+      image: homepageFallbackImage(homepageSettings.approach?.image, images[6] || heroImage, urlToProjectId),
+    },
+    detail: {
+      ...homepageSettings.detail,
+      images: (homepageSettings.detail?.images?.length ? homepageSettings.detail.images : images.slice(0, 6))
+        .map((item) => homepageImageWithProject(item, urlToProjectId))
+        .filter((item) => homepageImageUrl(item)),
+    },
+  };
+}
+
+function cleanText(value, fallback = '', maxLength = 1200) {
+  if (value == null) return fallback;
+  return String(value).trim().slice(0, maxLength);
+}
+
+function cleanUrl(value, fallback = '') {
+  if (value == null) return fallback;
+  const next = String(value).trim().slice(0, 600);
+  if (!next) return '';
+  if (/^(https?:\/\/|\/|#|mailto:|tel:)/i.test(next)) return next;
+  return fallback;
+}
+
+function cleanOptionalProjectId(value) {
+  const next = cleanText(value, '', 120);
+  return next || null;
+}
+
+function getTestimonialOrder() {
+  return [{ sortOrder: 'asc' }, { createdAt: 'asc' }];
+}
+
+function serializeTestimonial(testimonial) {
+  return {
+    id: testimonial.id,
+    author: testimonial.author,
+    date: testimonial.date || '',
+    text: testimonial.text,
+    link: testimonial.link || '',
+    linkHref: testimonial.linkHref || '',
+    image: testimonial.image || '',
+    projectHref: testimonial.projectHref || '',
+    projectId: testimonial.projectId || '',
+    projectText: testimonial.projectText || '',
+    sortOrder: testimonial.sortOrder || 0,
+    isPublished: testimonial.isPublished !== false,
+    createdAt: testimonial.createdAt || '',
+    updatedAt: testimonial.updatedAt || '',
+  };
+}
+
+function findProjectForTestimonial(item, projects) {
+  const href = `${item.projectHref || ''} ${item.linkHref || ''}`.trim();
+  const legacySlug = href.split(/[?#]/)[0].split('/').filter(Boolean).pop()?.toLowerCase();
+  if (legacySlug) {
+    const project = projects.find((next) => {
+      const slug = String(next.slug || '').toLowerCase();
+      return slug === legacySlug || legacySlug.includes(slug) || slug.includes(legacySlug);
+    });
+    if (project) return project.id;
+  }
+
+  const source = href.toLowerCase();
+  const projectBySource = projects.find((next) => {
+    const slug = String(next.slug || '').toLowerCase();
+    return slug && source.includes(slug);
+  });
+  if (projectBySource) return projectBySource.id;
+
+  const haystack = `${item.author || ''} ${item.text || ''} ${item.projectHref || ''} ${item.linkHref || ''}`.toLowerCase();
+  if (haystack.includes('pacifica') || haystack.includes('ocean')) {
+    return projects.find((next) => /ocean|pacifica/i.test(`${next.title} ${next.slug}`))?.id || null;
+  }
+  if (haystack.includes('redwood')) {
+    return projects.find((next) => /redwood/i.test(`${next.title} ${next.slug}`))?.id || null;
+  }
+  if (haystack.includes('san carlos')) {
+    return projects.find((next) => /san-carlos/i.test(`${next.title} ${next.slug}`))?.id || null;
+  }
+  if (haystack.includes('saratoga')) {
+    return projects.find((next) => /saratoga/i.test(`${next.title} ${next.slug}`))?.id || null;
+  }
+  if (haystack.includes('san jose')) {
+    return projects.find((next) => /san-jose/i.test(`${next.title} ${next.slug}`))?.id || null;
+  }
+  if (haystack.includes('los altos')) {
+    return projects.find((next) => /los-altos/i.test(`${next.title} ${next.slug}`))?.id || null;
+  }
+  if (haystack.includes('palo alto')) {
+    return projects.find((next) => /palo-alto/i.test(`${next.title} ${next.slug}`))?.id || null;
+  }
+
+  return null;
+}
+
+async function ensureTestimonialProjectLinks() {
+  const [projects, testimonials] = await Promise.all([
+    prisma.project.findMany({ select: { id: true, title: true, slug: true } }),
+    prisma.testimonial.findMany({ where: { OR: [{ projectId: null }, { projectId: '' }] } }),
+  ]);
+
+  const updates = testimonials
+    .map((testimonial) => ({ testimonial, projectId: findProjectForTestimonial(testimonial, projects) }))
+    .filter((item) => item.projectId);
+
+  await Promise.all(updates.map(({ testimonial, projectId }) => (
+    prisma.testimonial.update({
+      where: { id: testimonial.id },
+      data: { projectId, updatedAt: new Date().toISOString() },
+    })
+  )));
+}
+
+async function ensureDefaultTestimonials() {
+  const existing = await prisma.testimonial.count();
+  if (existing > 0) return;
+
+  const projects = await prisma.project.findMany({ select: { id: true, title: true, slug: true } });
+  const now = new Date().toISOString();
+  await prisma.testimonial.createMany({
+    data: DEFAULT_TESTIMONIALS.map((item, index) => ({
+      author: cleanText(item.author, 'Client', 120),
+      date: cleanText(item.date, '', 80),
+      text: cleanText(item.text, '', 1200),
+      link: cleanText(item.link || '', '', 80),
+      linkHref: cleanUrl(item.linkHref || '', ''),
+      image: cleanUrl(item.image || '', ''),
+      projectHref: cleanUrl(item.projectHref || '', ''),
+      projectId: findProjectForTestimonial(item, projects),
+      projectText: cleanText(item.projectText || '', '', 120),
+      sortOrder: index,
+      isPublished: true,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  });
+}
+
+async function readTestimonialsForPublic() {
+  await ensureDefaultTestimonials();
+  await ensureTestimonialProjectLinks();
+  const testimonials = await prisma.testimonial.findMany({
+    where: { isPublished: true },
+    orderBy: getTestimonialOrder(),
+  });
+  return testimonials.map(serializeTestimonial);
+}
+
+async function readTestimonialsForAdmin() {
+  await ensureDefaultTestimonials();
+  await ensureTestimonialProjectLinks();
+  const testimonials = await prisma.testimonial.findMany({
+    orderBy: getTestimonialOrder(),
+  });
+  return testimonials.map(serializeTestimonial);
+}
+
+async function buildTestimonialData(input, fallbackSortOrder = 0) {
+  let projectId = cleanOptionalProjectId(input.projectId);
+  if (!projectId) {
+    const projects = await prisma.project.findMany({ select: { id: true, title: true, slug: true } });
+    projectId = findProjectForTestimonial(input || {}, projects);
+  }
+  if (projectId) {
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    if (!project) {
+      const error = new Error('Project not found');
+      error.status = 400;
+      throw error;
+    }
+  }
+
+  const author = cleanText(input.author, '', 120);
+  const text = cleanText(input.text, '', 1200);
+  if (!author || !text) {
+    const error = new Error('author & text required');
+    error.status = 400;
+    throw error;
+  }
+
+  const sortOrder = Number(input.sortOrder);
+  return {
+    author,
+    date: cleanText(input.date, '', 80),
+    text,
+    link: cleanText(input.link || '', '', 80),
+    linkHref: cleanUrl(input.linkHref || '', ''),
+    image: cleanUrl(input.image || '', ''),
+    projectHref: cleanUrl(input.projectHref || '', ''),
+    projectId,
+    projectText: cleanText(input.projectText || '', '', 120),
+    sortOrder: Number.isFinite(sortOrder) ? Math.round(sortOrder) : fallbackSortOrder,
+    isPublished: input.isPublished !== false,
+  };
+}
+
 async function getProjectOr404(projectId, res) {
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) {
@@ -224,12 +528,15 @@ async function getProjectOr404(projectId, res) {
 app.get('/api/content', async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const [categories, projects, blogPosts] = await Promise.all([
+    const baseHomepageSettings = readHomepageSettings();
+    const [categories, projects, blogPosts, testimonials] = await Promise.all([
       prisma.category.findMany({ where: { showInHeader: true }, orderBy: { sortOrder: 'asc' } }),
-      prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
+      prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ where: { isPublished: true }, orderBy: { publishedAt: 'desc' }, take: 10 }),
+      readTestimonialsForPublic(),
     ]);
-    res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts, themeSettings });
+    const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
+    res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });
 
@@ -287,12 +594,15 @@ app.get('/api/auth/me', requireAuth, (req, res) => res.json({ ok: true, user: re
 app.get('/api/admin/content', requireAuth, async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const [categories, projects, blogPosts] = await Promise.all([
+    const baseHomepageSettings = readHomepageSettings();
+    const [categories, projects, blogPosts, testimonials] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
-      prisma.project.findMany({ orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
+      prisma.project.findMany({ include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ orderBy: { createdAt: 'desc' } }),
+      readTestimonialsForAdmin(),
     ]);
-    res.json({ categories, projects: projects.map(p => ({ ...p, content: parseContent(p.content) })), blogPosts, themeSettings });
+    const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
+    res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
   } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
 
@@ -303,6 +613,60 @@ app.put('/api/admin/theme-settings', requireAuth, async (req, res) => {
     res.json({ themeSettings });
   } catch (err) {
     res.status(400).json({ error: err.message || 'Invalid theme settings' });
+  }
+});
+
+app.put('/api/admin/homepage-settings', requireAuth, async (req, res) => {
+  try {
+    const homepageSettings = writeHomepageSettings(req.body || {});
+    res.json({ homepageSettings });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Invalid homepage settings' });
+  }
+});
+
+app.post('/api/admin/testimonials', requireAuth, async (req, res) => {
+  try {
+    const count = await prisma.testimonial.count();
+    const now = new Date().toISOString();
+    const data = await buildTestimonialData(req.body || {}, count);
+    const testimonial = await prisma.testimonial.create({
+      data: {
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+    res.status(201).json(serializeTestimonial(testimonial));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed' });
+  }
+});
+
+app.put('/api/admin/testimonials/:id', requireAuth, async (req, res) => {
+  try {
+    const existing = await prisma.testimonial.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const data = await buildTestimonialData(req.body || {}, existing.sortOrder || 0);
+    const testimonial = await prisma.testimonial.update({
+      where: { id: req.params.id },
+      data: {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+    res.json(serializeTestimonial(testimonial));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed' });
+  }
+});
+
+app.delete('/api/admin/testimonials/:id', requireAuth, async (req, res) => {
+  try {
+    await prisma.testimonial.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(err.code === 'P2025' ? 404 : 500).json({ error: err.code === 'P2025' ? 'Not found' : 'Failed' });
   }
 });
 

@@ -673,7 +673,11 @@
 }
 
 @media (max-width: $breakpoint-mobile) {
-  .project-hero { min-height: 52svh; }
+  .project-hero { min-height: 60svh; }
+
+  .project-hero--immersive {
+    min-height: 100svh;
+  }
 
   .block-image-grid--2,
   .block-image-grid--3 {
@@ -687,8 +691,10 @@
 
   .block-image-grid-item,
   .block-image-grid-item--full {
-    height: auto;
-    aspect-ratio: 16 / 9;
+    height: 60svh;
+    min-height: 420px;
+    max-height: 680px;
+    aspect-ratio: auto;
   }
 
   .block-photo-sequence-row--pair {
@@ -697,8 +703,10 @@
 
   .block-photo-sequence-row--wide img,
   .block-photo-sequence-row--pair img {
-    min-height: 0;
-    aspect-ratio: 16 / 10;
+    min-height: 60svh;
+    max-height: 680px;
+    aspect-ratio: auto;
+    object-fit: cover;
   }
 
   .block-meta-info {

@@ -1,0 +1,328 @@
+.page {
+  --contact-gutter: clamp(24px, 4vw, 72px);
+  --contact-content: 1900px;
+  --contact-serif: Georgia, 'Times New Roman', serif;
+  --contact-shadow: 0 26px 72px rgba(0, 0, 0, 0.22);
+
+  overflow: clip;
+  color: var(--theme-text-primary);
+  background: var(--theme-bg);
+}
+
+.hero {
+  padding:
+    calc(var(--header-offset) + clamp(54px, 5vw, 82px))
+    max(var(--contact-gutter), calc((100vw - var(--contact-content)) / 2 + var(--contact-gutter)))
+    clamp(84px, 8vw, 136px);
+}
+
+.hero {
+  position: relative;
+  min-height: calc(100svh - var(--header-offset));
+  display: grid;
+  grid-template-columns: minmax(300px, 0.72fr) minmax(420px, 1fr);
+  grid-template-areas:
+    "copy portrait"
+    "form portrait"
+    "methods portrait";
+  gap: clamp(24px, 3vw, 54px);
+  align-items: start;
+  isolation: isolate;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.hero::before {
+  inset: 0;
+  z-index: -2;
+  opacity: 0.13;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 86px, var(--theme-border) 86px 87px),
+    repeating-linear-gradient(0deg, transparent 0 86px, var(--theme-border) 86px 87px),
+    linear-gradient(135deg, transparent 0 46%, var(--theme-border) 46% 47%, transparent 47%);
+  mask-image: radial-gradient(circle at 70% 42%, #000, transparent 72%);
+}
+
+.heroCopy {
+  grid-area: copy;
+  align-self: start;
+  max-width: 620px;
+}
+
+.heroCopy p,
+.formTitle p {
+  margin: 0 0 14px;
+  color: var(--theme-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1,
+.formTitle h2,
+.briefText h2 {
+  margin: 0;
+  color: var(--theme-text-primary);
+  font-family: var(--contact-serif);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.heroCopy h1 {
+  max-width: 660px;
+  font-size: clamp(36px, 3.4vw, 58px);
+  line-height: 1.02;
+}
+
+.contactMethods {
+  grid-area: methods;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 720px;
+}
+
+.contactMethods a {
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 22px;
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text-primary);
+  background: color-mix(in srgb, var(--theme-bg) 84%, transparent);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.contactMethods a:hover {
+  border-color: var(--theme-accent);
+  background: var(--theme-surface);
+  transform: translateY(-4px);
+}
+
+.contactMethods span {
+  color: var(--theme-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.contactMethods strong {
+  color: currentcolor;
+  font-family: var(--contact-serif);
+  font-size: clamp(16px, 1vw, 21px);
+  font-weight: 400;
+  line-height: 1.16;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.portrait {
+  position: relative;
+  grid-area: portrait;
+  min-height: min(820px, 76svh);
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--theme-surface);
+  box-shadow: var(--contact-shadow);
+}
+
+.portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 48%, rgba(0, 0, 0, 0.58)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 46%);
+  pointer-events: none;
+}
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.portrait figcaption {
+  position: absolute;
+  right: clamp(24px, 3vw, 42px);
+  bottom: clamp(24px, 3vw, 42px);
+  left: clamp(24px, 3vw, 42px);
+  z-index: 2;
+  color: #fff;
+}
+
+.portrait figcaption span {
+  display: block;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.portrait figcaption strong {
+  display: block;
+  max-width: 520px;
+  font-family: var(--contact-serif);
+  font-size: clamp(25px, 2.4vw, 42px);
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.form {
+  grid-area: form;
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 16px;
+  max-width: 720px;
+  padding: clamp(28px, 3vw, 42px);
+  border: 1px solid var(--theme-border);
+  background: color-mix(in srgb, var(--theme-surface-strong) 88%, transparent);
+  box-shadow: var(--contact-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.formTitle {
+  margin-bottom: 6px;
+}
+
+.formTitle h2 {
+  max-width: 500px;
+  font-size: clamp(24px, 2vw, 34px);
+  line-height: 1.1;
+}
+
+.success {
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 56%, transparent);
+  color: var(--theme-text-primary);
+  background: color-mix(in srgb, var(--theme-accent) 14%, transparent);
+  font-size: 13px;
+}
+
+.form label {
+  display: grid;
+  gap: 8px;
+}
+
+.form label span {
+  color: var(--theme-text-secondary);
+  font-size: 12px;
+}
+
+.form input,
+.form textarea {
+  width: 100%;
+  border: 1px solid var(--theme-border);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--theme-bg) 82%, transparent);
+  color: var(--theme-text-primary);
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.form input {
+  min-height: 48px;
+  padding: 0 15px;
+}
+
+.form textarea {
+  min-height: 150px;
+  padding: 14px 15px;
+  resize: vertical;
+}
+
+.form input:focus,
+.form textarea:focus {
+  border-color: var(--theme-accent);
+  background: var(--theme-surface);
+}
+
+.form button {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0 24px;
+  border: 1px solid var(--theme-accent);
+  color: var(--theme-text-primary);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.form button:hover {
+  color: var(--theme-bg);
+  background: var(--theme-text-primary);
+  transform: translateY(-3px);
+}
+
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    grid-template-areas:
+      "copy"
+      "form"
+      "methods"
+      "portrait";
+  }
+
+  .portrait {
+    min-height: 560px;
+  }
+
+  .form {
+    max-width: none;
+  }
+
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+
+  .hero {
+    padding-top: calc(var(--header-offset) + 42px);
+  }
+
+  .heroCopy h1 {
+    font-size: 34px;
+  }
+
+  .contactMethods {
+    grid-template-columns: 1fr;
+  }
+
+  .portrait {
+    min-height: 420px;
+  }
+
+  .portrait figcaption strong {
+    font-size: 26px;
+  }
+
+  .form {
+    padding: 24px;
+  }
+
+}

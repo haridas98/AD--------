@@ -15,6 +15,7 @@ export default function Lightbox({
   onNavigate,
 }: LightboxProps) {
   const [zoomed, setZoomed] = useState(false);
+  const [canUseZoom, setCanUseZoom] = useState(true);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragStartRef = useRef({ pointerX: 0, pointerY: 0, imageX: 0, imageY: 0 });
@@ -46,11 +47,15 @@ export default function Lightbox({
   }, [currentIndex, images.length, onNavigate, resetZoom]);
 
   useEffect(() => {
+    setCanUseZoom(!window.matchMedia('(pointer: coarse)').matches);
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
       if (event.key === 'ArrowLeft') handlePrev();
       if (event.key === 'ArrowRight') handleNext();
-      if (event.key === 'z' || event.key === 'Z') toggleZoom();
+      if (canUseZoom && (event.key === 'z' || event.key === 'Z')) toggleZoom();
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -60,14 +65,14 @@ export default function Lightbox({
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [onClose, handlePrev, handleNext, toggleZoom]);
+  }, [onClose, handlePrev, handleNext, toggleZoom, canUseZoom]);
 
   useEffect(() => {
     resetZoom();
   }, [currentIndex, resetZoom]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLImageElement>) => {
-    if (!zoomed) return;
+    if (!canUseZoom || !zoomed) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     dragStartRef.current = {
@@ -81,7 +86,7 @@ export default function Lightbox({
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLImageElement>) => {
-    if (!zoomed || !dragging) return;
+    if (!canUseZoom || !zoomed || !dragging) return;
     const start = dragStartRef.current;
     const deltaX = event.clientX - start.pointerX;
     const deltaY = event.clientY - start.pointerY;
@@ -102,6 +107,7 @@ export default function Lightbox({
   };
 
   const handleImageClick = () => {
+    if (!canUseZoom) return;
     if (draggedRef.current) {
       draggedRef.current = false;
       return;
@@ -119,9 +125,6 @@ export default function Lightbox({
         onClick={onClose}
       >
         <button className="lightbox-close" onClick={onClose}>x</button>
-        <button className="lightbox-zoom" onClick={(event) => { event.stopPropagation(); toggleZoom(); }}>
-          {zoomed ? 'Fit' : 'Zoom'}
-        </button>
 
         {images.length > 1 && (
           <>

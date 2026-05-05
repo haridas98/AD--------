@@ -1,162 +1,227 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useAppStore } from '../store/useAppStore';
-import { PortfolioLeadCard } from '../components/PortfolioLeadCard';
-import { PortfolioProjectCard } from '../components/PortfolioProjectCard';
+import { motion } from 'framer-motion';
+import { getPreviewImageUrl, handlePreviewFallback } from '../lib/imageUrls';
 import {
   getCanonicalPortfolioCategoryPathForCategory,
   getCanonicalPortfolioProjectPathForCategory,
 } from '../lib/portfolioRoutes';
-import { sortProjectsForPortfolio } from '../lib/projectOrdering';
+import { collectProjectImages, parseProjectContent } from '../lib/projectBlockTemplates';
+import { getProjectDisplayYear, sortProjectsForPortfolio } from '../lib/projectOrdering';
+import { useAppStore } from '../store/useAppStore';
+import type { Category, Project } from '../types';
 import styles from './ProjectsLandingPage.module.scss';
 
+type ProjectPreview = {
+  project: Project;
+  category?: Category;
+  image: string;
+};
+
+function getProjectCover(project: Project) {
+  return collectProjectImages(parseProjectContent(project.content))[0] || '';
+}
+
+function getShortTitle(title?: string | null) {
+  const value = String(title || '').trim();
+  if (!value) return 'Project';
+
+  return (
+    value
+      .replace(/\s*\([^)]*\)\s*/g, ' ')
+      .split(/[,:|]/)[0]
+      .replace(/\s+in\s+[A-Z].*$/u, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim() || value
+  );
+}
+
+function getProjectMeta(project: Project, category?: Category) {
+  const year = getProjectDisplayYear(project);
+  return [category?.name, project.cityName, year || null].filter(Boolean).join(' / ');
+}
+
+function getCountText(count: number) {
+  return count === 1 ? '1 project' : `${count} projects`;
+}
+
 export default function ProjectsLandingPage() {
-  const { categories, projects, site } = useAppStore();
-  const [slide, setSlide] = useState(0);
-  const featured = sortProjectsForPortfolio(projects.filter((project) => project.isFeatured && project.isPublished && !project.deletedAt));
+  const { site, categories, projects } = useAppStore();
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+
+  const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
+  const publishedProjects = useMemo(
+    () => sortProjectsForPortfolio(projects.filter((project) => project.isPublished && !project.deletedAt)),
+    [projects],
+  );
+
+  const projectPreviews = useMemo<ProjectPreview[]>(() => (
+    publishedProjects
+      .map((project) => ({
+        project,
+        category: categoryMap.get(project.categoryId),
+        image: getProjectCover(project),
+      }))
+      .filter((item) => item.image)
+  ), [categoryMap, publishedProjects]);
+
+  const heroProjects = useMemo(() => {
+    const featured = projectPreviews.filter(({ project }) => project.isFeatured);
+    return (featured.length ? featured : projectPreviews).slice(0, 8);
+  }, [projectPreviews]);
+
+  const categoryGroups = useMemo(() => (
+    [...categories]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((category) => {
+        const categoryProjects = projectPreviews.filter(({ project }) => project.categoryId === category.id);
+        return {
+          category,
+          lead: categoryProjects[0],
+          projects: categoryProjects.slice(1, 7),
+          count: categoryProjects.length,
+        };
+      })
+      .filter((group) => group.lead)
+  ), [categories, projectPreviews]);
 
   useEffect(() => {
-    if (featured.length < 2) return undefined;
-    const timerId = window.setInterval(() => setSlide((value) => (value + 1) % featured.length), 5000);
-    return () => window.clearInterval(timerId);
-  }, [featured.length]);
+    if (heroProjects.length < 2) return undefined;
 
-  function getCover(project: any) {
-    const content = typeof project.content === 'string' ? JSON.parse(project.content) : project.content;
-    return content?.find((block: any) => block.type === 'heroImage')?.data?.image || '';
-  }
+    const timer = window.setInterval(() => {
+      setActiveHeroIndex((index) => (index + 1) % heroProjects.length);
+    }, 6500);
 
-  function getProjectCategory(project: any) {
-    return categories.find((category) => category.id === project.categoryId || category.slug === project.categoryId);
-  }
+    return () => window.clearInterval(timer);
+  }, [heroProjects.length]);
+
+  useEffect(() => {
+    if (!heroProjects.length) return;
+    setActiveHeroIndex((index) => Math.min(index, heroProjects.length - 1));
+  }, [heroProjects.length]);
+
+  const activeHero = heroProjects[activeHeroIndex] || heroProjects[0];
 
   return (
     <>
       <Helmet>
         <title>Projects - {site?.name || 'Alexandra Diz'}</title>
-        <meta name="description" content="Refined California interiors with practical planning, material clarity, and timeless detail." />
+        <meta name="description" content="Residential interiors and architecture projects by Alexandra Diz." />
       </Helmet>
 
-      {featured.length > 0 ? (
-        <section
-          className="hero-slider"
-          onClick={(event) => {
-            if (featured.length < 2) return;
-            const rect = event.currentTarget.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            if (x < rect.width * 0.3) setSlide((value) => (value - 1 + featured.length) % featured.length);
-            else if (x > rect.width * 0.7) setSlide((value) => (value + 1) % featured.length);
-          }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={slide}
-              className="hero-slider-slide"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <img src={getCover(featured[slide])} alt={featured[slide].title} />
-              <div className="hero-slider-overlay" />
-              <div className="container hero-slider-content">
-                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                  {featured[slide].title}
-                </motion.h1>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                  <Link
-                    to={getCanonicalPortfolioProjectPathForCategory(getProjectCategory(featured[slide]), featured[slide].slug)}
-                    className="btn-primary"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    View Project
+      <main className={styles.page}>
+        {activeHero ? (
+          <section className={styles.hero}>
+            <div className={styles.heroCopy}>
+              <p>Portfolio</p>
+              <h1>Homes shaped by light, rhythm and restraint.</h1>
+              <nav className={styles.categoryLinks} aria-label="Project categories">
+                {categoryGroups.slice(0, 6).map(({ category, count }) => (
+                  <Link key={category.id} to={getCanonicalPortfolioCategoryPathForCategory(category)}>
+                    <span>{category.name}</span>
+                    <small>{getCountText(count)}</small>
                   </Link>
-                </motion.div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                ))}
+              </nav>
+            </div>
 
-          {featured.length > 1 ? (
-            <div className="hero-slider-dots">
-              {featured.map((_, index) => (
+            <Link
+              className={styles.heroFeature}
+              to={getCanonicalPortfolioProjectPathForCategory(activeHero.category, activeHero.project.slug)}
+            >
+              <motion.img
+                key={activeHero.project.id}
+                src={getPreviewImageUrl(activeHero.image)}
+                alt={activeHero.project.title}
+                onError={(event) => handlePreviewFallback(event, activeHero.image)}
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              />
+              <span className={styles.heroCounter}>
+                {String(activeHeroIndex + 1).padStart(2, '0')} / {String(heroProjects.length).padStart(2, '0')}
+              </span>
+              <strong>{getShortTitle(activeHero.project.title)}</strong>
+              <small>{getProjectMeta(activeHero.project, activeHero.category)}</small>
+            </Link>
+
+            <div className={styles.heroDots} aria-label="Featured project selector">
+              {heroProjects.map(({ project }, index) => (
                 <button
-                  key={index}
+                  key={project.id}
                   type="button"
-                  className={`hero-slider-dot${slide === index ? ' active' : ''}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setSlide(index);
-                  }}
+                  className={index === activeHeroIndex ? styles.heroDotActive : undefined}
+                  onClick={() => setActiveHeroIndex(index)}
+                  aria-label={`Show ${project.title}`}
                 />
               ))}
             </div>
-          ) : null}
-        </section>
-      ) : null}
+          </section>
+        ) : (
+          <section className={styles.empty}>
+            <h1>Projects</h1>
+          </section>
+        )}
 
-      <section className={styles.sections}>
-        {categories.map((category) => {
-          const catProjects = sortProjectsForPortfolio(projects.filter((project) => project.categoryId === category.id && project.isPublished && !project.deletedAt));
-          if (!catProjects.length) return null;
-
-          const projectsWithCover = catProjects.filter((project) => getCover(project));
-          const leadProject = projectsWithCover.find((project) => project.isFeatured) || projectsWithCover[0];
-          const supportingProjects = projectsWithCover.filter((project) => project.id !== leadProject?.id).slice(0, 4);
-          if (!leadProject) return null;
-
-          return (
-            <motion.div
+        <section className={styles.sections} aria-label="Project collections">
+          {categoryGroups.map(({ category, lead, projects: supportingProjects, count }, sectionIndex) => (
+            <motion.article
               key={category.id}
               className={styles.section}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+              viewport={{ once: true, margin: '-12%' }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="page-shell">
-                <div className="page-shell__portfolio">
-                  <div className={styles.sectionHead}>
-                    <h2>{category.name}</h2>
-                    <Link to={getCanonicalPortfolioCategoryPathForCategory(category)} className="btn-see-more">
-                      <span>See more {category.name.toLowerCase()}</span>
-                      <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-                        <path d="M1 6h22M18 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </Link>
-                  </div>
+              <div className={styles.sectionIntro}>
+                <span>{String(sectionIndex + 1).padStart(2, '0')}</span>
+                <h2>{category.name}</h2>
+                <p>{getCountText(count)}</p>
+                <Link to={getCanonicalPortfolioCategoryPathForCategory(category)}>See section</Link>
+              </div>
 
-                  <PortfolioLeadCard
-                    to={getCanonicalPortfolioProjectPathForCategory(category, leadProject.slug)}
-                    title={leadProject.title}
-                    image={getCover(leadProject)}
-                    categoryName={category.name}
-                    cityName={leadProject.cityName}
-                    year={leadProject.year}
-                  />
+              {lead ? (
+                <div className={styles.collection}>
+                  <Link
+                    className={styles.leadProject}
+                    to={getCanonicalPortfolioProjectPathForCategory(category, lead.project.slug)}
+                  >
+                    <img
+                      src={getPreviewImageUrl(lead.image)}
+                      alt={lead.project.title}
+                      onError={(event) => handlePreviewFallback(event, lead.image)}
+                    />
+                    <span>{String(sectionIndex + 1).padStart(2, '0')}</span>
+                    <strong>{getShortTitle(lead.project.title)}</strong>
+                    <small>{getProjectMeta(lead.project, category)}</small>
+                  </Link>
 
-                  {supportingProjects.length > 0 ? (
-                    <div className={styles.supportingGrid}>
-                      {supportingProjects.map((project) => (
-                        <PortfolioProjectCard
+                  {supportingProjects.length ? (
+                    <div className={styles.projectRail}>
+                      {supportingProjects.map(({ project, image }, index) => (
+                        <Link
                           key={project.id}
+                          className={styles.projectTile}
                           to={getCanonicalPortfolioProjectPathForCategory(category, project.slug)}
-                          title={project.title}
-                          image={getCover(project)}
-                          eyebrow={category.name}
-                          cityName={project.cityName}
-                          year={project.year}
-                        />
+                        >
+                          <img
+                            src={getPreviewImageUrl(image)}
+                            alt={project.title}
+                            onError={(event) => handlePreviewFallback(event, image)}
+                          />
+                          <span>{String(index + 2).padStart(2, '0')}</span>
+                          <strong>{getShortTitle(project.title)}</strong>
+                        </Link>
                       ))}
                     </div>
                   ) : null}
                 </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </section>
+              ) : null}
+            </motion.article>
+          ))}
+        </section>
+      </main>
     </>
   );
 }

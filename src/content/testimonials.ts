@@ -61,4 +61,32 @@ export const studioTestimonials: StudioTestimonial[] = [
     image: null,
     projectHref: null,
   },
+  {
+    date: '2021',
+    text: 'Alexandra helped us turn a fragmented floor plan into a home that finally feels calm and connected. Every room now has a clear purpose, and the materials feel refined without being too formal.',
+    author: 'Private Client, San Carlos',
+    image: null,
+    projectHref: null,
+  },
+  {
+    date: '2021',
+    text: 'We came to Alexandra with too many ideas and no clear direction. She narrowed the choices, protected the budget, and gave the house a finished look that still feels like us.',
+    author: 'Homeowner, Palo Alto',
+    image: null,
+    projectHref: null,
+  },
+  {
+    date: '2022',
+    text: 'The best part of working with Alexandra was how practical the process felt. The drawings, finishes and site conversations were precise, and the final rooms feel effortless.',
+    author: 'Client, Saratoga',
+    image: null,
+    projectHref: null,
+  },
+  {
+    date: '2023',
+    text: 'Alexandra understood the balance we wanted: warm, modern and not overdecorated. She found storage where we did not think it could exist and made the renovation feel organized.',
+    author: 'Homeowner, San Jose',
+    image: null,
+    projectHref: null,
+  },
 ];
