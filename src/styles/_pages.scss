@@ -1455,7 +1455,7 @@
 }
 
 .about-page .press-card:nth-child(4n + 2) {
-  transform: translateY(clamp(24px, 4vw, 66px));
+  margin-top: clamp(24px, 4vw, 66px);
 }
 
 .about-page .press-card:hover {
@@ -1464,7 +1464,7 @@
 }
 
 .about-page .press-card:nth-child(4n + 2):hover {
-  transform: translateY(clamp(16px, 3vw, 54px));
+  transform: translateY(-4px);
 }
 
 .about-page .press-card__image {
@@ -1654,6 +1654,7 @@
   .about-page .press-card:nth-child(4n + 2) {
     grid-column: auto;
     transform: none;
+    margin-top: 0;
   }
 
   .about-page .press-card:nth-child(n):hover,
@@ -1701,6 +1702,7 @@
   .about-page .press-card:nth-child(4n + 2):hover {
     grid-column: auto;
     transform: none;
+    margin-top: 0;
   }
 
   .about-page .press-card__image,
