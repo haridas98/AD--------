@@ -151,7 +151,7 @@ const pressItems = [
     href: '#',
   },
   {
-    image: '/images/legacy/press-11.jpg',
+    image: '/images/legacy/kitchen-3d-5.jpg',
     title: 'Contemporary Kitchen — Design Portfolio',
     publication: 'Design Portfolio',
     year: '',

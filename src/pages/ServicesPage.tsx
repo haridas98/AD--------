@@ -54,6 +54,10 @@ const servicesData: Record<string, {
           { num: '2.', text: 'All orders are placed, tracked, and managed by the designer.' },
           { num: '3.', text: 'Quality control inspections are performed on all received items.' },
         ],
+        images: [
+          'https://images.pexels.com/photos/6580561/pexels-photo-6580561.jpeg?auto=compress&cs=tinysrgb&w=1600',
+          'https://images.pexels.com/photos/4977448/pexels-photo-4977448.jpeg?auto=compress&cs=tinysrgb&w=1600',
+        ],
       },
       {
         heading: 'Phase IV',
@@ -98,11 +102,19 @@ const servicesData: Record<string, {
         heading: '3.',
         subheading: 'TECHNICAL DOCUMENTATION',
         text: 'Detailed technical drawings for contractors including plumbing, electrical, and ventilation plans. Everything needed for a smooth construction process.',
+        images: [
+          '/images/legacy/bath-planning.jpg',
+          '/images/legacy/kitchen-planning.jpg',
+        ],
       },
       {
         heading: '4.',
         subheading: 'CONSTRUCTION MANAGEMENT',
         text: 'The designer oversees the construction process, ensuring quality and adherence to the design vision. Regular site visits and coordination with contractors.',
+        images: [
+          '/images/legacy/aboutme.jpg',
+          '/images/legacy/process-phase4-2.jpg',
+        ],
       },
     ],
   },
@@ -135,11 +147,19 @@ const servicesData: Record<string, {
         heading: '3.',
         subheading: 'TECHNICAL DOCUMENTATION',
         text: 'Complete technical drawings including cabinet layouts, appliance specifications, plumbing and electrical plans for the contractor.',
+        images: [
+          '/images/legacy/kitchen-planning.jpg',
+          '/images/legacy/bath-planning.jpg',
+        ],
       },
       {
         heading: '4.',
         subheading: 'PROJECT MANAGEMENT',
-        text: 'We coordinate all aspects of the project from start to finish — ordering materials, managing deliveries, and supervising construction to ensure quality.',
+        text: 'We coordinate all aspects of the project from start to finish - ordering materials, managing deliveries, and supervising construction to ensure quality.',
+        images: [
+          '/images/legacy/process-phase4-1.jpg',
+          '/images/legacy/process-phase4-2.jpg',
+        ],
       },
     ],
   },
