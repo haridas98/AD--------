@@ -2,73 +2,121 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
+import styles from './VideoSeriesPage.module.scss';
 
-const videoSections = [
+type VideoCard = {
+  href: string;
+  thumb: string;
+  title: string;
+  description: string;
+};
+
+type FeaturedVideo = {
+  type: 'featured';
+  videoId: string;
+  title: string;
+  description: string;
+};
+
+type GallerySection = {
+  type: 'gallery' | 'project-gallery';
+  title: string;
+  eyebrow: string;
+  items: VideoCard[];
+};
+
+type ProjectSection = {
+  type: 'project';
+  title: string;
+  eyebrow: string;
+  thumb: string;
+  description: string;
+};
+
+type VideoSection = FeaturedVideo | GallerySection | ProjectSection;
+
+const videoSections: VideoSection[] = [
   {
     type: 'featured',
     videoId: 'cX7vUWvPtjs?t=6',
     title: 'Sunnyvale Project',
-    description: 'Welcome to our Sunnyvale project, we are doing reconstruction. I think it\'s gonna be really interesting for you. Enjoy the video!',
+    description:
+      'A finished-home walkthrough with Alexandra, showing the decisions that make the remodel feel complete.',
   },
   {
     type: 'gallery',
-    title: 'Video Series',
+    eyebrow: 'Studio Notes',
+    title: 'Work moments, site visits and conversations.',
     items: [
       {
         href: 'https://youtu.be/V5B_DBGzyFg',
         thumb: '/images/legacy/video-1.jpg',
-        description: 'This two-minute video-mix about interior designer day in Silicon Valley. I really like this video fragments of Work process, the job site, interesting moments, before and after.',
+        title: 'Designer day',
+        description: 'A short video mix from the studio rhythm: job site, work process, before and after.',
       },
       {
         href: 'https://www.youtube.com/watch?v=08cTmncWb28',
         thumb: '/images/legacy/video-2.jpg',
-        description: 'Tv interview for Channel 9, Israel. It was such a great experience! Talking about design, architecture, new year and small tips for decorating your home sweet home.',
+        title: 'Channel 9 interview',
+        description: 'A TV conversation about design, architecture and small ways to refresh a home.',
       },
       {
         href: 'https://youtu.be/M1TDoktfpa0',
         thumb: '/images/legacy/video-3.jpg',
-        description: 'This is really interesting interview with @anastasiya.filimonova. I told about opened interior design studio in Silicon Valley and features work in California.',
+        title: 'Studio interview',
+        description: 'Alexandra speaks about opening an interior design studio in Silicon Valley.',
       },
       {
         href: 'https://youtu.be/e4OVbSLc5K0',
         thumb: '/images/legacy/video-4.jpg',
-        description: 'Thank you my friends for making it happen! We made a great charity design seminar together. I\'m so happy to be able to share my experience and knowledge and with at the same time to help kids. Charity is an amazing thing for our community!',
+        title: 'Design seminar',
+        description: 'A charity design seminar about sharing experience, knowledge and community support.',
       },
     ],
   },
   {
     type: 'project',
+    eyebrow: 'Project Film',
     title: 'House in Belmont Remodel',
     thumb: '/images/legacy/video-belmont.jpg',
-    description: 'Hello and Welcome to our Belmont project, we are doing reconstruction. I think it\'s gonna be really interesting for you. Enjoy the video!',
+    description:
+      'A remodel story from Belmont with a look at the site, the planning decisions and the final direction.',
   },
   {
     type: 'project-gallery',
+    eyebrow: 'Walkthrough',
     title: 'House in Walnut Creek Remodel',
     items: [
       {
         href: 'https://youtu.be/97_vlJO85I',
         thumb: '/images/legacy/video-walnut-1.jpg',
-        description: 'Welcome to our project Walnut Creek. I\'m so happy to show you this space. Totally finished, after all the hard work we\'ve done here.',
+        title: 'Final reveal',
+        description: 'A finished Walnut Creek walkthrough after the full renovation process.',
       },
       {
         href: 'https://www.youtube.com/watch?v=LSSvMDGluU&t=1s',
         thumb: '/images/legacy/video-walnut-2.jpg',
-        description: 'Walnut Creek project walkthrough — kitchen and living space.',
+        title: 'Kitchen and living',
+        description: 'A closer look at the shared kitchen and living space decisions.',
       },
       {
         href: 'https://youtu.be/M1TDoktfpa0',
         thumb: '/images/legacy/video-walnut-3.jpg',
-        description: 'Design process and material selection for Walnut Creek.',
+        title: 'Material selection',
+        description: 'Notes on how finishes and materials were edited into one calm direction.',
       },
       {
         href: 'https://youtu.be/e4OVbSLc5K0',
         thumb: '/images/legacy/video-walnut-4.jpg',
-        description: 'Final reveal — Walnut Creek project completed.',
+        title: 'Completed home',
+        description: 'The project after construction, styling and final details.',
       },
     ],
   },
 ];
+
+const featuredVideo = videoSections[0] as FeaturedVideo;
+const contentSections = videoSections.slice(1) as Array<GallerySection | ProjectSection>;
 
 export default function VideoSeriesPage() {
   const { site } = useAppStore();
@@ -76,76 +124,83 @@ export default function VideoSeriesPage() {
   return (
     <>
       <Helmet>
-        <title>Video Series — {site?.name || 'Alexandra Diz'}</title>
-        <meta name="description" content="Watch our design process and project walkthroughs" />
+        <title>Video Series - {site?.name || 'Alexandra Diz'}</title>
+        <meta name="description" content="Project walkthroughs, design notes and video stories from Alexandra Diz." />
       </Helmet>
       <motion.main
-        className="page-shell page-shell--offset video-series-page"
+        className={styles.page}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="page-shell__portfolio">
-          <h1 className="page-title">Video Series</h1>
+        <div className={styles.inner}>
+          <section className={styles.hero}>
+            <div>
+              <p className={styles.eyebrow}>Video journal</p>
+              <h1>Project stories in motion.</h1>
+            </div>
+            <p>
+              Site visits, finished rooms and short conversations about how Alexandra brings a home from plan to
+              feeling.
+            </p>
+          </section>
 
-        {/* Featured Video */}
-        <section className="video-featured">
-          <div className="video-featured__embed">
-            <iframe
-              src={`https://www.youtube.com/embed/${videoSections[0].videoId}`}
-              title={videoSections[0].title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-          <p className="video-featured__description">{videoSections[0].description}</p>
-        </section>
+          <section className={styles.featured}>
+            <div className={styles.featuredCopy}>
+              <p className={styles.eyebrow}>Featured video</p>
+              <h2>{featuredVideo.title}</h2>
+              <p>{featuredVideo.description}</p>
+            </div>
+            <div className={styles.embed}>
+              <iframe
+                src={`https://www.youtube.com/embed/${featuredVideo.videoId}`}
+                title={featuredVideo.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </section>
 
-        {/* Video Gallery Grid */}
-          {videoSections.slice(1).map((section, i) => (
-          <motion.section
-            key={i}
-            className="video-section"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <h2 className="video-section__title">{section.title}</h2>
+          {contentSections.map((section, sectionIndex) => (
+            <motion.section
+              key={section.title}
+              className={styles.section}
+              initial={{ opacity: 0, y: 22 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ delay: sectionIndex * 0.08 }}
+            >
+              <div className={styles.sectionIntro}>
+                <p className={styles.eyebrow}>{section.eyebrow}</p>
+                <h2 className={styles.sectionTitle}>{section.title}</h2>
+              </div>
 
-            {'items' in section ? (
-              <div className="video-grid">
-                {section.items.map((item, j) => (
-                  <a
-                    key={j}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="video-card"
-                  >
-                    <div className="video-card__image">
-                      <img src={item.thumb} alt={item.description} loading="lazy" />
-                      <div className="video-card__play">
-                        <svg viewBox="0 0 68 48" width="48" height="36">
-                          <path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="#f00"/>
-                          <path d="M 45,24 27,14 27,34" fill="#fff"/>
-                        </svg>
+              {'items' in section ? (
+                <div className={styles.grid}>
+                  {section.items.map((item, itemIndex) => (
+                    <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className={styles.card}>
+                      <div className={styles.cardImage}>
+                        <img src={item.thumb} alt={item.title} loading="lazy" />
+                        <span className={styles.cardNumber}>{String(itemIndex + 1).padStart(2, '0')}</span>
+                        <span className={styles.cardPlay}>Play</span>
                       </div>
-                    </div>
-                    <p className="video-card__description">{item.description}</p>
-                  </a>
-                ))}
-              </div>
-            ) : 'thumb' in section ? (
-              <div className="video-single">
-                <div className="video-single__image">
-                  <img src={section.thumb} alt={section.title} />
+                      <div className={styles.cardBody}>
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+                      </div>
+                    </a>
+                  ))}
                 </div>
-                <p className="video-single__description">{section.description}</p>
-              </div>
-            ) : null}
-          </motion.section>
+              ) : (
+                <div className={styles.single}>
+                  <figure className={styles.singleImage}>
+                    <img src={section.thumb} alt={section.title} loading="lazy" />
+                  </figure>
+                  <p className={styles.singleDescription}>{section.description}</p>
+                </div>
+              )}
+            </motion.section>
           ))}
         </div>
       </motion.main>

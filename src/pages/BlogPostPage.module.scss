@@ -1,18 +1,43 @@
 .page {
+  --article-gutter: clamp(24px, 4vw, 72px);
+  --article-content: 1900px;
+  --article-serif: Georgia, 'Times New Roman', serif;
+
+  position: relative;
+  overflow: clip;
   background: var(--theme-bg);
   color: var(--theme-text-primary);
   padding-bottom: clamp(64px, 8vw, 120px);
 }
 
+.page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.08;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 94px, var(--theme-border) 94px 95px),
+    repeating-linear-gradient(0deg, transparent 0 94px, var(--theme-border) 94px 95px),
+    linear-gradient(132deg, transparent 0 46%, var(--theme-border) 46% 47%, transparent 47%);
+  pointer-events: none;
+}
+
 .article {
+  position: relative;
+  z-index: 1;
   width: 100%;
   margin: 0 auto;
 }
 
 .body {
-  width: min(100% - (var(--page-gutter) * 2), 1180px);
-  margin: clamp(40px, 7vw, 104px) auto;
-  padding: clamp(8px, 2vw, 20px) 0;
+  width: 100%;
+  margin: clamp(56px, 7vw, 112px) 0;
+  padding:
+    clamp(28px, 4vw, 54px)
+    max(var(--article-gutter), calc((100vw - var(--article-content)) / 2 + var(--article-gutter)))
+    0;
+  border-top: 1px solid var(--theme-border);
 }
 
 .kicker {
@@ -20,7 +45,7 @@
   color: var(--theme-accent);
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -28,9 +53,10 @@
   max-width: 18ch;
   margin: 0 0 clamp(20px, 3vw, 34px);
   color: var(--theme-text-primary);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(38px, 5vw, 74px);
-  line-height: 1.04;
+  font-family: var(--article-serif);
+  font-size: clamp(34px, 3.8vw, 64px);
+  font-weight: 400;
+  line-height: 1.05;
   letter-spacing: 0;
 }
 
@@ -38,8 +64,8 @@
   max-width: 820px;
   margin: 0 0 clamp(36px, 5vw, 72px);
   color: var(--theme-text-secondary);
-  font-size: clamp(18px, 1.7vw, 25px);
-  line-height: 1.5;
+  font-size: clamp(17px, 1.35vw, 22px);
+  line-height: 1.65;
 }
 
 .section {
@@ -54,8 +80,9 @@
 .section h2 {
   margin: 0;
   color: var(--theme-text-primary);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(28px, 2.8vw, 46px);
+  font-family: var(--article-serif);
+  font-size: clamp(28px, 2.6vw, 44px);
+  font-weight: 400;
   line-height: 1.08;
   letter-spacing: 0;
 }
@@ -67,7 +94,7 @@
 .section p {
   margin: 0 0 18px;
   color: var(--theme-text-secondary);
-  font-size: clamp(17px, 1.12vw, 20px);
+  font-size: clamp(16px, 1.05vw, 19px);
   line-height: 1.72;
 }
 
@@ -77,9 +104,9 @@
 
 @media (max-width: 760px) {
   .body {
-    width: min(100% - 28px, 980px);
     margin-top: 32px;
-    padding: 0;
+    padding-right: 18px;
+    padding-left: 18px;
   }
 
   .body h1 {
