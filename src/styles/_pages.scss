@@ -1429,6 +1429,7 @@
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: clamp(16px, 2vw, 34px);
+  align-items: start;
   max-width: none;
   margin: 0 0 clamp(34px, 5vw, 70px);
 }
@@ -1436,7 +1437,9 @@
 .about-page .press-card {
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
+  align-content: start;
+  align-self: start;
   overflow: visible;
   border-radius: 0;
   border: 1px solid var(--theme-border);
@@ -1481,7 +1484,7 @@
 }
 
 .about-page .press-card__caption {
-  min-height: 92px;
+  min-height: 0;
   padding: 16px 18px 18px;
   border-top: 1px solid var(--theme-border);
 }
