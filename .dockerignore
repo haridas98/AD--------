@@ -42,11 +42,14 @@ docker-compose*.yml
 .dockerignore
 
 # AI agents & configs
+.codex
 .agents
 .qwen
 .claude
 .superpowers
 .gstack
+.open-design-reference
+.worktrees
 QWEN.md
 AGENTS.md
 
