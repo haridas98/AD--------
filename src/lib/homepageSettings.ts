@@ -2,7 +2,7 @@ import type { HomepageSettings } from '../types';
 
 export const DEFAULT_HOMEPAGE_SETTINGS: HomepageSettings = {
   hero: {
-    title: 'Create your dream home',
+    title: 'Create your dream...',
     image: '/home/Alexandra-2.jpg',
   },
   collage: {
