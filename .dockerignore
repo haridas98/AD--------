@@ -12,6 +12,9 @@ build
 # Do not bake project media into the application image.
 public/uploads/projects
 
+# Local archive/check scripts are not needed in the production image.
+scripts
+
 # Environment files
 .env
 .env.local
