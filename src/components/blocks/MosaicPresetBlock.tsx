@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import Lightbox from '../Lightbox';
 import styles from './MosaicPresetBlock.module.scss';
 import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 
 type MosaicImage = {
   url: string;
@@ -51,7 +52,12 @@ export default function MosaicPresetBlock({ data }: MosaicPresetBlockProps) {
               className={styles.cell}
               onClick={() => setLightboxIndex(index)}
             >
-              <img src={image.url} alt={image.alt || data.title || ''} style={getCoverImageStyle(image.crop)} />
+              <img
+                src={getPreviewImageUrl(image.url)}
+                alt={image.alt || data.title || ''}
+                style={getCoverImageStyle(image.crop)}
+                onError={(event) => handlePreviewFallback(event, image.url)}
+              />
             </button>
           ))}
         </div>

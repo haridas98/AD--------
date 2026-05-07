@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getPreviewImageUrl, handlePreviewFallback } from '../lib/imageUrls';
 import styles from './PortfolioProjectCard.module.scss';
 
 interface PortfolioProjectCardProps {
@@ -14,7 +15,13 @@ interface PortfolioProjectCardProps {
 export function PortfolioProjectCard({ to, title, image, eyebrow, cityName, year }: PortfolioProjectCardProps) {
   return (
     <Link to={to} className={styles.card} data-portfolio-card>
-      <img src={image} alt={title} className={styles.image} loading="lazy" />
+      <img
+        src={getPreviewImageUrl(image)}
+        alt={title}
+        className={styles.image}
+        loading="lazy"
+        onError={(event) => handlePreviewFallback(event, image)}
+      />
       <div className={styles.overlay}>
         {eyebrow ? <span className={styles.eyebrow}>{eyebrow}</span> : null}
         <h3 className={styles.title}>{title}</h3>

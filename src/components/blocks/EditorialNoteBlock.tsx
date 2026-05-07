@@ -1,5 +1,6 @@
 import React from 'react';
 import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 import styles from './EditorialNoteBlock.module.scss';
 
 interface EditorialNoteBlockProps {
@@ -29,7 +30,15 @@ export default function EditorialNoteBlock({ data }: EditorialNoteBlockProps) {
           {data.title ? <h2>{data.title}</h2> : null}
           {data.note ? <blockquote className={styles.note}>{data.note}</blockquote> : null}
         </div>
-        {asset?.url ? <img src={asset.url} alt={asset.alt || data.alt || data.title || ''} className={styles.image} style={getCoverImageStyle(asset.crop)} /> : null}
+        {asset?.url ? (
+          <img
+            src={getPreviewImageUrl(asset.url)}
+            alt={asset.alt || data.alt || data.title || ''}
+            className={styles.image}
+            style={getCoverImageStyle(asset.crop)}
+            onError={(event) => handlePreviewFallback(event, asset.url)}
+          />
+        ) : null}
       </div>
     </section>
   );

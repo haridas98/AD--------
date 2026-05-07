@@ -6,9 +6,7 @@ import type { ContentData, Project, Category, BlogPost, Testimonial, ThemeMode, 
 const THEME_STORAGE_KEY = 'alexandradiz-theme-mode';
 
 function getInitialThemeMode(): ThemeMode {
-  if (typeof window === 'undefined') return 'dark';
-  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return stored === 'light' ? 'light' : 'dark';
+  return 'light';
 }
 
 interface AppState {

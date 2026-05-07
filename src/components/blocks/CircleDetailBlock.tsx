@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './CircleDetailBlock.module.scss';
 import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 
 type CircleItem = {
   image: string;
@@ -103,7 +104,14 @@ export default function CircleDetailBlock({ data }: CircleDetailBlockProps) {
                 {(() => {
                   const image = normalizeImageAsset({ url: item.image, alt: item.alt, crop: item.crop });
                   if (!image) return null;
-                  return <img src={image.url} alt={image.alt || item.label || ''} style={getCoverImageStyle(image.crop)} />;
+                  return (
+                    <img
+                      src={getPreviewImageUrl(image.url)}
+                      alt={image.alt || item.label || ''}
+                      style={getCoverImageStyle(image.crop)}
+                      onError={(event) => handlePreviewFallback(event, image.url)}
+                    />
+                  );
                 })()}
               </div>
               {item.label ? <figcaption>{item.label}</figcaption> : null}
