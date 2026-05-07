@@ -206,7 +206,21 @@ export default function HomePage() {
     () => sortProjectsForPortfolio(projects.filter((project) => project.isPublished && !project.deletedAt)),
     [projects],
   );
-  const selectedProjects = publishedProjects.slice(0, homepageSettings.showcase.projectCount);
+  const kitchenProjects = useMemo(
+    () => publishedProjects.filter((project) => {
+      const category = categoryMap.get(project.categoryId);
+      return category?.slug === 'kitchens' || project.categoryId === 'kitchens';
+    }),
+    [publishedProjects, categoryMap],
+  );
+  const bathroomProjects = useMemo(
+    () => publishedProjects.filter((project) => {
+      const category = categoryMap.get(project.categoryId);
+      return category?.slug === 'bathrooms' || project.categoryId === 'bathrooms';
+    }),
+    [publishedProjects, categoryMap],
+  );
+  const selectedProjects = kitchenProjects.slice(0, homepageSettings.showcase.projectCount);
 
   const projectImages = selectedProjects.map(getProjectCover).filter(Boolean);
   const images = Array.from(new Set([...projectImages, ...fallbackImages])).slice(0, 14);
@@ -222,7 +236,7 @@ export default function HomePage() {
     ? getProjectCover(activeProject) || images[activeProjectIndex] || heroImage
     : heroImage;
   const activeProjectHref = activeProject ? getProjectPath(activeProject, categoryMap) : null;
-  const detailProjectImages = publishedProjects
+  const detailProjectImages = bathroomProjects
     .map(getProjectImageRef)
     .filter((item): item is HomepageImageValue => Boolean(item))
     .slice(0, 14);

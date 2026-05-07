@@ -6,11 +6,11 @@ export const DEFAULT_HOMEPAGE_SETTINGS: HomepageSettings = {
     image: '/home/Alexandra-2.jpg',
   },
   collage: {
-    title: 'the light, the plan, the quiet detail.',
-    text: 'Alexandra designs homes from the inside out: how the room moves, where storage belongs, how daylight lands, and which materials should stay in view.',
-    quote: 'A room should feel clear before it feels decorated.',
-    cardTitle: 'Unseen order',
-    cardText: 'Good interiors hide effort: proportions, storage, lighting and finishes quietly doing their job.',
+    title: 'Real homes, finished beautifully.',
+    text: 'A selection of completed interiors with live photography: clean rooms, natural light, quiet materials, and no staged portraits.',
+    quote: 'The best projects do not need a render to feel convincing.',
+    cardTitle: 'Live atmosphere',
+    cardText: 'Finished spaces, real light, and details that already work in daily life.',
     images: {
       primary: '',
       smallOne: '',
@@ -30,8 +30,8 @@ export const DEFAULT_HOMEPAGE_SETTINGS: HomepageSettings = {
     lightText: 'From a single room consultation to full remodel planning, the work stays focused on clarity.',
   },
   showcase: {
-    label: 'In focus',
-    title: "Homes that reveal the studio's rhythm.",
+    label: 'Kitchens',
+    title: 'Bring ideas to the fire.',
     projectCount: 8,
   },
   approach: {
@@ -57,8 +57,8 @@ export const DEFAULT_HOMEPAGE_SETTINGS: HomepageSettings = {
     ],
   },
   detail: {
-    label: 'Detail motion',
-    title: 'One detail changes the next.',
+    label: 'Bathrooms',
+    title: 'Quiet details, refined atmosphere.',
     images: [],
   },
   testimonials: {
