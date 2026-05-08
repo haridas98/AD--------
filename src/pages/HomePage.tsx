@@ -7,6 +7,7 @@ import { normalizeHomepageSettings } from '../lib/homepageSettings';
 import { getCanonicalPortfolioProjectPathForCategory } from '../lib/portfolioRoutes';
 import { collectProjectImages, parseProjectContent } from '../lib/projectBlockTemplates';
 import { sortProjectsForPortfolio } from '../lib/projectOrdering';
+import { absoluteUrl, localBusinessSchema, serviceSchema } from '../lib/seo';
 import { useAppStore } from '../store/useAppStore';
 import type { Category, HomepageImageValue, Project, Testimonial } from '../types';
 import styles from './HomePage.module.scss';
@@ -456,11 +457,26 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>{site?.name || 'Alexandra Diz'} - Interior Architecture</title>
+        <title>Interior Designer in California | Kitchens, Bathrooms & Remodels | Alexandra Diz</title>
         <meta
           name="description"
-          content="Interior architecture and residential design by Alexandra Diz: calm homes, refined planning, kitchens, bathrooms and complete remodels."
+          content="Alexandra Diz designs refined California homes: kitchen remodels, bathroom remodels, ADUs, and full house interiors with real finished project photography."
         />
+        <link rel="canonical" href={absoluteUrl('/')} />
+        <meta property="og:title" content="Interior Designer in California | Alexandra Diz" />
+        <meta property="og:description" content="Kitchen, bathroom, ADU, and full home interior design for California remodels." />
+        <meta property="og:url" content={absoluteUrl('/')} />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify([
+            localBusinessSchema(site?.name || 'Alexandra Diz Architecture'),
+            serviceSchema(
+              'Interior design and remodeling planning in California',
+              'Interior architecture, kitchen remodel design, bathroom remodel design, ADU interiors, and full house remodeling design.',
+              '/',
+            ),
+          ])}
+        </script>
       </Helmet>
 
       <main className={styles.page}>

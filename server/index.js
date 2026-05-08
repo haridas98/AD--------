@@ -77,6 +77,35 @@ const sessions = new Map();
 // When running behind a reverse proxy (nginx, cloud LB), trust X-Forwarded-* headers.
 app.set('trust proxy', 1);
 
+const SITE_URL = getEnvValue('SITE_URL', 'https://alexandradiz.com').replace(/\/+$/, '');
+
+function absoluteSiteUrl(pathname = '/') {
+  return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
+}
+
+function xmlEscape(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+const portfolioSectionByCategory = {
+  kitchens: 'kitchens',
+  'full-house-remodeling': 'full-house',
+  bathrooms: 'bathroom',
+  adu1: 'adu',
+  fireplaces: 'fireplaces',
+};
+
+function getProjectSitemapPath(project, categoryById) {
+  const category = categoryById.get(project.categoryId);
+  const section = portfolioSectionByCategory[category?.slug] || portfolioSectionByCategory[project.categoryId] || project.categoryId;
+  return `/projects/${section}/${project.slug}`;
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 },
@@ -538,6 +567,77 @@ app.get('/api/content', async (_req, res) => {
     const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
     res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
+});
+
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain').send([
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /admin',
+    `Sitemap: ${absoluteSiteUrl('/sitemap.xml')}`,
+    '',
+  ].join('\n'));
+});
+
+app.get('/sitemap.xml', async (_req, res) => {
+  try {
+    const [categories, projects, blogPosts] = await Promise.all([
+      prisma.category.findMany(),
+      prisma.project.findMany({
+        where: { isPublished: true, deletedAt: null },
+        select: { slug: true, categoryId: true, updatedAt: true },
+      }),
+      prisma.blogPost.findMany({
+        where: { isPublished: true },
+        select: { slug: true, updatedAt: true, publishedAt: true },
+      }),
+    ]);
+    const categoryById = new Map(categories.map((category) => [category.id, category]));
+    const urls = [
+      { loc: '/', priority: '1.0' },
+      { loc: '/projects', priority: '0.8' },
+      { loc: '/blog', priority: '0.7' },
+      { loc: '/services', priority: '0.8' },
+      { loc: '/about', priority: '0.6' },
+      { loc: '/contact', priority: '0.8' },
+      ...categories
+        .filter((category) => category.showInHeader)
+        .map((category) => portfolioSectionByCategory[category.slug] ? {
+          loc: `/projects/${portfolioSectionByCategory[category.slug]}`,
+          priority: '0.8',
+        } : null)
+        .filter(Boolean),
+      ...projects.map((project) => ({
+        loc: getProjectSitemapPath(project, categoryById),
+        lastmod: project.updatedAt,
+        priority: '0.7',
+      })),
+      ...blogPosts.map((post) => ({
+        loc: `/blog/${post.slug}`,
+        lastmod: post.updatedAt || post.publishedAt,
+        priority: '0.6',
+      })),
+    ];
+
+    const body = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ...urls.map((url) => [
+        '  <url>',
+        `    <loc>${xmlEscape(absoluteSiteUrl(url.loc))}</loc>`,
+        url.lastmod ? `    <lastmod>${xmlEscape(new Date(url.lastmod).toISOString().slice(0, 10))}</lastmod>` : '',
+        `    <priority>${url.priority}</priority>`,
+        '  </url>',
+      ].filter(Boolean).join('\n')),
+      '</urlset>',
+      '',
+    ].join('\n');
+
+    res.type('application/xml').send(body);
+  } catch (err) {
+    console.error(err);
+    res.status(500).type('text/plain').send('Failed to generate sitemap');
+  }
 });
 
 app.get('/api/projects/:slug', async (req, res) => {

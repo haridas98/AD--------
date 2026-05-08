@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
+import { absoluteUrl } from '../lib/seo';
 import styles from './BlogPage.module.scss';
 
 export default function BlogPage() {
@@ -12,8 +13,12 @@ export default function BlogPage() {
   return (
     <>
       <Helmet>
-        <title>Blog - {site?.name || 'Alexandra Diz'}</title>
-        <meta name="description" content="Interior design tips, project stories, and trends" />
+        <title>Interior Design Journal | Remodel Planning Ideas | Alexandra Diz</title>
+        <meta name="description" content="Interior design articles about kitchen remodels, bathroom planning, ADUs, materials, lighting, and finished California homes." />
+        <link rel="canonical" href={absoluteUrl('/blog')} />
+        <meta property="og:title" content="Interior Design Journal | Alexandra Diz" />
+        <meta property="og:description" content="Remodel planning ideas for kitchens, bathrooms, ADUs, materials, and finished interiors." />
+        <meta property="og:url" content={absoluteUrl('/blog')} />
       </Helmet>
       <main className={styles.page}>
         <div className={styles.inner}>

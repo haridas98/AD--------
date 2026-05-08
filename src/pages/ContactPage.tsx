@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { getPreviewImageUrl, handlePreviewFallback } from '../lib/imageUrls';
+import { absoluteUrl, localBusinessSchema } from '../lib/seo';
 import { useAppStore } from '../store/useAppStore';
 import styles from './ContactPage.module.scss';
 
@@ -25,8 +26,19 @@ export default function ContactPage() {
   return (
     <>
       <Helmet>
-        <title>Contact - {site?.name || 'Alexandra Diz'}</title>
-        <meta name="description" content="Contact Alexandra Diz for interior architecture and residential design inquiries." />
+        <title>Contact Alexandra Diz | Interior Designer in California</title>
+        <meta name="description" content="Contact Alexandra Diz Architecture for California interior design, kitchen remodel, bathroom remodel, ADU, and full home remodeling inquiries." />
+        <link rel="canonical" href={absoluteUrl('/contact')} />
+        <meta property="og:title" content="Contact Alexandra Diz | Interior Designer in California" />
+        <meta property="og:description" content="Start a residential interior design or remodel project with Alexandra Diz Architecture." />
+        <meta property="og:url" content={absoluteUrl('/contact')} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            ...localBusinessSchema(site?.name || 'Alexandra Diz Architecture'),
+            telephone: phone,
+            email,
+          })}
+        </script>
       </Helmet>
 
       <motion.main className={styles.page} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
