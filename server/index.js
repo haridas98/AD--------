@@ -11,7 +11,7 @@ import { saveProjectAssetUpload, ensureProjectAssetDirectories } from './lib/pro
 import { hydrateProjectAssetsFromContent, importProjectAssetsFromArchive } from './lib/project-asset-migration.js';
 import { syncProjectAssetFolder } from './lib/project-asset-sync.js';
 import { generateProjectPageDraft, generateTextDraft } from './lib/project-ai-draft.js';
-import { generateGeminiBlockText, generateGeminiProjectMetadata } from './lib/gemini-provider.js';
+import { generateGeminiBlockText, generateGeminiProjectMetadata, generateGeminiSeoMetadata } from './lib/gemini-provider.js';
 import { assertThemeShape, readThemeSettings, writeThemeSettings } from './theme-settings.js';
 import { DEFAULT_TESTIMONIALS, readHomepageSettings, writeHomepageSettings } from './homepage-settings.js';
 
@@ -81,6 +81,35 @@ const SITE_URL = getEnvValue('SITE_URL', 'https://alexandradiz.com').replace(/\/
 
 function absoluteSiteUrl(pathname = '/') {
   return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
+}
+
+function fallbackSeoMetadata(type, item = {}) {
+  const title = String(item.title || item.heroTitle || item.name || 'Alexandra Diz Architecture').trim();
+  const category = String(item.category || item.categoryName || item.service || 'interior design').trim();
+  const location = String(item.cityName || item.location || 'California').trim();
+  const siteName = 'Alexandra Diz';
+
+  if (type === 'home') {
+    return {
+      seoTitle: 'Interior Designer in California | Alexandra Diz',
+      seoDescription: 'Alexandra Diz designs refined California homes, kitchens, bathrooms, ADUs, and full remodel interiors with real finished project photography.',
+      seoKeywords: 'California interior designer, kitchen remodel design, bathroom remodel design, ADU interiors, Alexandra Diz',
+    };
+  }
+
+  if (type === 'blog') {
+    return {
+      seoTitle: `${title} | ${siteName}`,
+      seoDescription: String(item.excerpt || `${title}: interior design notes on materials, planning, and refined California homes by ${siteName}.`).slice(0, 180),
+      seoKeywords: [title, 'interior design blog', 'remodel planning', siteName].filter(Boolean).join(', '),
+    };
+  }
+
+  return {
+    seoTitle: `${title} | ${siteName}`,
+    seoDescription: `${title}: ${category.toLowerCase()} project in ${location} by ${siteName}. Interior design, remodeling planning, and finished home details.`,
+    seoKeywords: [title, category, location, siteName, 'interior design', 'remodeling'].filter(Boolean).join(', '),
+  };
 }
 
 function xmlEscape(value) {
@@ -924,6 +953,65 @@ app.post('/api/admin/ai/generate-text', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to generate text draft' });
+  }
+});
+
+app.post('/api/admin/ai/generate-seo', requireAuth, async (req, res) => {
+  try {
+    const type = String(req.body?.type || 'project');
+    let item = req.body?.item || {};
+
+    if (type === 'project' && req.body?.projectId) {
+      const project = await prisma.project.findUnique({
+        where: { id: req.body.projectId },
+        include: { category: true },
+      });
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+      item = {
+        title: project.title,
+        category: project.category?.name,
+        cityName: project.cityName,
+        year: project.year,
+        currentSeoTitle: project.seoTitle,
+        currentSeoDescription: project.seoDescription,
+        currentSeoKeywords: project.seoKeywords,
+      };
+    } else if (type === 'home') {
+      const homepageSettings = readHomepageSettings();
+      item = {
+        heroTitle: homepageSettings.hero?.title,
+        collageTitle: homepageSettings.collage?.title,
+        collageText: homepageSettings.collage?.text,
+        showcaseTitle: homepageSettings.showcase?.title,
+        currentSeoTitle: homepageSettings.seo?.title,
+        currentSeoDescription: homepageSettings.seo?.description,
+        currentSeoKeywords: homepageSettings.seo?.keywords,
+      };
+    }
+
+    let provider = 'local';
+    let seo = null;
+    const gemini = getGeminiOptions();
+
+    if (gemini.apiKey) {
+      try {
+        seo = await generateGeminiSeoMetadata({
+          ...gemini,
+          type,
+          item,
+          instructions: req.body?.instructions || '',
+        });
+        provider = 'gemini';
+      } catch (err) {
+        console.warn('Gemini SEO draft failed, using local fallback:', err.message);
+      }
+    }
+
+    if (!seo) seo = fallbackSeoMetadata(type, item);
+    res.json({ seo, provider });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate SEO draft' });
   }
 });
 

@@ -6,7 +6,7 @@
 
 ## Read Order
 - 1) This file (execution guardrails).
-- 2) `docs/ARCHITECTURE.md`, `docs/DB_SCHEMA.md`, `docs/KNOWN_ISSUES.md`, `docs/SKILL_TRIGGERS.md`.
+- 2) `docs/ARCHITECTURE.md`, `docs/AI_AGENT_SITE_GUIDE.md`, `docs/DB_SCHEMA.md`, `docs/KNOWN_ISSUES.md`, `docs/SKILL_TRIGGERS.md`.
 - 3) Relevant skill from `.codex/skills/*`.
 
 ## Fast Map

@@ -27,6 +27,7 @@ export default function BlogPostPage() {
       <Helmet>
         <title>{post.seoTitle || post.title} - {site?.name}</title>
         <meta name="description" content={description} />
+        {post.seoKeywords ? <meta name="keywords" content={post.seoKeywords} /> : null}
         <link rel="canonical" href={absoluteUrl(canonicalPath)} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={description} />

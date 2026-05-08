@@ -75,6 +75,7 @@ export default function ProjectPage() {
       <Helmet>
         <title>{project.seoTitle || `${project.title} | ${projectCategory?.name || 'Project'} by Alexandra Diz`}</title>
         <meta name="description" content={description} />
+        {project.seoKeywords ? <meta name="keywords" content={project.seoKeywords} /> : null}
         <link rel="canonical" href={absoluteUrl(canonicalPath)} />
         <meta property="og:title" content={project.title} />
         <meta property="og:description" content={description} />

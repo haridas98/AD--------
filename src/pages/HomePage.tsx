@@ -264,6 +264,8 @@ export default function HomePage() {
   const testimonialRailItems = getLoopedWindow(visibleTestimonials, activeTestimonialIndex - 2, 5);
   const approachItems = homepageSettings.approach.items.slice(0, 3);
   const collageImages = homepageSettings.collage.images;
+  const seoTitle = homepageSettings.seo.title;
+  const seoDescription = homepageSettings.seo.description;
 
   const showPrevProject = () => {
     if (!showcaseProjects.length) return;
@@ -457,14 +459,12 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>Interior Designer in California | Kitchens, Bathrooms & Remodels | Alexandra Diz</title>
-        <meta
-          name="description"
-          content="Alexandra Diz designs refined California homes: kitchen remodels, bathroom remodels, ADUs, and full house interiors with real finished project photography."
-        />
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        {homepageSettings.seo.keywords ? <meta name="keywords" content={homepageSettings.seo.keywords} /> : null}
         <link rel="canonical" href={absoluteUrl('/')} />
-        <meta property="og:title" content="Interior Designer in California | Alexandra Diz" />
-        <meta property="og:description" content="Kitchen, bathroom, ADU, and full home interior design for California remodels." />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={absoluteUrl('/')} />
         <meta property="og:type" content="website" />
         <script type="application/ld+json">

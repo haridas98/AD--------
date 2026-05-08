@@ -529,6 +529,7 @@ function HomeSettingsEditor({
   onSave,
   onUpload,
   onPickProjectAsset,
+  onGenerateSeo,
   saving,
   isCompact,
 }: {
@@ -537,6 +538,7 @@ function HomeSettingsEditor({
   onSave: () => void;
   onUpload: (file: File, field: string) => Promise<any>;
   onPickProjectAsset?: () => Promise<ProjectAsset | null>;
+  onGenerateSeo: () => Promise<void>;
   saving: boolean;
   isCompact: boolean;
 }) {
@@ -630,6 +632,19 @@ function HomeSettingsEditor({
         </div>
         <button type="button" className="btn-primary" onClick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Home'}</button>
       </div>
+
+      {section('SEO', (
+        <div style={{ display: 'grid', gap: '12px' }}>
+          <div style={columnGrid}>
+            {inputField('SEO title', settings.seo.title, (next) => setGroupField('seo', 'title', next))}
+            {inputField('Keywords', settings.seo.keywords, (next) => setGroupField('seo', 'keywords', next))}
+            {inputField('SEO description', settings.seo.description, (next) => setGroupField('seo', 'description', next), { textarea: true, rows: 2 })}
+          </div>
+          <button type="button" onClick={onGenerateSeo} disabled={saving} style={actionButtonStyle(true)}>
+            Generate SEO with Gemini
+          </button>
+        </div>
+      ))}
 
       {section('Hero', (
         <div style={columnGrid}>
@@ -1468,6 +1483,28 @@ export default function AdminPage({ data, refresh }: any) {
     }
   }
 
+  async function generateHomeSeo() {
+    setSaving(true);
+    try {
+      const response = await api.generateSeo({
+        type: 'home',
+        item: homepageForm,
+      });
+      setHomepageForm((prev) => normalizeHomepageSettings({
+        ...prev,
+        seo: {
+          title: response?.seo?.seoTitle || prev.seo?.title || '',
+          description: response?.seo?.seoDescription || prev.seo?.description || '',
+          keywords: response?.seo?.seoKeywords || prev.seo?.keywords || '',
+        },
+      }));
+    } catch (err: any) {
+      alert(err.message || 'SEO generation failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function uploadHomepageImage(file: File, field: string) {
     setSaving(true);
     try {
@@ -1763,6 +1800,55 @@ export default function AdminPage({ data, refresh }: any) {
       setActiveBlockId('ai-hero-image');
     } catch (err: any) {
       alert(err.message || 'AI draft failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function generateProjectSeo() {
+    if (!selId) {
+      alert('Save the project first, then Gemini can generate SEO.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await api.generateSeo({
+        type: 'project',
+        projectId: selId,
+        item: form,
+      });
+      setForm((prev: any) => ({
+        ...prev,
+        seoTitle: response?.seo?.seoTitle || prev.seoTitle || '',
+        seoDescription: response?.seo?.seoDescription || prev.seoDescription || '',
+        seoKeywords: response?.seo?.seoKeywords || prev.seoKeywords || '',
+      }));
+    } catch (err: any) {
+      alert(err.message || 'SEO generation failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function generateBlogSeo() {
+    setSaving(true);
+    try {
+      const response = await api.generateSeo({
+        type: 'blog',
+        item: {
+          ...blogForm,
+          articleSections: blogArticleSections,
+        },
+      });
+      setBlogForm((prev: any) => ({
+        ...prev,
+        seoTitle: response?.seo?.seoTitle || prev.seoTitle || '',
+        seoDescription: response?.seo?.seoDescription || prev.seoDescription || '',
+        seoKeywords: response?.seo?.seoKeywords || prev.seoKeywords || '',
+      }));
+    } catch (err: any) {
+      alert(err.message || 'SEO generation failed');
     } finally {
       setSaving(false);
     }
@@ -2114,6 +2200,7 @@ export default function AdminPage({ data, refresh }: any) {
           onSave={saveHomepageSettings}
           onUpload={uploadHomepageImage}
           onPickProjectAsset={openHomepageProjectAssetPicker}
+          onGenerateSeo={generateHomeSeo}
           saving={saving}
           isCompact={isCompact}
         />
@@ -2214,6 +2301,9 @@ export default function AdminPage({ data, refresh }: any) {
                     <label style={labelStyle}>SEO Title<input value={form.seoTitle} onChange={(e) => setF('seoTitle', e.target.value)} style={inputStyle} /></label>
                     <label style={labelStyle}>SEO Description<textarea rows={2} value={form.seoDescription} onChange={(e) => setF('seoDescription', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
                     <label style={labelStyle}>Keywords<input value={form.seoKeywords} onChange={(e) => setF('seoKeywords', e.target.value)} placeholder="interior, kitchen, SF" style={inputStyle} /></label>
+                    <button type="button" onClick={generateProjectSeo} disabled={saving || !selId} style={actionButtonStyle(true)}>
+                      Generate SEO with Gemini
+                    </button>
                   </div>
                 </details>
 
@@ -2521,7 +2611,11 @@ export default function AdminPage({ data, refresh }: any) {
                   <div style={{ display: 'grid', gap: '10px', marginTop: '10px' }}>
                     <label style={labelStyle}>SEO Title<input value={blogForm.seoTitle} onChange={(e) => setBF('seoTitle', e.target.value)} style={inputStyle} /></label>
                     <label style={labelStyle}>SEO Description<textarea rows={2} value={blogForm.seoDescription} onChange={(e) => setBF('seoDescription', e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} /></label>
+                    <label style={labelStyle}>SEO Keywords<input value={blogForm.seoKeywords} onChange={(e) => setBF('seoKeywords', e.target.value)} placeholder="kitchen remodel, materials, planning" style={inputStyle} /></label>
                     <label style={labelStyle}>Tags<input value={blogForm.tags} onChange={(e) => setBF('tags', e.target.value)} placeholder="kitchen, design" style={inputStyle} /></label>
+                    <button type="button" onClick={generateBlogSeo} disabled={saving} style={actionButtonStyle(true)}>
+                      Generate SEO with Gemini
+                    </button>
                   </div>
                 </details>
 

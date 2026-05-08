@@ -38,6 +38,7 @@ export const api = {
   deleteProject: (id: string) => request(`/api/admin/projects/${id}`, { method: 'DELETE' }),
   generateProjectPageDraft: (projectId: string, payload: any) => request(`/api/admin/projects/${projectId}/ai/generate-page`, { method: 'POST', body: JSON.stringify(payload) }),
   generateAiText: (payload: any) => request('/api/admin/ai/generate-text', { method: 'POST', body: JSON.stringify(payload) }),
+  generateSeo: (payload: any) => request('/api/admin/ai/generate-seo', { method: 'POST', body: JSON.stringify(payload) }),
   createBlog: (p: any) => request('/api/admin/blog', { method: 'POST', body: JSON.stringify(p) }),
   updateBlog: (id: string, p: any) => request(`/api/admin/blog/${id}`, { method: 'PUT', body: JSON.stringify(p) }),
   deleteBlog: (id: string) => request(`/api/admin/blog/${id}`, { method: 'DELETE' }),

@@ -108,6 +108,11 @@ export const DEFAULT_TESTIMONIALS = [
 ];
 
 export const DEFAULT_HOMEPAGE_SETTINGS = {
+  seo: {
+    title: 'Interior Designer in California | Kitchens, Bathrooms & Remodels | Alexandra Diz',
+    description: 'Alexandra Diz designs refined California homes: kitchen remodels, bathroom remodels, ADUs, and full house interiors with real finished project photography.',
+    keywords: 'California interior designer, kitchen remodeling, bathroom remodeling, ADU interiors, Alexandra Diz',
+  },
   hero: {
     title: 'Create your dream home',
     image: '/home/Alexandra-2.jpg',
@@ -253,6 +258,11 @@ function normalizeTestimonials(input) {
 export function normalizeHomepageSettings(input = {}) {
   const next = input || {};
   return {
+    seo: {
+      title: cleanText(next.seo?.title, DEFAULT_HOMEPAGE_SETTINGS.seo.title, 80),
+      description: cleanText(next.seo?.description, DEFAULT_HOMEPAGE_SETTINGS.seo.description, 180),
+      keywords: cleanText(next.seo?.keywords, DEFAULT_HOMEPAGE_SETTINGS.seo.keywords, 300),
+    },
     hero: {
       title: cleanText(next.hero?.title, DEFAULT_HOMEPAGE_SETTINGS.hero.title, 160),
       image: cleanUrl(next.hero?.image, DEFAULT_HOMEPAGE_SETTINGS.hero.image),
