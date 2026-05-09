@@ -27,6 +27,7 @@ async function request(path: string, options: RequestInit = {}) {
 export const api = {
   getContent: () => request('/api/content'),
   getAdminContent: () => request('/api/admin/content'),
+  getDrivePhotoAudit: () => request('/drive-photo-audit.json'),
   updateThemeSettings: (payload: any) => request('/api/admin/theme-settings', { method: 'PUT', body: JSON.stringify(payload) }),
   updateHomepageSettings: (payload: any) => request('/api/admin/homepage-settings', { method: 'PUT', body: JSON.stringify(payload) }),
   createTestimonial: (payload: any) => request('/api/admin/testimonials', { method: 'POST', body: JSON.stringify(payload) }),

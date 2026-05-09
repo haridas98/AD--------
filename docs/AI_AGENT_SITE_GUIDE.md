@@ -65,6 +65,22 @@
   - `src/components/blocks/*`
 - Public project page: `src/pages/ProjectPage.tsx`
 - Project lists/categories: `src/pages/CategoryPage.tsx`, `src/pages/ProjectsLandingPage.tsx`
+- New projects must not be generated as only `heroImage + imageGrid + refinedSlider`.
+- Use the existing Admin project presets/block system when creating or regenerating project pages.
+- Preferred rich project structure:
+  - `heroImage`
+  - `metaInfo`
+  - `editorialNote`
+  - `typography`
+  - `imageGrid`
+  - `sideBySide`
+  - `refinedSlider`
+  - `mosaicPreset`
+  - closing `typography`
+  - `ctaSection`
+- These block types already exist in Admin and frontend; do not create new block types for this.
+- For new/imported projects, generate content through the preset-style structure above so pages feel like the deployed reference site, not a thin gallery.
+- Put live/finished photos first in every project. Renders should be used only after real photos, at the end of galleries/sliders, unless the user explicitly asks otherwise.
 
 ## Photos and Assets
 - Physical project files:

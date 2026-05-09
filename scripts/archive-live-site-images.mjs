@@ -1,12 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 
 const BASE_URL = new URL(process.argv[2] || process.env.SITE_ARCHIVE_BASE_URL || 'https://alexandradiz.com/');
 const OUTPUT_ROOT = path.resolve(process.argv[3] || 'scripts/site-image-archive', sanitizeSegment(BASE_URL.hostname));
 const PAGE_LIMIT = Number(process.env.SITE_ARCHIVE_PAGE_LIMIT || 0);
 const IMAGE_LIMIT_PER_PAGE = Number(process.env.SITE_ARCHIVE_IMAGE_LIMIT_PER_PAGE || 0);
 const REQUEST_DELAY_MS = Number(process.env.SITE_ARCHIVE_REQUEST_DELAY_MS || 120);
+const REQUEST_TIMEOUT_MS = Number(process.env.SITE_ARCHIVE_REQUEST_TIMEOUT_MS || 15000);
+const DOWNLOAD_IMAGES = process.env.SITE_ARCHIVE_DOWNLOAD_IMAGES !== 'false';
 
 const HTML_EXTENSIONS = new Set(['', '.html', '.htm', '/']);
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.avif', '.svg', '.tif', '.tiff']);
@@ -163,23 +166,30 @@ function addPage(url) {
 }
 
 async function fetchText(url) {
-  const response = await fetch(url, {
-    redirect: 'follow',
-    headers: {
-      'user-agent': 'Mozilla/5.0 (compatible; CodexSiteArchiver/1.0)',
-      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: {
+        'user-agent': 'Mozilla/5.0 (compatible; CodexSiteArchiver/1.0)',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    return {
+      text: await response.text(),
+      contentType: response.headers.get('content-type') || '',
+      finalUrl: response.url,
+    };
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return {
-    text: await response.text(),
-    contentType: response.headers.get('content-type') || '',
-    finalUrl: response.url,
-  };
 }
 
 function collectSitemapUrls(xml) {
@@ -312,28 +322,29 @@ async function downloadImageToCache(url) {
   if (imageCache.has(url)) return imageCache.get(url);
 
   const promise = (async () => {
-    const response = await fetch(url, {
-      redirect: 'follow',
-      headers: {
-        'user-agent': 'Mozilla/5.0 (compatible; CodexSiteArchiver/1.0)',
-        accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-      },
-    });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-    const ext = IMAGE_EXTENSIONS.has(getPathExtension(response.url)) ? getPathExtension(response.url) : extensionFromContentType(response.headers.get('content-type') || '');
+    const ext = IMAGE_EXTENSIONS.has(getPathExtension(url)) ? getPathExtension(url) : '.bin';
     const cacheName = `${sha1(url)}${ext}`;
     const cachePath = path.join(OUTPUT_ROOT, '_cache', cacheName);
 
     if (!fs.existsSync(cachePath)) {
-      fs.writeFileSync(cachePath, buffer);
+      execFileSync('curl.exe', [
+        '-L',
+        '--fail',
+        '--silent',
+        '--show-error',
+        '--max-time',
+        String(Math.max(1, Math.ceil(REQUEST_TIMEOUT_MS / 1000))),
+        '-A',
+        'Mozilla/5.0 (compatible; CodexSiteArchiver/1.0)',
+        '-o',
+        cachePath,
+        url,
+      ]);
     }
 
     return {
       url,
-      finalUrl: response.url,
+      finalUrl: url,
       ext,
       cachePath,
     };
@@ -367,6 +378,14 @@ async function archivePage(pageUrl) {
 
   for (let index = 0; index < selectedImages.length; index += 1) {
     const imageUrl = selectedImages[index];
+    if (!DOWNLOAD_IMAGES) {
+      savedImages.push({
+        source: imageUrl,
+        downloaded: false,
+      });
+      continue;
+    }
+
     try {
       const downloaded = await downloadImageToCache(imageUrl);
       const sourceTarget = sourceFolderForUrl(downloaded.finalUrl);

@@ -19,6 +19,12 @@ type ProjectPreview = {
   image: string;
 };
 
+function getProjectImageCount(project: Project) {
+  const assetCount = (project.assets || []).filter((asset) => asset.kind === 'image' && asset.status === 'active').length;
+  const contentCount = collectProjectImages(parseProjectContent(project.content)).length;
+  return Math.max(assetCount, contentCount);
+}
+
 function getProjectCover(project: Project) {
   return collectProjectImages(parseProjectContent(project.content))[0] || '';
 }
@@ -58,6 +64,7 @@ export default function ProjectsLandingPage() {
 
   const projectPreviews = useMemo<ProjectPreview[]>(() => (
     publishedProjects
+      .filter((project) => project.isFeatured || getProjectImageCount(project) >= 8)
       .map((project) => ({
         project,
         category: categoryMap.get(project.categoryId),

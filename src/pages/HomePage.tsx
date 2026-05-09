@@ -36,6 +36,10 @@ function getProjectImages(project: Project) {
   return Array.from(new Set([...assetImages, ...collectProjectImages(blocks)]));
 }
 
+function getProjectCategorySlug(project: Project, categoryMap: Map<string, Category>) {
+  return categoryMap.get(project.categoryId)?.slug || project.categoryId;
+}
+
 function getProjectCover(project: Project) {
   return getProjectImages(project)[0] || '';
 }
@@ -145,6 +149,10 @@ function getHomepageImageDedupKey(value?: HomepageImageValue | null) {
   return projectId ? `project:${projectId}` : getHomepageImageKey(value);
 }
 
+function getHomepageImageProjectIds(values: Array<HomepageImageValue | undefined | null>) {
+  return values.map(getHomepageImageProjectId).filter(Boolean);
+}
+
 function getProjectHrefById(projectId: string, projects: Project[], categoryMap: Map<string, Category>) {
   if (!projectId) return '';
   const project = projects.find((item) => item.id === projectId);
@@ -208,20 +216,29 @@ export default function HomePage() {
     [projects],
   );
   const kitchenProjects = useMemo(
-    () => publishedProjects.filter((project) => {
-      const category = categoryMap.get(project.categoryId);
-      return category?.slug === 'kitchens' || project.categoryId === 'kitchens';
-    }),
+    () => publishedProjects.filter((project) => getProjectCategorySlug(project, categoryMap) === 'kitchens'),
     [publishedProjects, categoryMap],
   );
   const bathroomProjects = useMemo(
-    () => publishedProjects.filter((project) => {
-      const category = categoryMap.get(project.categoryId);
-      return category?.slug === 'bathrooms' || project.categoryId === 'bathrooms';
-    }),
+    () => publishedProjects.filter((project) => getProjectCategorySlug(project, categoryMap) === 'bathrooms'),
     [publishedProjects, categoryMap],
   );
-  const selectedProjects = kitchenProjects.slice(0, homepageSettings.showcase.projectCount);
+  const collageProjectIds = useMemo(
+    () => new Set(getHomepageImageProjectIds(Object.values(homepageSettings.collage.images))),
+    [homepageSettings.collage.images],
+  );
+  const approachProjectId = getHomepageImageProjectId(homepageSettings.approach.image);
+  const showcaseSourceProjects = /bath/i.test(homepageSettings.showcase.label)
+    ? bathroomProjects
+    : kitchenProjects;
+  const showcaseProjectsWithoutUsed = showcaseSourceProjects.filter(
+    (project) => !collageProjectIds.has(project.id) && project.id !== approachProjectId,
+  );
+  const selectedProjects = (
+    showcaseProjectsWithoutUsed.length >= homepageSettings.showcase.projectCount
+      ? showcaseProjectsWithoutUsed
+      : showcaseSourceProjects
+  ).slice(0, homepageSettings.showcase.projectCount);
 
   const projectImages = selectedProjects.map(getProjectCover).filter(Boolean);
   const images = Array.from(new Set([...projectImages, ...fallbackImages])).slice(0, 14);
@@ -237,11 +254,24 @@ export default function HomePage() {
     ? getProjectCover(activeProject) || images[activeProjectIndex] || heroImage
     : heroImage;
   const activeProjectHref = activeProject ? getProjectPath(activeProject, categoryMap) : null;
-  const detailProjectImages = bathroomProjects
+  const selectedProjectIds = new Set(selectedProjects.map((project) => project.id));
+  const blockedDetailProjectIds = new Set([
+    ...Array.from(collageProjectIds),
+    ...Array.from(selectedProjectIds),
+    approachProjectId,
+  ].filter(Boolean));
+  const detailSourceProjects = /bath/i.test(homepageSettings.detail.label)
+    ? bathroomProjects
+    : publishedProjects.filter((project) => !['kitchens', 'bathrooms', 'bathroom'].includes(getProjectCategorySlug(project, categoryMap)));
+  const detailProjectImages = detailSourceProjects
+    .filter((project) => !blockedDetailProjectIds.has(project.id))
     .map(getProjectImageRef)
     .filter((item): item is HomepageImageValue => Boolean(item))
     .slice(0, 14);
-  const detailImages = [...detailProjectImages, ...(homepageSettings.detail.images || []), ...images, ...fallbackImages]
+  const detailSettingsImages = (homepageSettings.detail.images || []).filter(
+    (item) => !blockedDetailProjectIds.has(getHomepageImageProjectId(item)),
+  );
+  const detailImages = [...detailSettingsImages, ...detailProjectImages, ...fallbackImages]
     .filter((item, index, source) => {
       const key = getHomepageImageDedupKey(item);
       return key && source.findIndex((next) => getHomepageImageDedupKey(next) === key) === index;
@@ -260,7 +290,8 @@ export default function HomePage() {
   const activeVisualIndex = activeProjectImages.length ? getWrappedIndex(activeTestimonialImageIndex, activeProjectImages.length) : 0;
   const activeVisual = activeProjectImages[activeVisualIndex] || activeTestimonial?.image || alexandra.portrait;
   const projectRailItems = getLoopedWindow(showcaseProjects, activeProjectIndex - 2, 5);
-  const detailThumbItems = getLoopedWindow(detailImages, activeDetailIndex - 2, 5);
+  const detailThumbSource = detailImages.map((item, index) => ({ item, index })).filter((entry) => entry.index !== activeDetailIndex);
+  const detailThumbItems = getLoopedWindow(detailThumbSource, Math.max(0, activeDetailIndex - 2), 5).map(({ item }) => item);
   const testimonialRailItems = getLoopedWindow(visibleTestimonials, activeTestimonialIndex - 2, 5);
   const approachItems = homepageSettings.approach.items.slice(0, 3);
   const collageImages = homepageSettings.collage.images;

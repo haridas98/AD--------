@@ -60,6 +60,64 @@ function getHeroImage(content: any[]) {
   return content.find((block: any) => block.type === 'heroImage')?.data?.image || '';
 }
 
+function cleanAuditUrl(value?: string | null) {
+  return String(value || '').split('?')[0];
+}
+
+function collectAuditImages(value: any, list: string[] = []) {
+  if (!value) return list;
+  if (typeof value === 'string') {
+    const next = cleanAuditUrl(value);
+    if (next.startsWith('/uploads/') || /\.(jpe?g|png|webp)$/i.test(next)) list.push(next);
+    return list;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectAuditImages(item, list));
+    return list;
+  }
+  if (typeof value === 'object') {
+    Object.values(value).forEach((item) => collectAuditImages(item, list));
+  }
+  return list;
+}
+
+function homepageAuditImageUrl(value?: HomepageImageValue | null) {
+  if (!value) return '';
+  return cleanAuditUrl(typeof value === 'string' ? value : value.url || '');
+}
+
+function getHomepageAuditUrls(settings?: HomepageSettings) {
+  const urls = new Set<string>();
+  if (!settings) return urls;
+  Object.values(settings.collage?.images || {}).forEach((value) => urls.add(homepageAuditImageUrl(value)));
+  urls.add(homepageAuditImageUrl(settings.approach?.image));
+  (settings.detail?.images || []).forEach((value) => urls.add(homepageAuditImageUrl(value)));
+  urls.add(cleanAuditUrl(settings.hero?.image));
+  urls.add(cleanAuditUrl(settings.feature?.image));
+  urls.delete('');
+  return urls;
+}
+
+function getHomepageAuditProjectIds(settings?: HomepageSettings) {
+  const ids = new Set<string>();
+  const add = (value?: HomepageImageValue | null) => {
+    if (value && typeof value !== 'string' && value.projectId) ids.add(value.projectId);
+  };
+  if (!settings) return ids;
+  Object.values(settings.collage?.images || {}).forEach(add);
+  add(settings.approach?.image);
+  (settings.detail?.images || []).forEach(add);
+  return ids;
+}
+
+function getProjectAuditImages(project: Project) {
+  return Array.from(new Set(collectAuditImages(parseProjectContent(project.content)).map(cleanAuditUrl).filter(Boolean)));
+}
+
+function getProjectAuditHeroImage(project: Project) {
+  return cleanAuditUrl(getHeroImage(parseProjectContent(project.content)));
+}
+
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px',
@@ -1187,6 +1245,172 @@ function HomepageProjectAssetPicker({
   );
 }
 
+function AssetAuditPanel({
+  projects,
+  categories,
+  homepageSettings,
+  driveAudit,
+  onRefreshDriveAudit,
+  onOpenProject,
+}: {
+  projects: Project[];
+  categories: any[];
+  homepageSettings: HomepageSettings;
+  driveAudit: any;
+  onRefreshDriveAudit: () => void;
+  onOpenProject: (project: Project) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'title' | 'home' | 'project' | 'photoCount'>('title');
+  const categoryMap = useMemo(() => new Map((categories || []).map((category: any) => [category.id, category])), [categories]);
+  const homepageUrls = useMemo(() => getHomepageAuditUrls(homepageSettings), [homepageSettings]);
+  const driveMatchesByAssetId = useMemo(() => {
+    const map = new Map<string, any[]>();
+    (driveAudit?.drivePhotos || []).forEach((photo: any) => {
+      (photo.matchedAssets || []).forEach((asset: any) => {
+        if (!map.has(asset.id)) map.set(asset.id, []);
+        map.get(asset.id)?.push(photo);
+      });
+    });
+    return map;
+  }, [driveAudit]);
+
+  const rows = useMemo(() => (projects || [])
+    .filter((project) => !project.deletedAt)
+    .map((project) => {
+      const category = categoryMap.get(project.categoryId);
+      const projectImages = getProjectAuditImages(project);
+      const projectImageSet = new Set(projectImages);
+      const heroUrl = getProjectAuditHeroImage(project);
+      const coverUrl = projectImages[0] || '';
+      const assets = (project.assets || [])
+        .filter((asset) => asset.kind === 'image' && asset.status === 'active')
+        .map((asset) => {
+          const url = cleanAuditUrl(asset.publicUrl);
+          const tags = [];
+          if (homepageUrls.has(url)) tags.push('главная');
+          if (coverUrl && url === coverUrl) tags.push('обложка projects');
+          if (projectImageSet.has(url)) tags.push('используется');
+          if (heroUrl && url === heroUrl) tags.push('heroImage');
+          if (driveMatchesByAssetId.has(asset.id)) tags.push('Drive');
+          return { ...asset, auditTags: tags, driveMatches: driveMatchesByAssetId.get(asset.id) || [] };
+        });
+      return {
+        project,
+        category,
+        assets,
+        heroUrl,
+        coverUrl,
+        homeCount: assets.filter((asset: any) => homepageUrls.has(cleanAuditUrl(asset.publicUrl))).length,
+        usedCount: assets.filter((asset: any) => projectImageSet.has(cleanAuditUrl(asset.publicUrl))).length,
+      };
+    })
+    .filter((row) => {
+      const text = `${row.project.title} ${row.project.slug} ${row.category?.name || ''}`.toLowerCase();
+      return (!query || text.includes(query.toLowerCase())) && (!categoryFilter || row.project.categoryId === categoryFilter);
+    })
+    .sort((a, b) => {
+      if (sortBy === 'home') return b.homeCount - a.homeCount || a.project.title.localeCompare(b.project.title);
+      if (sortBy === 'project') return b.usedCount - a.usedCount || a.project.title.localeCompare(b.project.title);
+      if (sortBy === 'photoCount') return b.assets.length - a.assets.length || a.project.title.localeCompare(b.project.title);
+      return a.project.title.localeCompare(b.project.title);
+    }), [projects, categoryMap, homepageUrls, driveMatchesByAssetId, query, categoryFilter, sortBy]);
+
+  const unmatchedDrive = (driveAudit?.drivePhotos || []).filter((photo: any) => !(photo.matchedAssets || []).length);
+
+  return (
+    <div style={{ display: 'grid', gap: '18px' }}>
+      <div style={{ ...cardStyle, display: 'grid', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'start', flexWrap: 'wrap' }}>
+          <div>
+            <h2 style={{ color: '#fff', margin: 0, fontSize: '22px' }}>Asset audit</h2>
+            <p style={{ color: 'rgba(255,255,255,0.55)', margin: '6px 0 0', fontSize: '13px' }}>
+              Проверка использования ассетов: главная, обложка /projects, project content и heroImage.
+            </p>
+          </div>
+          <button type="button" onClick={onRefreshDriveAudit} style={actionButtonStyle(true)}>Refresh Drive report</button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+          {[
+            ['Drive files', driveAudit?.summary?.driveFiles ?? '-'],
+            ['Already in assets', driveAudit?.summary?.matchedDriveFiles ?? '-'],
+            ['New / unmatched', driveAudit?.summary?.unmatchedDriveFiles ?? '-'],
+            ['Asset images', driveAudit?.summary?.assetImages ?? '-'],
+          ].map(([label, value]) => (
+            <div key={label} style={{ ...panelStyle, gap: '4px' }}>
+              <strong style={{ color: '#fff', fontSize: '22px' }}>{value}</strong>
+              <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>{label}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) minmax(180px, 260px) minmax(180px, 260px)', gap: '10px' }}>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search project" style={inputStyle} />
+          <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} style={inputStyle}>
+            <option value="" style={{ background: '#141414' }}>All categories</option>
+            {(categories || []).map((category: any) => <option key={category.id} value={category.id} style={{ background: '#141414' }}>{category.name}</option>)}
+          </select>
+          <select value={sortBy} onChange={(event) => setSortBy(event.target.value as any)} style={inputStyle}>
+            <option value="title" style={{ background: '#141414' }}>Sort: title</option>
+            <option value="home" style={{ background: '#141414' }}>Sort: on home</option>
+            <option value="project" style={{ background: '#141414' }}>Sort: used in project</option>
+            <option value="photoCount" style={{ background: '#141414' }}>Sort: photo count</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gap: '12px' }}>
+        {rows.map(({ project, category, assets, heroUrl, coverUrl, homeCount, usedCount }) => (
+          <div key={project.id} style={{ ...cardStyle, display: 'grid', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+              <div>
+                <button type="button" onClick={() => onOpenProject(project)} style={{ padding: 0, border: 0, background: 'transparent', color: '#fff', margin: 0, fontSize: '16px', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}>
+                  {project.title}
+                </button>
+                <p style={{ color: 'rgba(255,255,255,0.45)', margin: '4px 0 0', fontSize: '12px' }}>{category?.name || project.categoryId} · {assets.length} assets</p>
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', textAlign: 'right' }}>
+                <div>Home: {homeCount}</div>
+                <div>Used: {usedCount}</div>
+                <div>cover: {coverUrl ? 'yes' : 'no'}</div>
+                <div>heroImage: {heroUrl ? 'yes' : 'no'}</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(126px, 1fr))', gap: '10px' }}>
+              {assets.map((asset: any) => (
+                <div key={asset.id} style={{ border: asset.auditTags.includes('heroImage') ? '2px solid #c6a47b' : '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden', background: 'rgba(255,255,255,0.035)' }}>
+                  <img src={asset.publicUrl} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', display: 'block' }} />
+                  <div style={{ padding: '8px', display: 'grid', gap: '5px' }}>
+                    <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.originalFilename}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {asset.auditTags.length ? asset.auditTags.map((tag: string) => (
+                        <span key={tag} style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '999px', background: tag === 'heroImage' ? 'rgba(198,164,123,0.25)' : 'rgba(255,255,255,0.08)', color: tag === 'heroImage' ? '#e7c89b' : 'rgba(255,255,255,0.72)' }}>{tag}</span>
+                      )) : <span style={{ color: '#ff8a80', fontSize: '10px' }}>не используется</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {!assets.length ? <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>No active image assets.</p> : null}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <details style={cardStyle}>
+        <summary style={{ color: '#fff', cursor: 'pointer', fontWeight: 700 }}>Drive-фото, которых нет в ассетах ({unmatchedDrive.length})</summary>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', marginTop: '14px' }}>
+          {unmatchedDrive.map((photo: any) => (
+            <div key={photo.path} style={panelStyle}>
+              <div style={{ color: '#fff', fontSize: '12px', wordBreak: 'break-word' }}>{photo.path}</div>
+              <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '11px' }}>{photo.width || '?'} x {photo.height || '?'} · {Math.round((photo.fileSize || 0) / 1024)} KB</div>
+            </div>
+          ))}
+        </div>
+      </details>
+    </div>
+  );
+}
+
 export default function AdminPage({ data, refresh }: any) {
   const [authed, setAuthed] = useState(!!api.getStoredToken());
   const [username, setUsername] = useState('admin');
@@ -1220,6 +1444,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [homepageProjectAssets, setHomepageProjectAssets] = useState<ProjectAsset[]>([]);
   const [homepageAssetsLoading, setHomepageAssetsLoading] = useState(false);
   const [aiInstructions, setAiInstructions] = useState('');
+  const [driveAudit, setDriveAudit] = useState<any>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const blogBlockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const assetPickerResolver = useRef<((asset: ProjectAsset | null) => void) | null>(null);
@@ -1429,6 +1654,20 @@ export default function AdminPage({ data, refresh }: any) {
       });
     setBaToggles(toggles);
   }, [adminData.projects, tab]);
+
+  useEffect(() => {
+    if (!authed || tab !== 'audit' || driveAudit) return;
+    void loadDriveAudit();
+  }, [authed, tab, driveAudit]);
+
+  async function loadDriveAudit() {
+    try {
+      const report = await api.getDrivePhotoAudit();
+      setDriveAudit(report);
+    } catch (err: any) {
+      alert(err.message || 'Failed to load Drive audit');
+    }
+  }
 
   async function login(e: any) {
     e.preventDefault();
@@ -1678,6 +1917,12 @@ export default function AdminPage({ data, refresh }: any) {
     setProjectEditorTab('content');
     setAiInstructions('');
     setActiveBlockId((projectBlocks[0]?.id as string) || 'base-hero-image');
+  }
+
+  function openProjectFromAudit(project: Project) {
+    setTab('projects');
+    editProject(project);
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10);
   }
 
   function setF(field: string, value: any) {
@@ -2148,7 +2393,16 @@ export default function AdminPage({ data, refresh }: any) {
     { id: 'beforeafter', label: 'Before & After' },
     { id: 'themes', label: 'Themes' },
     { id: 'blog', label: 'Blog' },
+    { id: 'audit', label: 'Audit' },
   ];
+
+  const homepageProjectIds = getHomepageAuditProjectIds(homepageForm);
+  const projectGroups = (adminData.categories || [])
+    .map((category: any) => ({
+      category,
+      projects: (adminData.projects || []).filter((project: Project) => project.categoryId === category.id),
+    }))
+    .filter((group: any) => group.projects.length);
 
   return (
     <main className="container" style={{ padding: isCompact ? '92px 0 40px' : '100px 15px 60px', maxWidth: '1400px' }}>
@@ -2219,6 +2473,17 @@ export default function AdminPage({ data, refresh }: any) {
         />
       ) : null}
 
+      {tab === 'audit' ? (
+        <AssetAuditPanel
+          projects={adminData.projects || []}
+          categories={adminData.categories || []}
+          homepageSettings={homepageForm}
+          driveAudit={driveAudit}
+          onRefreshDriveAudit={loadDriveAudit}
+          onOpenProject={openProjectFromAudit}
+        />
+      ) : null}
+
       {tab === 'projects' ? (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -2239,24 +2504,32 @@ export default function AdminPage({ data, refresh }: any) {
           </div>
 
           {!form ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px', marginBottom: '30px' }}>
-              {adminData.projects?.map((project: any) => (
-                <div
-                  key={project.id}
-                  onClick={() => editProject(project)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                >
-                  {getCover(project) ? <img src={getCover(project)} alt="" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />}
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{project.cityName || ''} {project.completedAt || project.year ? `(${project.completedAt || project.year})` : ''}</div>
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                      <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: project.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: project.isPublished ? '#27ae60' : '#e74c3c' }}>{project.isPublished ? 'Published' : 'Draft'}</span>
-                      {project.isFeatured ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span> : null}
-                      {project.deletedAt ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(231,76,60,0.18)', color: '#ff8a80' }}>Deleted</span> : null}
-                    </div>
+            <div style={{ display: 'grid', gap: '24px', marginBottom: '30px' }}>
+              {projectGroups.map(({ category, projects: groupProjects }: any) => (
+                <section key={category.id} style={{ display: 'grid', gap: '12px' }}>
+                  <h4 style={{ color: '#fff', margin: 0, fontSize: '15px' }}>{category.name} <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{groupProjects.length}</span></h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px' }}>
+                    {groupProjects.map((project: any) => (
+                      <div
+                        key={project.id}
+                        onClick={() => editProject(project)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: homepageProjectIds.has(project.id) ? '1px solid rgba(198,164,123,0.55)' : '1px solid rgba(255,255,255,0.1)' }}
+                      >
+                        {getCover(project) ? <img src={getCover(project)} alt="" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />}
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</div>
+                          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{project.cityName || ''} {project.completedAt || project.year ? `(${project.completedAt || project.year})` : ''}</div>
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: project.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: project.isPublished ? '#27ae60' : '#e74c3c' }}>{project.isPublished ? 'Published' : 'Draft'}</span>
+                            {homepageProjectIds.has(project.id) ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(198,164,123,0.2)', color: '#e7c89b' }}>Home</span> : null}
+                            {project.isFeatured ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span> : null}
+                            {project.deletedAt ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(231,76,60,0.18)', color: '#ff8a80' }}>Deleted</span> : null}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                </section>
               ))}
             </div>
           ) : (

@@ -13,7 +13,7 @@ import { syncProjectAssetFolder } from './lib/project-asset-sync.js';
 import { generateProjectPageDraft, generateTextDraft } from './lib/project-ai-draft.js';
 import { generateGeminiBlockText, generateGeminiProjectMetadata, generateGeminiSeoMetadata } from './lib/gemini-provider.js';
 import { assertThemeShape, readThemeSettings, writeThemeSettings } from './theme-settings.js';
-import { DEFAULT_TESTIMONIALS, readHomepageSettings, writeHomepageSettings } from './homepage-settings.js';
+import { DEFAULT_TESTIMONIALS, readHomepageSettingsFromDb, writeHomepageSettingsToDb } from './homepage-settings.js';
 
 function readLocalEnvFile() {
   const envPath = path.resolve('.env');
@@ -586,12 +586,12 @@ async function getProjectOr404(projectId, res) {
 app.get('/api/content', async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const baseHomepageSettings = readHomepageSettings();
-    const [categories, projects, blogPosts, testimonials] = await Promise.all([
+    const [categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
       prisma.category.findMany({ where: { showInHeader: true }, orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ where: { isPublished: true }, orderBy: { publishedAt: 'desc' }, take: 10 }),
       readTestimonialsForPublic(),
+      readHomepageSettingsFromDb(prisma),
     ]);
     const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
     res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
@@ -723,12 +723,12 @@ app.get('/api/auth/me', requireAuth, (req, res) => res.json({ ok: true, user: re
 app.get('/api/admin/content', requireAuth, async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const baseHomepageSettings = readHomepageSettings();
-    const [categories, projects, blogPosts, testimonials] = await Promise.all([
+    const [categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ orderBy: { createdAt: 'desc' } }),
       readTestimonialsForAdmin(),
+      readHomepageSettingsFromDb(prisma),
     ]);
     const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
     res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
@@ -747,7 +747,7 @@ app.put('/api/admin/theme-settings', requireAuth, async (req, res) => {
 
 app.put('/api/admin/homepage-settings', requireAuth, async (req, res) => {
   try {
-    const homepageSettings = writeHomepageSettings(req.body || {});
+    const homepageSettings = await writeHomepageSettingsToDb(prisma, req.body || {});
     res.json({ homepageSettings });
   } catch (err) {
     res.status(400).json({ error: err.message || 'Invalid homepage settings' });
@@ -977,7 +977,7 @@ app.post('/api/admin/ai/generate-seo', requireAuth, async (req, res) => {
         currentSeoKeywords: project.seoKeywords,
       };
     } else if (type === 'home') {
-      const homepageSettings = readHomepageSettings();
+      const homepageSettings = await readHomepageSettingsFromDb(prisma);
       item = {
         heroTitle: homepageSettings.hero?.title,
         collageTitle: homepageSettings.collage?.title,
@@ -1074,6 +1074,7 @@ app.post('/api/admin/projects/:id/assets/upload', requireAuth, runAssetUpload, a
       where: {
         projectId: project.id,
         checksum: saved.checksum,
+        status: { not: 'archived' },
       },
     });
 
@@ -1137,6 +1138,7 @@ app.post('/api/admin/projects/:id/assets/import-url', requireAuth, async (req, r
       where: {
         projectId: project.id,
         checksum: saved.checksum,
+        status: { not: 'archived' },
       },
     });
 
