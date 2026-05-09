@@ -28,6 +28,18 @@ const fallbackImages = [
   alexandra.portrait,
 ];
 
+const liveBathroomShowcaseSlugs = [
+  'foster-city',
+  'lightness-of-wood-san-jose',
+  'los-gatos',
+  'oakland-5073',
+  'palo-alto-800',
+  'relax-oasis',
+  'san-bruno',
+  'shades-of-blue-pacifica',
+  'stil-mountin-view',
+];
+
 function getProjectImages(project: Project) {
   const assetImages = (project.assets || [])
     .filter((asset) => asset.kind === 'image' && asset.status === 'active' && asset.publicUrl)
@@ -159,6 +171,17 @@ function getProjectHrefById(projectId: string, projects: Project[], categoryMap:
   return project ? getProjectPath(project, categoryMap) : '';
 }
 
+function orderProjectsBySlugPriority(projects: Project[], slugs: string[]) {
+  const rank = new Map(slugs.map((slug, index) => [slug.toLowerCase(), index]));
+
+  return [...projects].sort((a, b) => {
+    const aRank = rank.get(a.slug.toLowerCase()) ?? Number.MAX_SAFE_INTEGER;
+    const bRank = rank.get(b.slug.toLowerCase()) ?? Number.MAX_SAFE_INTEGER;
+    if (aRank !== bRank) return aRank - bRank;
+    return 0;
+  });
+}
+
 function getWrappedIndex(index: number, length: number) {
   return ((index % length) + length) % length;
 }
@@ -229,7 +252,7 @@ export default function HomePage() {
   );
   const approachProjectId = getHomepageImageProjectId(homepageSettings.approach.image);
   const showcaseSourceProjects = /bath/i.test(homepageSettings.showcase.label)
-    ? bathroomProjects
+    ? orderProjectsBySlugPriority(bathroomProjects, liveBathroomShowcaseSlugs)
     : kitchenProjects;
   const showcaseProjectsWithoutUsed = showcaseSourceProjects.filter(
     (project) => !collageProjectIds.has(project.id) && project.id !== approachProjectId,

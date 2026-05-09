@@ -11,14 +11,14 @@ const kitchenSlugs = [
 const approachSlug = 'san-carlos-modern-kitchen';
 
 const bathroomSlugs = [
-  'modern-bathroom-san-carlos',
-  'bathroom-in-victorian-style-palo-alto',
-  'green-symphony-pacifica',
-  'jungle-whisper-san-carlos',
-  'san-jose-bathroom',
-  'redwood-citybathroom',
-  'the-charm-of-serenity',
-  'Aquamarine-Perfection',
+  'foster-city',
+  'lightness-of-wood-san-jose',
+  'los-gatos',
+  'oakland-5073',
+  'palo-alto-800',
+  'relax-oasis',
+  'san-bruno',
+  'shades-of-blue-pacifica',
 ];
 
 const detailSlugs = [
