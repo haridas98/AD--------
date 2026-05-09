@@ -1,0 +1,134 @@
+{
+  "seo": {
+    "title": "Interior Designer in California | Kitchens, Bathrooms & Remodels | Alexandra Diz",
+    "description": "Alexandra Diz designs refined California homes: kitchen remodels, bathroom remodels, ADUs, and full house interiors with real finished project photography.",
+    "keywords": "California interior designer, kitchen remodeling, bathroom remodeling, ADU interiors, Alexandra Diz"
+  },
+  "hero": {
+    "title": "Create your dream home",
+    "image": "/home/Alexandra-2.jpg"
+  },
+  "collage": {
+    "title": "Kitchens made to be used.",
+    "text": "Different kitchen projects, real finished photos: storage, light, work surfaces, and the line where daily life happens.",
+    "quote": "Real kitchens should look calm and work hard.",
+    "cardTitle": "Live kitchen rhythm",
+    "cardText": "No render mood here: just finished kitchens, natural light, and materials already doing their job.",
+    "images": {
+      "primary": {
+        "url": "/uploads/projects/belmond/images/original/001-1000-alexandradiz-1ba20fcd3850a9df6c5f72ea3c7d093a-1.jpg",
+        "assetId": "33cd6fbf-f8b8-4e9f-a83c-eaaf6a146cab",
+        "projectId": "71",
+        "alt": "Belmond"
+      },
+      "smallOne": {
+        "url": "/uploads/projects/warm-kitchen-oakland/images/original/002-1000-alexandradiz-b594dca072eb07c10e4e72d6026523b7-1.jpg",
+        "assetId": "04ac9065-db27-4229-a1ef-fc6d3db175d6",
+        "projectId": "98",
+        "alt": "Warm kitchen (Oakland)"
+      },
+      "wide": {
+        "url": "/uploads/projects/modern-kitchen-in-sunnyvale/images/original/001-1000-584063a8ccfe41a0027ff944c683ac8c-1.jpg",
+        "assetId": "e4d51c97-9ae4-44b8-815a-99e6cf683d23",
+        "projectId": "81",
+        "alt": "Modern kitchen in Sunnyvale"
+      },
+      "tall": {
+        "url": "/uploads/projects/pure-elegance-kitchen/images/original/002-1000-alexandradiz-2bbb892a61261248455a4ec02f088bc2-1.jpg",
+        "assetId": "32c30f33-31ab-4f9f-8f3e-7308dfff6fa8",
+        "projectId": "86",
+        "alt": "Pure elegance kitchen"
+      },
+      "smallTwo": {
+        "url": "/uploads/projects/oakland/images/original/001-1000-alexandradiz-feefa8081f587535d50fcbf49f8c5cf1-1.jpg",
+        "assetId": "0717f277-5463-4498-be56-1936efed9a70",
+        "projectId": "83",
+        "alt": "Oakland"
+      }
+    }
+  },
+  "feature": {
+    "quote": "\"Homes become beautiful when every practical decision has a visual reason.\"",
+    "image": "/home/alexandra.jpg",
+    "darkTitle": "Rooms with a quieter rhythm",
+    "darkText": "Plans, millwork and finishes are edited until the home feels composed, useful and personal.",
+    "linkLabel": "Read more",
+    "linkHref": "/about",
+    "lightTitle": "With Alexandra",
+    "lightText": "From a single room consultation to full remodel planning, the work stays focused on clarity."
+  },
+  "showcase": {
+    "label": "Bathrooms",
+    "title": "Quiet bathrooms with real texture.",
+    "projectCount": 8
+  },
+  "approach": {
+    "label": "Kitchen ideas",
+    "title": "Bring the idea to the heat.",
+    "image": {
+      "url": "/uploads/projects/san-carlos-modern-kitchen/images/original/001-1000-alexandradiz-a85d32308ea45d3e1d22bf4753ddc8e1-1.jpg",
+      "assetId": "e676c4f0-2723-4dbd-9838-961a60c98cb1",
+      "projectId": "89",
+      "alt": "Modern Kitchen (San Carlos)"
+    },
+    "items": [
+      {
+        "number": "01",
+        "title": "Work line",
+        "text": "The path between sink, stove, storage, and table stays clear."
+      },
+      {
+        "number": "02",
+        "title": "Useful storage",
+        "text": "Cabinetry is planned around real routines, not just symmetry."
+      },
+      {
+        "number": "03",
+        "title": "Natural light",
+        "text": "Materials are chosen for how they look in the room every day."
+      }
+    ]
+  },
+  "detail": {
+    "label": "Detail motion",
+    "title": "Best live projects, one detail at a time.",
+    "images": [
+      {
+        "url": "/uploads/projects/menlo-park/images/original/002-1000-alexandradiz-cb871038abbafc883fb32870dcc7c637-1.jpg",
+        "assetId": "69fe344d-7e14-44da-bf4e-024026b85b11",
+        "projectId": "3",
+        "alt": "Menlo park contemporary house"
+      },
+      {
+        "url": "/uploads/projects/clear-lines-house/images/original/001-1000-alexandradiz-baabf861af16ad5ad06555dd4fc3eb07-1.jpg",
+        "assetId": "e103608a-ec5f-441d-8474-c2a90acbd7d0",
+        "projectId": "57",
+        "alt": "Clear Lines House, San Jose"
+      },
+      {
+        "url": "/uploads/projects/walnut-creek/images/original/001-1000-73556e19f6dc22021671b786d5278946-1.jpg",
+        "assetId": "671914b2-3564-46ab-a22c-56bb68be7531",
+        "projectId": "69",
+        "alt": "House in Walnut Creek, California"
+      },
+      {
+        "url": "/uploads/projects/sunny-house-redwood-city/images/original/002-1000-alexandradiz-1d2e889d3c2a5dd2c70fca960e17800d-1.jpg",
+        "assetId": "ad33cd3f-69ed-4851-afb5-61632f29f240",
+        "projectId": "67",
+        "alt": "Sunny House Redwood City"
+      }
+    ]
+  },
+  "testimonials": {
+    "label": "Client words",
+    "title": "Reviews from homes that moved from idea to finished space.",
+    "count": 10,
+    "items": []
+  },
+  "cta": {
+    "label": "Start a project",
+    "title": "Bring the home into focus before the renovation begins.",
+    "buttonLabel": "Book a conversation",
+    "buttonHref": "/contact"
+  }
+}

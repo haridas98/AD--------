@@ -177,3 +177,10 @@ model BlogPost {
   @@index([isPublished])
   @@index([publishedAt])
 }
+
+model SiteSetting {
+  key       String @id
+  value     String @default("{}")
+  createdAt String @default("")
+  updatedAt String @default("")
+}

@@ -3,6 +3,7 @@ import path from 'path';
 
 const DATA_DIR = path.resolve('data');
 const HOMEPAGE_SETTINGS_PATH = path.join(DATA_DIR, 'homepage-settings.json');
+const HOMEPAGE_SETTINGS_KEY = 'homepage';
 
 export const DEFAULT_TESTIMONIALS = [
   {
@@ -108,6 +109,11 @@ export const DEFAULT_TESTIMONIALS = [
 ];
 
 export const DEFAULT_HOMEPAGE_SETTINGS = {
+  seo: {
+    title: 'Interior Designer in California | Kitchens, Bathrooms & Remodels | Alexandra Diz',
+    description: 'Alexandra Diz designs refined California homes: kitchen remodels, bathroom remodels, ADUs, and full house interiors with real finished project photography.',
+    keywords: 'California interior designer, kitchen remodeling, bathroom remodeling, ADU interiors, Alexandra Diz',
+  },
   hero: {
     title: 'Create your dream home',
     image: '/home/Alexandra-2.jpg',
@@ -253,6 +259,11 @@ function normalizeTestimonials(input) {
 export function normalizeHomepageSettings(input = {}) {
   const next = input || {};
   return {
+    seo: {
+      title: cleanText(next.seo?.title, DEFAULT_HOMEPAGE_SETTINGS.seo.title, 80),
+      description: cleanText(next.seo?.description, DEFAULT_HOMEPAGE_SETTINGS.seo.description, 180),
+      keywords: cleanText(next.seo?.keywords, DEFAULT_HOMEPAGE_SETTINGS.seo.keywords, 300),
+    },
     hero: {
       title: cleanText(next.hero?.title, DEFAULT_HOMEPAGE_SETTINGS.hero.title, 160),
       image: cleanUrl(next.hero?.image, DEFAULT_HOMEPAGE_SETTINGS.hero.image),
@@ -322,5 +333,47 @@ export function writeHomepageSettings(input = {}) {
   const normalized = normalizeHomepageSettings(input);
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(HOMEPAGE_SETTINGS_PATH, JSON.stringify(normalized, null, 2));
+  return normalized;
+}
+
+export async function readHomepageSettingsFromDb(prisma) {
+  try {
+    const existing = await prisma.siteSetting.findUnique({ where: { key: HOMEPAGE_SETTINGS_KEY } });
+    if (existing?.value) return normalizeHomepageSettings(JSON.parse(existing.value));
+
+    const migrated = readHomepageSettings();
+    await writeHomepageSettingsToDb(prisma, migrated);
+    return migrated;
+  } catch (err) {
+    console.error('Failed to read homepage settings from DB', err);
+    return readHomepageSettings();
+  }
+}
+
+export async function writeHomepageSettingsToDb(prisma, input = {}) {
+  const normalized = normalizeHomepageSettings(input);
+  const now = new Date().toISOString();
+
+  await prisma.siteSetting.upsert({
+    where: { key: HOMEPAGE_SETTINGS_KEY },
+    create: {
+      key: HOMEPAGE_SETTINGS_KEY,
+      value: JSON.stringify(normalized),
+      createdAt: now,
+      updatedAt: now,
+    },
+    update: {
+      value: JSON.stringify(normalized),
+      updatedAt: now,
+    },
+  });
+
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(HOMEPAGE_SETTINGS_PATH, JSON.stringify(normalized, null, 2));
+  } catch (err) {
+    console.warn('Failed to mirror homepage settings to file', err);
+  }
+
   return normalized;
 }

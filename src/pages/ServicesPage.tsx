@@ -2,12 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
+import { absoluteUrl, serviceSchema } from '../lib/seo';
 import { useAppStore } from '../store/useAppStore';
 
 interface ServicesPageProps { serviceType: string; }
 
 const servicesData: Record<string, {
   title: string;
+  path: string;
+  description: string;
   intro?: string;
   sections: {
     heading: string;
@@ -19,6 +22,8 @@ const servicesData: Record<string, {
 }> = {
   process: {
     title: 'Full Service Interior Design',
+    path: '/process',
+    description: 'Full service interior design for California homes: planning, materials, procurement, and construction support by Alexandra Diz.',
     sections: [
       {
         heading: 'Phase I',
@@ -75,6 +80,8 @@ const servicesData: Record<string, {
   },
   process_bath: {
     title: 'Bathroom Remodeling',
+    path: '/process_bath',
+    description: 'Bathroom remodel design with planning options, material direction, technical documentation, and construction support.',
     intro: 'We provide following deliverables for your bath remodel project:',
     sections: [
       {
@@ -120,6 +127,8 @@ const servicesData: Record<string, {
   },
   process_kitchen: {
     title: 'Kitchen Remodeling',
+    path: '/process_kitchen',
+    description: 'Kitchen remodel design for California homes, including layout planning, materials, technical documentation, and project support.',
     intro: 'We provide following deliverables for your kitchen remodel project:',
     sections: [
       {
@@ -172,8 +181,15 @@ export default function ServicesPage({ serviceType }: ServicesPageProps) {
   return (
     <>
       <Helmet>
-        <title>{service.title} — {site?.name || 'Alexandra Diz'}</title>
-        <meta name="description" content={service.title} />
+        <title>{service.title} | {site?.name || 'Alexandra Diz'}</title>
+        <meta name="description" content={service.description} />
+        <link rel="canonical" href={absoluteUrl(service.path)} />
+        <meta property="og:title" content={`${service.title} | Alexandra Diz Architecture`} />
+        <meta property="og:description" content={service.description} />
+        <meta property="og:url" content={absoluteUrl(service.path)} />
+        <script type="application/ld+json">
+          {JSON.stringify(serviceSchema(service.title, service.description, service.path))}
+        </script>
       </Helmet>
       <motion.main className="page-shell page-shell--offset services-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="page-shell__portfolio">

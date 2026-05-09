@@ -10,6 +10,7 @@ import {
   resolvePortfolioSectionFromPathname,
 } from '../lib/portfolioRoutes';
 import { sortProjectsForPortfolio } from '../lib/projectOrdering';
+import { absoluteUrl, imageUrl } from '../lib/seo';
 import styles from './ProjectPage.module.scss';
 
 export default function ProjectPage() {
@@ -65,21 +66,31 @@ export default function ProjectPage() {
         }
       : null,
   };
+  const canonicalPath = getCanonicalPortfolioProjectPathForCategory(projectCategory, project.slug);
+  const description = project.seoDescription || `${project.title} by Alexandra Diz Architecture: ${projectCategory?.name || 'interior design'} project in California.`;
+  const heroImage = blocks.find((block: any) => block.type === 'heroImage')?.data?.image || project.assets?.[0]?.publicUrl || '';
 
   return (
     <>
       <Helmet>
-        <title>{project.seoTitle || project.title} - {site?.name || 'Alexandra Diz'}</title>
-        <meta name="description" content={project.seoDescription || category?.name || ''} />
+        <title>{project.seoTitle || `${project.title} | ${projectCategory?.name || 'Project'} by Alexandra Diz`}</title>
+        <meta name="description" content={description} />
+        {project.seoKeywords ? <meta name="keywords" content={project.seoKeywords} /> : null}
+        <link rel="canonical" href={absoluteUrl(canonicalPath)} />
         <meta property="og:title" content={project.title} />
-        {project.seoDescription ? <meta property="og:description" content={project.seoDescription} /> : null}
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={absoluteUrl(canonicalPath)} />
+        {heroImage ? <meta property="og:image" content={imageUrl(heroImage)} /> : null}
+        <meta property="og:type" content="article" />
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'CreativeWork',
             name: project.title,
-            description: project.seoDescription,
-            category: category?.name,
+            description,
+            url: absoluteUrl(canonicalPath),
+            image: imageUrl(heroImage),
+            category: projectCategory?.name,
             author: { '@type': 'Organization', name: site?.name },
           })}
         </script>

@@ -5,10 +5,12 @@ import { motion } from 'framer-motion';
 import { useAppStore } from '../store/useAppStore';
 import { PortfolioProjectCard } from '../components/PortfolioProjectCard';
 import {
+  getCanonicalPortfolioCategoryPathForCategory,
   getCanonicalPortfolioProjectPathForCategory,
   resolvePortfolioSectionFromPathname,
 } from '../lib/portfolioRoutes';
 import { getProjectDisplayYear, sortProjectsForPortfolio } from '../lib/projectOrdering';
+import { absoluteUrl, serviceSchema } from '../lib/seo';
 import styles from './CategoryPage.module.scss';
 
 export default function CategoryPage() {
@@ -18,6 +20,8 @@ export default function CategoryPage() {
   const section = resolvePortfolioSectionFromPathname(location.pathname);
   const category = categories.find((item) => item.slug === section?.legacySlug || item.id === section?.legacySlug);
   const name = category?.name || section?.label || 'Projects';
+  const canonicalPath = getCanonicalPortfolioCategoryPathForCategory(category);
+  const description = category?.description || `${name} portfolio projects by Alexandra Diz Architecture in California.`;
 
   const catProjects = sortProjectsForPortfolio(projects.filter(
     (project) => project.categoryId === (category?.id || section?.legacySlug) && project.isPublished && !project.deletedAt,
@@ -46,8 +50,15 @@ export default function CategoryPage() {
   return (
     <>
       <Helmet>
-        <title>{name} - {site?.name || 'Alexandra Diz'}</title>
-        <meta name="description" content={`${name} projects by Alexandra Diz`} />
+        <title>{name} Portfolio | Alexandra Diz Architecture</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={absoluteUrl(canonicalPath)} />
+        <meta property="og:title" content={`${name} Portfolio | Alexandra Diz Architecture`} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={absoluteUrl(canonicalPath)} />
+        <script type="application/ld+json">
+          {JSON.stringify(serviceSchema(`${name} design`, description, canonicalPath))}
+        </script>
       </Helmet>
       <main className={`${styles.page} page-shell page-shell--offset`}>
         <div className="page-shell__portfolio">

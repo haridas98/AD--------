@@ -1,6 +1,11 @@
 import type { HomepageSettings } from '../types';
 
 export const DEFAULT_HOMEPAGE_SETTINGS: HomepageSettings = {
+  seo: {
+    title: 'Interior Designer in California | Kitchens, Bathrooms & Remodels | Alexandra Diz',
+    description: 'Alexandra Diz designs refined California homes: kitchen remodels, bathroom remodels, ADUs, and full house interiors with real finished project photography.',
+    keywords: 'California interior designer, kitchen remodeling, bathroom remodeling, ADU interiors, Alexandra Diz',
+  },
   hero: {
     title: 'Create your dream...',
     image: '/home/Alexandra-2.jpg',
@@ -135,6 +140,11 @@ function testimonialItems(input: any) {
 export function normalizeHomepageSettings(input?: Partial<HomepageSettings> | null): HomepageSettings {
   const next: any = input || {};
   return {
+    seo: {
+      title: text(next.seo?.title, DEFAULT_HOMEPAGE_SETTINGS.seo.title),
+      description: text(next.seo?.description, DEFAULT_HOMEPAGE_SETTINGS.seo.description),
+      keywords: text(next.seo?.keywords, DEFAULT_HOMEPAGE_SETTINGS.seo.keywords),
+    },
     hero: {
       title: text(next.hero?.title, DEFAULT_HOMEPAGE_SETTINGS.hero.title),
       image: text(next.hero?.image, DEFAULT_HOMEPAGE_SETTINGS.hero.image),

@@ -68,6 +68,17 @@ async function run() {
       'testimonials must expose projectId for project-linked reviews',
     );
 
+    const robotsRes = await fetch(`${BASE_URL}/robots.txt`);
+    assert(robotsRes.ok, `GET /robots.txt failed with ${robotsRes.status}`);
+    const robots = await robotsRes.text();
+    assert(robots.includes('Sitemap:'), 'robots.txt must include Sitemap directive');
+
+    const sitemapRes = await fetch(`${BASE_URL}/sitemap.xml`);
+    assert(sitemapRes.ok, `GET /sitemap.xml failed with ${sitemapRes.status}`);
+    const sitemap = await sitemapRes.text();
+    assert(sitemap.includes('<urlset'), 'sitemap.xml must include urlset');
+    assert(sitemap.includes('/blog'), 'sitemap.xml must include public content routes');
+
     const badLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

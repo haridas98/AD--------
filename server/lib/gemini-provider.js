@@ -271,3 +271,31 @@ export async function generateGeminiBlockText({
 
   return generateGeminiContent({ apiKey, model, prompt });
 }
+
+export async function generateGeminiSeoMetadata({
+  apiKey,
+  model,
+  type = 'page',
+  item = {},
+  instructions = '',
+}) {
+  const prompt = [
+    'You write SEO metadata for a high-end California interior architecture website.',
+    'Return strict JSON only, no markdown.',
+    'JSON shape: {"seoTitle":"max 60 chars","seoDescription":"max 155 chars","seoKeywords":"comma-separated keywords"}.',
+    'Keep it specific, natural, and commercially useful. Do not keyword stuff.',
+    `Page type: ${cleanText(type)}`,
+    `Page data: ${JSON.stringify(item || {})}`,
+    `User instructions: ${cleanText(instructions) || 'No extra instructions.'}`,
+  ].join('\n');
+
+  const parsed = parseJsonText(await generateGeminiContent({ apiKey, model, prompt }));
+
+  return {
+    seoTitle: cleanText(parsed.seoTitle).slice(0, 80),
+    seoDescription: cleanText(parsed.seoDescription).slice(0, 180),
+    seoKeywords: Array.isArray(parsed.seoKeywords)
+      ? parsed.seoKeywords.map(cleanText).filter(Boolean).join(', ')
+      : cleanText(parsed.seoKeywords).slice(0, 300),
+  };
+}

@@ -110,6 +110,7 @@ export interface HomepageImageRef {
 }
 export type HomepageImageValue = string | HomepageImageRef;
 export interface HomepageSettings {
+  seo: { title: string; description: string; keywords: string };
   hero: { title: string; image: string };
   collage: {
     title: string;

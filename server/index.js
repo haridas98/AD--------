@@ -11,9 +11,9 @@ import { saveProjectAssetUpload, ensureProjectAssetDirectories } from './lib/pro
 import { hydrateProjectAssetsFromContent, importProjectAssetsFromArchive } from './lib/project-asset-migration.js';
 import { syncProjectAssetFolder } from './lib/project-asset-sync.js';
 import { generateProjectPageDraft, generateTextDraft } from './lib/project-ai-draft.js';
-import { generateGeminiBlockText, generateGeminiProjectMetadata } from './lib/gemini-provider.js';
+import { generateGeminiBlockText, generateGeminiProjectMetadata, generateGeminiSeoMetadata } from './lib/gemini-provider.js';
 import { assertThemeShape, readThemeSettings, writeThemeSettings } from './theme-settings.js';
-import { DEFAULT_TESTIMONIALS, readHomepageSettings, writeHomepageSettings } from './homepage-settings.js';
+import { DEFAULT_TESTIMONIALS, readHomepageSettingsFromDb, writeHomepageSettingsToDb } from './homepage-settings.js';
 
 function readLocalEnvFile() {
   const envPath = path.resolve('.env');
@@ -76,6 +76,64 @@ const sessions = new Map();
 
 // When running behind a reverse proxy (nginx, cloud LB), trust X-Forwarded-* headers.
 app.set('trust proxy', 1);
+
+const SITE_URL = getEnvValue('SITE_URL', 'https://alexandradiz.com').replace(/\/+$/, '');
+
+function absoluteSiteUrl(pathname = '/') {
+  return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
+}
+
+function fallbackSeoMetadata(type, item = {}) {
+  const title = String(item.title || item.heroTitle || item.name || 'Alexandra Diz Architecture').trim();
+  const category = String(item.category || item.categoryName || item.service || 'interior design').trim();
+  const location = String(item.cityName || item.location || 'California').trim();
+  const siteName = 'Alexandra Diz';
+
+  if (type === 'home') {
+    return {
+      seoTitle: 'Interior Designer in California | Alexandra Diz',
+      seoDescription: 'Alexandra Diz designs refined California homes, kitchens, bathrooms, ADUs, and full remodel interiors with real finished project photography.',
+      seoKeywords: 'California interior designer, kitchen remodel design, bathroom remodel design, ADU interiors, Alexandra Diz',
+    };
+  }
+
+  if (type === 'blog') {
+    return {
+      seoTitle: `${title} | ${siteName}`,
+      seoDescription: String(item.excerpt || `${title}: interior design notes on materials, planning, and refined California homes by ${siteName}.`).slice(0, 180),
+      seoKeywords: [title, 'interior design blog', 'remodel planning', siteName].filter(Boolean).join(', '),
+    };
+  }
+
+  return {
+    seoTitle: `${title} | ${siteName}`,
+    seoDescription: `${title}: ${category.toLowerCase()} project in ${location} by ${siteName}. Interior design, remodeling planning, and finished home details.`,
+    seoKeywords: [title, category, location, siteName, 'interior design', 'remodeling'].filter(Boolean).join(', '),
+  };
+}
+
+function xmlEscape(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+const portfolioSectionByCategory = {
+  kitchens: 'kitchens',
+  'full-house-remodeling': 'full-house',
+  bathrooms: 'bathroom',
+  adu1: 'adu',
+  fireplaces: 'fireplaces',
+};
+
+function getProjectSitemapPath(project, categoryById) {
+  const category = categoryById.get(project.categoryId);
+  const section = portfolioSectionByCategory[category?.slug] || portfolioSectionByCategory[project.categoryId] || project.categoryId;
+  return `/projects/${section}/${project.slug}`;
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -528,16 +586,87 @@ async function getProjectOr404(projectId, res) {
 app.get('/api/content', async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const baseHomepageSettings = readHomepageSettings();
-    const [categories, projects, blogPosts, testimonials] = await Promise.all([
+    const [categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
       prisma.category.findMany({ where: { showInHeader: true }, orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ where: { isPublished: true }, orderBy: { publishedAt: 'desc' }, take: 10 }),
       readTestimonialsForPublic(),
+      readHomepageSettingsFromDb(prisma),
     ]);
     const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
     res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
+});
+
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain').send([
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /admin',
+    `Sitemap: ${absoluteSiteUrl('/sitemap.xml')}`,
+    '',
+  ].join('\n'));
+});
+
+app.get('/sitemap.xml', async (_req, res) => {
+  try {
+    const [categories, projects, blogPosts] = await Promise.all([
+      prisma.category.findMany(),
+      prisma.project.findMany({
+        where: { isPublished: true, deletedAt: null },
+        select: { slug: true, categoryId: true, updatedAt: true },
+      }),
+      prisma.blogPost.findMany({
+        where: { isPublished: true },
+        select: { slug: true, updatedAt: true, publishedAt: true },
+      }),
+    ]);
+    const categoryById = new Map(categories.map((category) => [category.id, category]));
+    const urls = [
+      { loc: '/', priority: '1.0' },
+      { loc: '/projects', priority: '0.8' },
+      { loc: '/blog', priority: '0.7' },
+      { loc: '/services', priority: '0.8' },
+      { loc: '/about', priority: '0.6' },
+      { loc: '/contact', priority: '0.8' },
+      ...categories
+        .filter((category) => category.showInHeader)
+        .map((category) => portfolioSectionByCategory[category.slug] ? {
+          loc: `/projects/${portfolioSectionByCategory[category.slug]}`,
+          priority: '0.8',
+        } : null)
+        .filter(Boolean),
+      ...projects.map((project) => ({
+        loc: getProjectSitemapPath(project, categoryById),
+        lastmod: project.updatedAt,
+        priority: '0.7',
+      })),
+      ...blogPosts.map((post) => ({
+        loc: `/blog/${post.slug}`,
+        lastmod: post.updatedAt || post.publishedAt,
+        priority: '0.6',
+      })),
+    ];
+
+    const body = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ...urls.map((url) => [
+        '  <url>',
+        `    <loc>${xmlEscape(absoluteSiteUrl(url.loc))}</loc>`,
+        url.lastmod ? `    <lastmod>${xmlEscape(new Date(url.lastmod).toISOString().slice(0, 10))}</lastmod>` : '',
+        `    <priority>${url.priority}</priority>`,
+        '  </url>',
+      ].filter(Boolean).join('\n')),
+      '</urlset>',
+      '',
+    ].join('\n');
+
+    res.type('application/xml').send(body);
+  } catch (err) {
+    console.error(err);
+    res.status(500).type('text/plain').send('Failed to generate sitemap');
+  }
 });
 
 app.get('/api/projects/:slug', async (req, res) => {
@@ -594,12 +723,12 @@ app.get('/api/auth/me', requireAuth, (req, res) => res.json({ ok: true, user: re
 app.get('/api/admin/content', requireAuth, async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const baseHomepageSettings = readHomepageSettings();
-    const [categories, projects, blogPosts, testimonials] = await Promise.all([
+    const [categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ orderBy: { createdAt: 'desc' } }),
       readTestimonialsForAdmin(),
+      readHomepageSettingsFromDb(prisma),
     ]);
     const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
     res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
@@ -618,7 +747,7 @@ app.put('/api/admin/theme-settings', requireAuth, async (req, res) => {
 
 app.put('/api/admin/homepage-settings', requireAuth, async (req, res) => {
   try {
-    const homepageSettings = writeHomepageSettings(req.body || {});
+    const homepageSettings = await writeHomepageSettingsToDb(prisma, req.body || {});
     res.json({ homepageSettings });
   } catch (err) {
     res.status(400).json({ error: err.message || 'Invalid homepage settings' });
@@ -827,6 +956,65 @@ app.post('/api/admin/ai/generate-text', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/api/admin/ai/generate-seo', requireAuth, async (req, res) => {
+  try {
+    const type = String(req.body?.type || 'project');
+    let item = req.body?.item || {};
+
+    if (type === 'project' && req.body?.projectId) {
+      const project = await prisma.project.findUnique({
+        where: { id: req.body.projectId },
+        include: { category: true },
+      });
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+      item = {
+        title: project.title,
+        category: project.category?.name,
+        cityName: project.cityName,
+        year: project.year,
+        currentSeoTitle: project.seoTitle,
+        currentSeoDescription: project.seoDescription,
+        currentSeoKeywords: project.seoKeywords,
+      };
+    } else if (type === 'home') {
+      const homepageSettings = await readHomepageSettingsFromDb(prisma);
+      item = {
+        heroTitle: homepageSettings.hero?.title,
+        collageTitle: homepageSettings.collage?.title,
+        collageText: homepageSettings.collage?.text,
+        showcaseTitle: homepageSettings.showcase?.title,
+        currentSeoTitle: homepageSettings.seo?.title,
+        currentSeoDescription: homepageSettings.seo?.description,
+        currentSeoKeywords: homepageSettings.seo?.keywords,
+      };
+    }
+
+    let provider = 'local';
+    let seo = null;
+    const gemini = getGeminiOptions();
+
+    if (gemini.apiKey) {
+      try {
+        seo = await generateGeminiSeoMetadata({
+          ...gemini,
+          type,
+          item,
+          instructions: req.body?.instructions || '',
+        });
+        provider = 'gemini';
+      } catch (err) {
+        console.warn('Gemini SEO draft failed, using local fallback:', err.message);
+      }
+    }
+
+    if (!seo) seo = fallbackSeoMetadata(type, item);
+    res.json({ seo, provider });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate SEO draft' });
+  }
+});
+
 app.get('/api/admin/projects/:id/assets', requireAuth, async (req, res) => {
   try {
     const project = await getProjectOr404(req.params.id, res);
@@ -886,6 +1074,7 @@ app.post('/api/admin/projects/:id/assets/upload', requireAuth, runAssetUpload, a
       where: {
         projectId: project.id,
         checksum: saved.checksum,
+        status: { not: 'archived' },
       },
     });
 
@@ -949,6 +1138,7 @@ app.post('/api/admin/projects/:id/assets/import-url', requireAuth, async (req, r
       where: {
         projectId: project.id,
         checksum: saved.checksum,
+        status: { not: 'archived' },
       },
     });
 
