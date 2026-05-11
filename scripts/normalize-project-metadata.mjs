@@ -132,6 +132,8 @@ const slugTitleOverrides = {
   'sunny-house-redwood-city': 'Sunny House',
   'sunnyvale-990': 'Kitchen',
   'chauncey': 'Velvet Green',
+  'chauncey1': 'Bathroom',
+  'rio-vistakit': 'Kitchen',
   'victorian-style-palo-alto': 'Victorian Style',
   'warm-evening-fremont': 'Warm Evening',
   'warm-kitchen-oakland': 'Warm Kitchen',
