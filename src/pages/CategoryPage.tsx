@@ -9,6 +9,7 @@ import {
   getCanonicalPortfolioProjectPathForCategory,
   resolvePortfolioSectionFromPathname,
 } from '../lib/portfolioRoutes';
+import { collectProjectImages, parseProjectContent } from '../lib/projectBlockTemplates';
 import { getProjectDisplayYear, sortProjectsForPortfolio } from '../lib/projectOrdering';
 import { absoluteUrl, serviceSchema } from '../lib/seo';
 import styles from './CategoryPage.module.scss';
@@ -31,8 +32,9 @@ export default function CategoryPage() {
   );
 
   function getCover(project: any) {
-    const content = typeof project.content === 'string' ? JSON.parse(project.content) : project.content;
-    return content?.find((block: any) => block.type === 'heroImage')?.data?.image || '';
+    return (project.assets || []).find((asset: any) => asset.kind === 'image' && asset.status === 'active' && asset.publicUrl)?.publicUrl
+      || collectProjectImages(parseProjectContent(project.content))[0]
+      || '';
   }
 
   if (!catProjects.length) {

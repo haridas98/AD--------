@@ -8,7 +8,7 @@ import {
   getCanonicalPortfolioProjectPathForCategory,
 } from '../lib/portfolioRoutes';
 import { collectProjectImages, parseProjectContent } from '../lib/projectBlockTemplates';
-import { getProjectDisplayYear, sortProjectsForPortfolio } from '../lib/projectOrdering';
+import { getProjectDisplayYear, getProjectImageCount, sortProjectsForPortfolio } from '../lib/projectOrdering';
 import { useAppStore } from '../store/useAppStore';
 import type { Category, Project } from '../types';
 import styles from './ProjectsLandingPage.module.scss';
@@ -19,14 +19,10 @@ type ProjectPreview = {
   image: string;
 };
 
-function getProjectImageCount(project: Project) {
-  const assetCount = (project.assets || []).filter((asset) => asset.kind === 'image' && asset.status === 'active').length;
-  const contentCount = collectProjectImages(parseProjectContent(project.content)).length;
-  return Math.max(assetCount, contentCount);
-}
-
 function getProjectCover(project: Project) {
-  return collectProjectImages(parseProjectContent(project.content))[0] || '';
+  return (project.assets || []).find((asset) => asset.kind === 'image' && asset.status === 'active' && asset.publicUrl)?.publicUrl
+    || collectProjectImages(parseProjectContent(project.content))[0]
+    || '';
 }
 
 function getShortTitle(title?: string | null) {
@@ -74,8 +70,7 @@ export default function ProjectsLandingPage() {
   ), [categoryMap, publishedProjects]);
 
   const heroProjects = useMemo(() => {
-    const featured = projectPreviews.filter(({ project }) => project.isFeatured);
-    return (featured.length ? featured : projectPreviews).slice(0, 8);
+    return projectPreviews.slice(0, 8);
   }, [projectPreviews]);
 
   const categoryGroups = useMemo(() => (

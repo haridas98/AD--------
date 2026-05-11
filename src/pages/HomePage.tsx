@@ -267,11 +267,7 @@ export default function HomePage() {
   const images = Array.from(new Set([...projectImages, ...fallbackImages])).slice(0, 14);
   const heroImage = homepageSettings.hero.image || alexandra.onsite;
   const featureImage = homepageSettings.feature.image || alexandra.portrait;
-  const featuredProjectIds = new Set(selectedProjects.filter((project) => project.isFeatured).map((project) => project.id));
-  const showcaseProjects = [
-    ...selectedProjects.filter((project) => project.isFeatured),
-    ...selectedProjects.filter((project) => !featuredProjectIds.has(project.id)),
-  ].slice(0, 8);
+  const showcaseProjects = selectedProjects.slice(0, 8);
   const activeProject = showcaseProjects[activeProjectIndex] || showcaseProjects[0];
   const activeProjectCover = activeProject
     ? getProjectCover(activeProject) || images[activeProjectIndex] || heroImage
