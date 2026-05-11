@@ -164,9 +164,13 @@ function fallbackTitleForCategory(categorySlug) {
   return 'House';
 }
 
+function isGenericTitle(value) {
+  return ['ADU', 'Bathroom', 'Fireplace', 'House', 'Kitchen'].includes(String(value || '').trim());
+}
+
 function cleanProjectTitle(project) {
   const override = slugTitleOverrides[project.slug];
-  if (override) return override;
+  if (override && !isGenericTitle(override)) return override;
 
   const originalTitle = String(project.title || '').trim();
   let title = originalTitle;
@@ -193,10 +197,15 @@ function cleanProjectTitle(project) {
   title = title.replace(/\s{2,}/g, ' ').trim();
 
   if (!title || cityWords.some((city) => city.toLowerCase() === title.toLowerCase())) {
-    return fallbackTitleForCategory(project.category?.slug);
+    return normalizeCity(project.cityName) || titleCase(title) || fallbackTitleForCategory(project.category?.slug);
   }
 
-  return changed ? titleCase(title) : originalTitle;
+  const nextTitle = changed ? titleCase(title) : originalTitle;
+  if (isGenericTitle(nextTitle) || isGenericTitle(override)) {
+    return normalizeCity(project.cityName) || nextTitle;
+  }
+
+  return nextTitle;
 }
 
 function inferMetadata(project) {
