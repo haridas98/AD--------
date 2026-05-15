@@ -115,8 +115,8 @@ export const DEFAULT_HOMEPAGE_SETTINGS = {
     keywords: 'California interior designer, kitchen remodeling, bathroom remodeling, ADU interiors, Alexandra Diz',
   },
   hero: {
-    title: 'Create your dream home',
-    image: '/home/Alexandra-2.jpg',
+    title: 'Interiors that feel quietly extraordinary.',
+    image: '/home/alexandra-hero-editorial.jpg',
   },
   collage: {
     title: 'Real homes, finished beautifully.',
@@ -134,7 +134,7 @@ export const DEFAULT_HOMEPAGE_SETTINGS = {
   },
   feature: {
     quote: '"Homes become beautiful when every practical decision has a visual reason."',
-    image: '/home/alexandra.jpg',
+    image: '/home/alexandra-studio-editorial.jpg',
     darkTitle: 'Rooms with a quieter rhythm',
     darkText: 'Plans, millwork and finishes are edited until the home feels composed, useful and personal.',
     linkLabel: 'Read more',

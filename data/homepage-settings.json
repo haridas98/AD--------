@@ -5,51 +5,51 @@
     "keywords": "California interior designer, kitchen remodeling, bathroom remodeling, ADU interiors, Alexandra Diz"
   },
   "hero": {
-    "title": "Create your dream home",
-    "image": "http://localhost:8787/uploads/homepage-hero.png"
+    "title": "Interiors that feel quietly extraordinary.",
+    "image": "/home/alexandra-hero-editorial.jpg"
   },
   "collage": {
-    "title": "Kitchens made to be used.",
-    "text": "Different kitchen projects with real finished photos: storage, light, work surfaces, and daily rhythm.",
-    "quote": "Real kitchens should look calm and work hard.",
-    "cardTitle": "Live kitchen rhythm",
-    "cardText": "Finished kitchens, natural light, and materials already doing their job.",
+    "title": "Real homes, finished beautifully.",
+    "text": "A selection of completed interiors with live photography: clean rooms, natural light, quiet materials, and no staged portraits.",
+    "quote": "The best projects do not need a render to feel convincing.",
+    "cardTitle": "Live atmosphere",
+    "cardText": "Finished spaces, real light, and details that already work in daily life.",
     "images": {
       "primary": {
-        "url": "/uploads/projects/belmond-2441-coronet/images/original/037-2000-alexandradiz-0207b81c33ee8950ad7c3301882c4dff-1.jpg",
-        "assetId": "d79da3e8-87a1-4fff-80f2-c2ad5651656a",
-        "projectId": "72",
-        "alt": "Belmond Coronet kitchen project in Belmont by Alexandra Diz"
+        "url": "/uploads/projects/los-altos/images/original/013-2000-alexandradiz-e5e44c546c98fa423e83a199c9e9f53f-1.jpg",
+        "assetId": "652e8bbb-a7c5-4638-8955-00c2aee9905b",
+        "projectId": "62",
+        "alt": "Los Altos living room remodel by Alexandra Diz"
       },
       "smallOne": {
-        "url": "/uploads/projects/bright-mood-pacifica/images/original/025-2000-alexandradiz-276f9f1e586dd01067a695174ae7782b-1.jpg",
-        "assetId": "4c75b660-18ec-4a06-994b-9e5360c60f98",
-        "projectId": "73",
-        "alt": "Bright Mood kitchen project in Pacifica by Alexandra Diz"
+        "url": "/uploads/projects/pure-elegance-kitchen/images/original/031-2000-alexandradiz-2ab133cd28fcda7d1cef3ea51a8bf8b4-1.jpg",
+        "assetId": "16b39763-a649-43a8-8d72-49c194917b1a",
+        "projectId": "86",
+        "alt": "Pure Elegance kitchen remodel by Alexandra Diz"
       },
       "wide": {
-        "url": "/uploads/projects/belmond/images/original/019-2000-alexandradiz-442af1b3c2ea5c863ff8a5a1f67c1525-1.jpg",
-        "assetId": "ebc5804b-9d26-4fc2-9115-a86c88eb3cf9",
-        "projectId": "71",
-        "alt": "Belmond kitchen project in Belmont by Alexandra Diz"
+        "url": "/uploads/projects/california-ocean-house-in-paccifica/images/original/013-2000-11c71717163361464df5aff14700a074-1.jpg",
+        "assetId": "4b511cb6-3617-4aae-bbac-71f596f076f6",
+        "projectId": "56",
+        "alt": "Ocean House living room remodel in Pacifica by Alexandra Diz"
       },
       "tall": {
-        "url": "/uploads/projects/modern-kitchen-in-sunnyvale/images/original/037-2000-2ae70ccdc3a97a41048a8b468aaff561-1.jpg",
-        "assetId": "a33debe5-32ae-46a8-861b-b815377f257b",
-        "projectId": "81",
-        "alt": "Modern Kitchen project in Sunnyvale by Alexandra Diz"
+        "url": "/uploads/projects/cozy-home-in-menlo-park-ca/images/original/013-2000-alexandradiz-9338e530c7e595146ba40a2adea5d23e-1.jpg",
+        "assetId": "a34f77a2-c9b6-4b57-ba02-67c5261d0bb7",
+        "projectId": "58",
+        "alt": "Cozy Home in Menlo Park by Alexandra Diz"
       },
       "smallTwo": {
-        "url": "/uploads/projects/escanyokitchens/images/original/037-2000-alexandradiz-e936220652e76932045f189655e9e902-1.jpg",
-        "assetId": "d2e0ab8e-f9f5-4582-88f0-1bd44fb0a848",
-        "projectId": "76",
-        "alt": "Escanyo kitchen project by Alexandra Diz"
+        "url": "/uploads/projects/walnut-creek/images/original/010-walnut-creek.jpg",
+        "assetId": "408fedff-dec8-410f-a217-303810bac73d",
+        "projectId": "69",
+        "alt": "Walnut Creek living room remodel by Alexandra Diz"
       }
     }
   },
   "feature": {
     "quote": "\"Homes become beautiful when every practical decision has a visual reason.\"",
-    "image": "http://localhost:8787/uploads/homepage-feature.jpg",
+    "image": "/home/alexandra-studio-editorial.jpg",
     "darkTitle": "Rooms with a quieter rhythm",
     "darkText": "Plans, millwork and finishes are edited until the home feels composed, useful and personal.",
     "linkLabel": "Read more",

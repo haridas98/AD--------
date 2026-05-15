@@ -544,8 +544,11 @@ export default function HomePage() {
           />
           <div className={styles.heroShade} />
           <div className={styles.heroText}>
+            <p className={styles.heroKicker}>California interiors / lived-in elegance</p>
             <h1>{homepageSettings.hero.title}</h1>
+            <Link className={styles.heroCta} to="/projects">View selected work</Link>
           </div>
+          <p className={styles.heroMeta}>Kitchen / Bathroom / Full house / ADU</p>
         </section>
 
         <section className={styles.collage}>

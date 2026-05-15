@@ -2,12 +2,14 @@
   --portfolio-gutter: clamp(24px, 4vw, 72px);
   --portfolio-content: 1900px;
   --portfolio-serif: Georgia, 'Times New Roman', serif;
-  --portfolio-shadow: 0 32px 86px rgba(0, 0, 0, 0.22);
+  --portfolio-shadow: 0 38px 110px rgba(42, 31, 21, 0.22);
 
   position: relative;
   overflow: clip;
   color: var(--theme-text-primary);
-  background: var(--theme-bg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--theme-bg) 94%, #fff 6%), var(--theme-bg) 36%),
+    var(--theme-bg);
 }
 
 .page::before {
@@ -63,6 +65,18 @@
   opacity: 0.12;
 }
 
+.hero::before {
+  content: "";
+  position: absolute;
+  left: max(var(--portfolio-gutter), calc((100vw - var(--portfolio-content)) / 2 + var(--portfolio-gutter)));
+  bottom: clamp(44px, 5vw, 86px);
+  z-index: -1;
+  width: min(980px, 56vw);
+  height: 1px;
+  background: linear-gradient(90deg, var(--theme-accent), transparent);
+  opacity: 0.55;
+}
+
 .heroCopy {
   align-self: center;
   max-width: 680px;
@@ -106,6 +120,13 @@
   border-bottom: 1px solid var(--theme-border);
   color: var(--theme-text-primary);
   text-decoration: none;
+  transition: color 0.22s ease, padding 0.22s ease, border-color 0.22s ease;
+}
+
+.categoryLinks a:hover {
+  padding-left: 12px;
+  border-bottom-color: var(--theme-accent);
+  color: var(--theme-accent);
 }
 
 .categoryLinks span {
@@ -130,6 +151,7 @@
   overflow: hidden;
   color: #fff;
   background: var(--theme-surface);
+  border: 1px solid color-mix(in srgb, var(--theme-border-strong) 82%, transparent);
   box-shadow: var(--portfolio-shadow);
   text-decoration: none;
 }
@@ -144,6 +166,24 @@
     linear-gradient(180deg, transparent 54%, rgba(0, 0, 0, 0.48)),
     linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 48%);
   pointer-events: none;
+}
+
+.heroFeature::before,
+.leadProject::before {
+  content: "";
+  position: absolute;
+  inset: clamp(14px, 1.5vw, 26px);
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, inset 0.3s ease;
+}
+
+.heroFeature:hover::before,
+.leadProject:hover::before {
+  inset: clamp(20px, 2vw, 34px);
+  opacity: 1;
 }
 
 .heroFeature img,
@@ -250,6 +290,10 @@
   align-items: start;
 }
 
+.section:nth-child(even) .collection {
+  transform: translateY(clamp(18px, 3vw, 42px));
+}
+
 .sectionIntro {
   position: sticky;
   top: calc(var(--header-offset) + 32px);
@@ -304,6 +348,7 @@
   overflow: hidden;
   color: #fff;
   background: var(--theme-surface);
+  border: 1px solid color-mix(in srgb, var(--theme-border-strong) 80%, transparent);
   box-shadow: var(--portfolio-shadow);
   text-decoration: none;
 }
@@ -324,6 +369,22 @@
   background:
     radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--theme-surface-strong) 82%, transparent), transparent 68%),
     var(--theme-surface);
+}
+
+.projectTile::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 2;
+  border-top: 1px solid rgba(255, 255, 255, 0.36);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.projectTile:hover::before {
+  opacity: 1;
+  transform: translateY(6px);
 }
 
 .projectTile img {
@@ -419,6 +480,10 @@
     gap: 76px;
     padding-top: 64px;
     padding-bottom: 86px;
+  }
+
+  .section:nth-child(even) .collection {
+    transform: none;
   }
 
   .sectionIntro h2 {

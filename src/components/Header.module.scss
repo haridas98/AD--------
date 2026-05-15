@@ -8,6 +8,16 @@
   border-bottom: 1px solid var(--theme-border);
 }
 
+.siteHeader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
 .scrolled {
   background: var(--theme-header-bg-strong);
   border-bottom-color: var(--theme-border-strong);
@@ -19,11 +29,26 @@
   backdrop-filter: none;
 }
 
+.transparentOverHero::before {
+  opacity: 1;
+  background:
+    linear-gradient(180deg, rgba(8, 10, 12, 0.34), rgba(8, 10, 12, 0.16) 58%, rgba(8, 10, 12, 0)),
+    radial-gradient(ellipse at 14% 34%, rgba(8, 10, 12, 0.28), rgba(8, 10, 12, 0) 56%),
+    radial-gradient(ellipse at 82% 30%, rgba(8, 10, 12, 0.22), rgba(8, 10, 12, 0) 58%);
+}
+
 .transparentOverHero .brand,
 .transparentOverHero .navLink,
 .transparentOverHero .themeToggle,
 .transparentOverHero .menuToggle {
   color: #fff;
+  text-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.58),
+    0 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.transparentOverHero .brandMarkWrap {
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.42));
 }
 
 .transparentOverHero .themeToggle,
@@ -39,19 +64,31 @@
   backdrop-filter: blur(10px);
 }
 
+.transparentOverHero:hover::before,
+.transparentOverHero:focus-within::before {
+  opacity: 0;
+}
+
 .transparentOverHero:hover .brand,
 .transparentOverHero:focus-within .brand {
   color: var(--theme-text-primary);
+  text-shadow: none;
 }
 
 .transparentOverHero:hover .navLink,
 .transparentOverHero:focus-within .navLink {
   color: var(--theme-text-secondary);
+  text-shadow: none;
 }
 
 .transparentOverHero:hover .active,
 .transparentOverHero:focus-within .active {
   color: var(--theme-text-primary);
+}
+
+.transparentOverHero:hover .brandMarkWrap,
+.transparentOverHero:focus-within .brandMarkWrap {
+  filter: none;
 }
 
 .transparentOverHero:hover .themeToggle,
