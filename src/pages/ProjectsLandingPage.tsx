@@ -20,7 +20,8 @@ type ProjectPreview = {
 };
 
 function getProjectCover(project: Project) {
-  return (project.assets || []).find((asset) => asset.kind === 'image' && asset.status === 'active' && asset.publicUrl)?.publicUrl
+  return project.coverImage
+    || (project.assets || []).find((asset) => asset.kind === 'image' && asset.status === 'active' && asset.publicUrl)?.publicUrl
     || collectProjectImages(parseProjectContent(project.content))[0]
     || '';
 }

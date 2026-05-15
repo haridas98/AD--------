@@ -1,4 +1,14 @@
-export interface SiteInfo { name: string; phone: string; email: string; instagram: string; facebook: string; houzz: string; }
+export interface SiteInfo {
+  name: string;
+  phone: string;
+  email: string;
+  instagram: string;
+  facebook: string;
+  houzz: string;
+  pinterest?: string;
+  youtube?: string;
+  tiktok?: string;
+}
 export interface Section { id: string; name: string; type: string; slug?: string; }
 export interface Category { id: string; name: string; slug: string; description?: string; showInHeader: boolean; sortOrder: number; }
 export interface BlockItem { type: string; data: Record<string, any>; id?: string; }
@@ -56,7 +66,7 @@ export interface AssetBlockReference {
   image?: string;
   video?: string;
 }
-export interface Project { id: string; title: string; slug: string; categoryId: string; isFeatured: boolean; isPublished: boolean; sortOrder: number; stylePreset?: ProjectStylePreset; content: string | BlockItem[]; assets?: ProjectAsset[]; seoTitle?: string; seoDescription?: string; seoKeywords?: string; cityName?: string; year?: number; completedAt?: string | null; createdAt: string; updatedAt: string; deletedAt?: string | null; }
+export interface Project { id: string; title: string; slug: string; categoryId: string; isFeatured: boolean; isPublished: boolean; sortOrder: number; stylePreset?: ProjectStylePreset; content: string | BlockItem[]; assets?: ProjectAsset[]; coverImage?: string | null; seoTitle?: string; seoDescription?: string; seoKeywords?: string; cityName?: string; year?: number; completedAt?: string | null; createdAt: string; updatedAt: string; deletedAt?: string | null; }
 export interface BlogPost { id: string; title: string; slug: string; excerpt?: string; coverImage?: string; content: string; isPublished: boolean; publishedAt?: string; seoTitle?: string; seoDescription?: string; seoKeywords?: string; tags?: string; }
 export interface Testimonial {
   id: string;

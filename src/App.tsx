@@ -18,6 +18,8 @@ import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import AdminPage from './pages/AdminPage';
 import ProjectsLandingPage from './pages/ProjectsLandingPage';
+import ServiceLandingPage from './pages/ServiceLandingPage';
+import LocationLandingPage from './pages/LocationLandingPage';
 import {
   PORTFOLIO_ROOT_PATH,
   getCanonicalPortfolioProjectPath,
@@ -58,7 +60,17 @@ export default function App() {
       try {
         const data = await api.getContent();
         setContent({
-          site: { name: 'Alexandra Diz Architecture', phone: '+1 415 769 8563', email: 'alexandra@alexandradiz.com', instagram: data.site?.instagram || '', facebook: data.site?.facebook || '', houzz: data.site?.houzz || '' },
+          site: {
+            name: data.site?.name || 'Alexandra Diz Architecture',
+            phone: data.site?.phone || '+1 415 769 8563',
+            email: data.site?.email || 'alexandra@alexandradiz.com',
+            instagram: data.site?.instagram || '',
+            facebook: data.site?.facebook || '',
+            houzz: data.site?.houzz || '',
+            pinterest: data.site?.pinterest || '',
+            youtube: data.site?.youtube || '',
+            tiktok: data.site?.tiktok || '',
+          },
           sections: data.sections || [],
           categories: data.categories || [],
           projects: data.projects || [],
@@ -121,6 +133,8 @@ export default function App() {
                 <Route path="/video" element={<VideoSeriesPage />} />
                 <Route path="/video-series" element={<VideoSeriesPage />} />
                 <Route path="/services" element={<ServicesPage serviceType="process" />} />
+                <Route path="/services/:serviceKey" element={<ServiceLandingPage />} />
+                <Route path="/locations/:citySlug" element={<LocationLandingPage />} />
                 <Route path="/process" element={<ServicesPage serviceType="process" />} />
                 <Route path="/process_bath" element={<ServicesPage serviceType="process_bath" />} />
                 <Route path="/process_kitchen" element={<ServicesPage serviceType="process_kitchen" />} />

@@ -308,6 +308,11 @@ export default function HomePage() {
     : [];
   const activeVisualIndex = activeProjectImages.length ? getWrappedIndex(activeTestimonialImageIndex, activeProjectImages.length) : 0;
   const activeVisual = activeProjectImages[activeVisualIndex] || activeTestimonial?.image || alexandra.portrait;
+  const activeVisualAlt = activeProjectLink?.project
+    ? `${getShortProjectTitle(activeProjectLink.project.title)} project photo`
+    : activeTestimonial?.author
+      ? `Review image for ${activeTestimonial.author}`
+      : 'Alexandra Diz project photo';
   const projectRailItems = getLoopedWindow(showcaseProjects, activeProjectIndex - 2, 5);
   const detailThumbSource = detailImages.map((item, index) => ({ item, index })).filter((entry) => entry.index !== activeDetailIndex);
   const detailThumbItems = getLoopedWindow(detailThumbSource, Math.max(0, activeDetailIndex - 2), 5).map(({ item }) => item);
@@ -494,7 +499,7 @@ export default function HomePage() {
     const image = (
       <img
         src={getPreviewImageUrl(imageUrl)}
-        alt={getHomepageImageAlt(imageValue)}
+        alt={getHomepageImageAlt(imageValue) || 'Finished Alexandra Diz interior project'}
         onError={(event) => handlePreviewFallback(event, imageUrl || fallbackUrl)}
       />
     );
@@ -648,7 +653,7 @@ export default function HomePage() {
                 <motion.img
                   key={activeProject?.id || activeProjectCover}
                   src={getPreviewImageUrl(activeProjectCover)}
-                  alt={activeProject?.title || ''}
+                  alt={activeProject?.title || 'Featured Alexandra Diz project'}
                   onError={(event) => handlePreviewFallback(event, activeProjectCover)}
                   initial={{ opacity: 0, scale: 1.06, clipPath: 'inset(12% 12% 12% 12%)' }}
                   animate={{ opacity: 1, scale: 1, clipPath: 'inset(0% 0% 0% 0%)' }}
@@ -694,7 +699,7 @@ export default function HomePage() {
                 const image = (
                   <img
                     src={getPreviewImageUrl(imageUrl)}
-                    alt={getHomepageImageAlt(imageValue)}
+                    alt={getHomepageImageAlt(imageValue) || 'Kitchen project by Alexandra Diz'}
                     onError={(event) => handlePreviewFallback(event, imageUrl || heroImage)}
                   />
                 );
@@ -729,7 +734,7 @@ export default function HomePage() {
                     <motion.img
                       key={getHomepageImageKey(activeDetailImage)}
                       src={getPreviewImageUrl(imageUrl)}
-                      alt={getHomepageImageAlt(activeDetailImage)}
+                      alt={getHomepageImageAlt(activeDetailImage) || 'Interior detail by Alexandra Diz'}
                       onError={(event) => handlePreviewFallback(event, imageUrl || heroImage)}
                       initial={{ opacity: 0, x: 54, rotate: 1.4, scale: 1.03 }}
                       animate={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
@@ -755,7 +760,7 @@ export default function HomePage() {
                 >
                   <img
                     src={getPreviewImageUrl(getHomepageImageUrl(image))}
-                    alt=""
+                    alt={getHomepageImageAlt(image) || `Interior detail ${index + 1}`}
                     onError={(event) => handlePreviewFallback(event, getHomepageImageUrl(image) || heroImage)}
                   />
                   <span>{String(index + 1).padStart(2, '0')}</span>
@@ -817,7 +822,7 @@ export default function HomePage() {
                       <img
                         key={activeVisual}
                         src={getPreviewImageUrl(activeVisual)}
-                        alt=""
+                        alt={activeVisualAlt}
                         onError={(event) => handlePreviewFallback(event, activeVisual || alexandra.portrait)}
                       />
                     </Link>
@@ -825,7 +830,7 @@ export default function HomePage() {
                     <img
                       key={activeVisual}
                       src={getPreviewImageUrl(activeVisual)}
-                      alt=""
+                      alt={activeVisualAlt}
                       onError={(event) => handlePreviewFallback(event, activeVisual || alexandra.portrait)}
                     />
                   )}

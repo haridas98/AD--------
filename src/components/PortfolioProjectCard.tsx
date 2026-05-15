@@ -25,7 +25,7 @@ export function PortfolioProjectCard({ to, title, image, eyebrow, cityName, year
       <div className={styles.overlay}>
         {eyebrow ? <span className={styles.eyebrow}>{eyebrow}</span> : null}
         <h3 className={styles.title}>{title}</h3>
-        {(cityName || year) ? <p className={styles.meta}>{[cityName, year].filter(Boolean).join(' • ')}</p> : null}
+        {(cityName || year) ? <p className={styles.meta}>{[cityName, year].filter(Boolean).join(' / ')}</p> : null}
       </div>
     </Link>
   );

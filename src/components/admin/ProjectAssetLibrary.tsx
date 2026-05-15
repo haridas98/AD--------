@@ -15,6 +15,8 @@ type Props = {
   onImportUrl: (url: string) => Promise<void> | void;
   onUpdate: (asset: ProjectAsset, payload: Partial<ProjectAsset>) => Promise<void> | void;
   onDelete: (asset: ProjectAsset) => Promise<void> | void;
+  onGenerateImageSeo?: () => Promise<void> | void;
+  generatingSeo?: boolean;
 };
 
 type SortMode = 'usage-desc' | 'usage-asc' | 'name-asc' | 'name-desc' | 'date-desc' | 'date-asc';
@@ -35,7 +37,7 @@ function formatDimensions(asset: ProjectAsset) {
   if (!asset.width || !asset.height) return 'Dimensions unknown';
   const ratio = asset.width / asset.height;
   const orientation = ratio > 1.08 ? 'landscape' : ratio < 0.92 ? 'portrait' : 'square';
-  return `${asset.width}x${asset.height} · ${orientation}`;
+  return `${asset.width}x${asset.height} / ${orientation}`;
 }
 
 function formatDateTime(value?: string) {
@@ -73,12 +75,17 @@ function renderBadges(asset: ProjectAsset) {
     asset.status,
     asset.includeInAi === false ? 'AI off' : 'AI on',
     isUsed ? `used ${asset.usageCount}` : 'unused',
+    asset.altText ? 'alt ok' : 'alt missing',
+    asset.caption ? 'caption ok' : 'caption missing',
   ];
 
   return (
     <div className={styles.badges}>
       {badges.map((badge) => (
-        <span key={badge} className={`${styles.badge} ${badge === 'unused' ? styles.badgeMuted : ''} ${badge.startsWith('used') ? styles.badgeUsed : ''}`}>
+        <span
+          key={badge}
+          className={`${styles.badge} ${badge === 'unused' ? styles.badgeMuted : ''} ${badge.startsWith('used') ? styles.badgeUsed : ''} ${badge.includes('missing') ? styles.badgeWarning : ''}`}
+        >
           {badge}
         </span>
       ))}
@@ -98,11 +105,16 @@ export default function ProjectAssetLibrary({
   onImportUrl,
   onUpdate,
   onDelete,
+  onGenerateImageSeo,
+  generatingSeo = false,
 }: Props) {
   const [url, setUrl] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('date-desc');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const sortedAssets = useMemo(() => sortAssets(assets, sortMode), [assets, sortMode]);
+  const usedCount = assets.filter((asset) => asset.usageCount).length;
+  const missingAltCount = assets.filter((asset) => !asset.altText).length;
+  const missingCaptionCount = assets.filter((asset) => !asset.caption).length;
 
   if (!projectId) {
     return (
@@ -126,6 +138,11 @@ export default function ProjectAssetLibrary({
         </div>
 
         <div className={styles.actions}>
+          {onGenerateImageSeo ? (
+            <button type="button" className={styles.buttonPrimary} onClick={() => void onGenerateImageSeo()} disabled={loading || generatingSeo}>
+              {generatingSeo ? 'Generating...' : 'Generate image SEO'}
+            </button>
+          ) : null}
           <button type="button" className={styles.buttonPrimary} onClick={() => fileInputRef.current?.click()} disabled={loading}>
             Upload file
           </button>
@@ -181,7 +198,7 @@ export default function ProjectAssetLibrary({
         <>
         <div className={styles.toolbar}>
           <div className={styles.summary}>
-            {assets.length} assets · {assets.filter((asset) => asset.usageCount).length} used · {assets.filter((asset) => !asset.usageCount).length} unused
+            {assets.length} assets / {usedCount} used / {assets.length - usedCount} unused / {missingAltCount} missing alt / {missingCaptionCount} missing captions
           </div>
           <label className={styles.sortLabel}>
             Sort

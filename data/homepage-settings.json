@@ -6,50 +6,50 @@
   },
   "hero": {
     "title": "Create your dream home",
-    "image": "/home/Alexandra-2.jpg"
+    "image": "http://localhost:8787/uploads/homepage-hero.png"
   },
   "collage": {
     "title": "Kitchens made to be used.",
-    "text": "Different kitchen projects, real finished photos: storage, light, work surfaces, and the line where daily life happens.",
+    "text": "Different kitchen projects with real finished photos: storage, light, work surfaces, and daily rhythm.",
     "quote": "Real kitchens should look calm and work hard.",
     "cardTitle": "Live kitchen rhythm",
-    "cardText": "No render mood here: just finished kitchens, natural light, and materials already doing their job.",
+    "cardText": "Finished kitchens, natural light, and materials already doing their job.",
     "images": {
       "primary": {
-        "url": "/uploads/projects/belmond/images/original/001-1000-alexandradiz-1ba20fcd3850a9df6c5f72ea3c7d093a-1.jpg",
-        "assetId": "33cd6fbf-f8b8-4e9f-a83c-eaaf6a146cab",
-        "projectId": "71",
-        "alt": "Belmond"
+        "url": "/uploads/projects/belmond-2441-coronet/images/original/037-2000-alexandradiz-0207b81c33ee8950ad7c3301882c4dff-1.jpg",
+        "assetId": "d79da3e8-87a1-4fff-80f2-c2ad5651656a",
+        "projectId": "72",
+        "alt": "Belmond Coronet kitchen project in Belmont by Alexandra Diz"
       },
       "smallOne": {
-        "url": "/uploads/projects/warm-kitchen-oakland/images/original/002-1000-alexandradiz-b594dca072eb07c10e4e72d6026523b7-1.jpg",
-        "assetId": "04ac9065-db27-4229-a1ef-fc6d3db175d6",
-        "projectId": "98",
-        "alt": "Warm kitchen (Oakland)"
+        "url": "/uploads/projects/bright-mood-pacifica/images/original/025-2000-alexandradiz-276f9f1e586dd01067a695174ae7782b-1.jpg",
+        "assetId": "4c75b660-18ec-4a06-994b-9e5360c60f98",
+        "projectId": "73",
+        "alt": "Bright Mood kitchen project in Pacifica by Alexandra Diz"
       },
       "wide": {
-        "url": "/uploads/projects/modern-kitchen-in-sunnyvale/images/original/001-1000-584063a8ccfe41a0027ff944c683ac8c-1.jpg",
-        "assetId": "e4d51c97-9ae4-44b8-815a-99e6cf683d23",
-        "projectId": "81",
-        "alt": "Modern kitchen in Sunnyvale"
+        "url": "/uploads/projects/belmond/images/original/019-2000-alexandradiz-442af1b3c2ea5c863ff8a5a1f67c1525-1.jpg",
+        "assetId": "ebc5804b-9d26-4fc2-9115-a86c88eb3cf9",
+        "projectId": "71",
+        "alt": "Belmond kitchen project in Belmont by Alexandra Diz"
       },
       "tall": {
-        "url": "/uploads/projects/pure-elegance-kitchen/images/original/002-1000-alexandradiz-2bbb892a61261248455a4ec02f088bc2-1.jpg",
-        "assetId": "32c30f33-31ab-4f9f-8f3e-7308dfff6fa8",
-        "projectId": "86",
-        "alt": "Pure elegance kitchen"
+        "url": "/uploads/projects/modern-kitchen-in-sunnyvale/images/original/037-2000-2ae70ccdc3a97a41048a8b468aaff561-1.jpg",
+        "assetId": "a33debe5-32ae-46a8-861b-b815377f257b",
+        "projectId": "81",
+        "alt": "Modern Kitchen project in Sunnyvale by Alexandra Diz"
       },
       "smallTwo": {
-        "url": "/uploads/projects/oakland/images/original/001-1000-alexandradiz-feefa8081f587535d50fcbf49f8c5cf1-1.jpg",
-        "assetId": "0717f277-5463-4498-be56-1936efed9a70",
-        "projectId": "83",
-        "alt": "Oakland"
+        "url": "/uploads/projects/escanyokitchens/images/original/037-2000-alexandradiz-e936220652e76932045f189655e9e902-1.jpg",
+        "assetId": "d2e0ab8e-f9f5-4582-88f0-1bd44fb0a848",
+        "projectId": "76",
+        "alt": "Escanyo kitchen project by Alexandra Diz"
       }
     }
   },
   "feature": {
     "quote": "\"Homes become beautiful when every practical decision has a visual reason.\"",
-    "image": "/home/alexandra.jpg",
+    "image": "http://localhost:8787/uploads/homepage-feature.jpg",
     "darkTitle": "Rooms with a quieter rhythm",
     "darkText": "Plans, millwork and finishes are edited until the home feels composed, useful and personal.",
     "linkLabel": "Read more",
@@ -66,10 +66,10 @@
     "label": "Kitchen ideas",
     "title": "Bring the idea to the heat.",
     "image": {
-      "url": "/uploads/projects/san-carlos-modern-kitchen/images/original/001-1000-alexandradiz-a85d32308ea45d3e1d22bf4753ddc8e1-1.jpg",
-      "assetId": "e676c4f0-2723-4dbd-9838-961a60c98cb1",
-      "projectId": "89",
-      "alt": "Modern Kitchen (San Carlos)"
+      "url": "/uploads/projects/pure-elegance-kitchen/images/original/031-2000-alexandradiz-2ab133cd28fcda7d1cef3ea51a8bf8b4-1.jpg",
+      "assetId": "425903ba-fd8b-4346-b3dc-7bbdbe501f5d",
+      "projectId": "86",
+      "alt": "Pure elegance kitchen project by Alexandra Diz"
     },
     "items": [
       {
@@ -94,28 +94,76 @@
     "title": "Best live projects, one detail at a time.",
     "images": [
       {
-        "url": "/uploads/projects/menlo-park/images/original/002-1000-alexandradiz-cb871038abbafc883fb32870dcc7c637-1.jpg",
-        "assetId": "69fe344d-7e14-44da-bf4e-024026b85b11",
+        "url": "/uploads/projects/menlo-park/images/original/163-2000-alexandradiz-b5c91e80ed7228ce44596524fa8ae6bc-1.png",
+        "assetId": "fe956515-606f-4a0e-8fc1-d7b53c15a875",
         "projectId": "3",
-        "alt": "Menlo park contemporary house"
+        "alt": "Contemporary House ADU interior project in Menlo Park by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/california-ocean-house-in-paccifica/images/original/013-2000-11c71717163361464df5aff14700a074-1.jpg",
+        "assetId": "13d21c25-8b89-4d41-b6d4-4428547218e4",
+        "projectId": "56",
+        "alt": "Ocean House remodel project in Pacifica by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/cozy-home-in-menlo-park-ca/images/original/013-2000-alexandradiz-9338e530c7e595146ba40a2adea5d23e-1.jpg",
+        "assetId": "8a074d9a-7f20-4587-817e-322e43e8d3ad",
+        "projectId": "58",
+        "alt": "Cozy Home remodel project in Menlo Park by Alexandra Diz"
       },
       {
         "url": "/uploads/projects/clear-lines-house/images/original/001-1000-alexandradiz-baabf861af16ad5ad06555dd4fc3eb07-1.jpg",
         "assetId": "e103608a-ec5f-441d-8474-c2a90acbd7d0",
         "projectId": "57",
-        "alt": "Clear Lines House, San Jose"
+        "alt": "Clear Lines House remodel project in San Jose by Alexandra Diz"
       },
       {
-        "url": "/uploads/projects/walnut-creek/images/original/001-1000-73556e19f6dc22021671b786d5278946-1.jpg",
-        "assetId": "671914b2-3564-46ab-a22c-56bb68be7531",
+        "url": "/uploads/projects/geometric-shapes-san-jose/images/original/001-1000-alexandradiz-7a7a9c0b0b45ffbcd748e7ba480b2b65-1.jpg",
+        "assetId": "2bed6112-ec1f-4e62-b9ad-7c6c58935379",
+        "projectId": "43",
+        "alt": "Geometric Shapes fireplace project in San Jose by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/boulderadu/images/original/001-1000-alexandradiz-d2d8096665d61f5cfb0b37848762459d-1.jpg",
+        "assetId": "d5c90969-502e-44c5-8250-ca3bd54997a7",
+        "projectId": "1",
+        "alt": "Boulder ADU interior project in Boulder by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/classical-melody-palo-alto/images/original/001-1000-alexandradiz-e7b43afbb8f826e76fc919571e603bca-1.jpg",
+        "assetId": "9945af9f-31d4-47bf-babe-c63af9430c1e",
+        "projectId": "41",
+        "alt": "Classical Melody fireplace project in Palo Alto by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/lakehouse/images/original/001-1000-alexandradiz-0ee0c4728b80db80c5acb76213cfa9bc-1.jpg",
+        "assetId": "2a45cc8b-c7b6-4232-a5fb-9e19e560ee73",
+        "projectId": "2",
+        "alt": "Lake house ADU interior project by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/corner-of-happiness-san-francisco/images/original/001-1000-alexandradiz-3f9fead7ad4f7b8699ef90468e93a7d8-1.jpg",
+        "assetId": "eb1c9f99-af05-4e7a-96aa-6c19ae779da3",
+        "projectId": "42",
+        "alt": "Corner of Happiness fireplace project in San Francisco by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/walnut-creek/images/original/109-2000-cb4a7a3bb23f190c739e9c7214100cdb-1.jpg",
+        "assetId": "bec5f649-d753-4695-b31b-7c6510f36902",
         "projectId": "69",
-        "alt": "House in Walnut Creek, California"
+        "alt": "Walnut Creek home remodel project in Walnut Creek by Alexandra Diz"
       },
       {
-        "url": "/uploads/projects/sunny-house-redwood-city/images/original/002-1000-alexandradiz-1d2e889d3c2a5dd2c70fca960e17800d-1.jpg",
-        "assetId": "ad33cd3f-69ed-4851-afb5-61632f29f240",
-        "projectId": "67",
-        "alt": "Sunny House Redwood City"
+        "url": "/uploads/projects/fremont/images/original/013-2000-alexandradiz-75b591e432bf34e857e1f94b9b4b11f1-1.jpg",
+        "assetId": "3e671090-74d8-491d-a532-d24f29641ad4",
+        "projectId": "60",
+        "alt": "Fremont home remodel project in Fremont by Alexandra Diz"
+      },
+      {
+        "url": "/uploads/projects/menlopark/images/original/151-2000-4c4b44bc28c11a646fafd120076c6cf4-1.png",
+        "assetId": "4fc6919a-9f7f-48ca-8e46-a417c583b6e5",
+        "projectId": "63",
+        "alt": "Modern House remodel project in Menlo Park by Alexandra Diz"
       }
     ]
   },

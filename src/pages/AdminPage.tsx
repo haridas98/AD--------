@@ -57,7 +57,8 @@ async function getImageOrientation(file: File): Promise<'landscape' | 'portrait'
 }
 
 function getHeroImage(content: any[]) {
-  return content.find((block: any) => block.type === 'heroImage')?.data?.image || '';
+  const image = content.find((block: any) => block.type === 'heroImage')?.data?.image || '';
+  return typeof image === 'string' ? image : image?.url || image?.image || '';
 }
 
 function cleanAuditUrl(value?: string | null) {
@@ -111,7 +112,7 @@ function getHomepageAuditProjectIds(settings?: HomepageSettings) {
 }
 
 function getProjectAuditImages(project: Project) {
-  return Array.from(new Set(collectAuditImages(parseProjectContent(project.content)).map(cleanAuditUrl).filter(Boolean)));
+  return Array.from(new Set([project.coverImage, ...collectAuditImages(parseProjectContent(project.content))].map((item) => cleanAuditUrl(item as any)).filter(Boolean)));
 }
 
 function getProjectAuditHeroImage(project: Project) {
@@ -460,7 +461,9 @@ function BasicCoverFieldEditor({
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [isSourceOpen, setIsSourceOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const currentCrop = ensureCrop(crop);
+  const currentImage = toEditableImage(url);
+  const currentUrl = currentImage.url;
+  const currentCrop = ensureCrop(crop || currentImage.crop);
   const openFilePicker = () => fileInputRef.current?.click();
 
   return (
@@ -478,8 +481,8 @@ function BasicCoverFieldEditor({
           }}
           style={{ cursor: 'pointer' }}
         >
-          <CoverPreview url={url} crop={currentCrop} aspectRatio={aspectRatio} radius={radius} />
-          {!url ? (
+          <CoverPreview url={currentUrl} crop={currentCrop} aspectRatio={aspectRatio} radius={radius} />
+          {!currentUrl ? (
             <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontSize: '26px', fontWeight: 700, background: 'rgba(15,15,15,0.28)', borderRadius: radius }}>
               +
             </div>
@@ -508,7 +511,7 @@ function BasicCoverFieldEditor({
           style={{ display: 'none' }}
         />
 
-        {url ? (
+        {currentUrl ? (
           <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '8px' }}>
             {cropEnabled ? (
               <button
@@ -540,8 +543,8 @@ function BasicCoverFieldEditor({
 
       <AdminAssetSourcePanel
         open={isSourceOpen}
-        title={url ? 'Replace image' : 'Add image'}
-        initialUrl={url || ''}
+        title={currentUrl ? 'Replace image' : 'Add image'}
+        initialUrl={currentUrl || ''}
         onUploadClick={() => {
           setIsSourceOpen(false);
           openFilePicker();
@@ -567,7 +570,7 @@ function BasicCoverFieldEditor({
       <AdminImageCropModal
         open={isCropOpen}
         title="Edit image framing"
-        imageUrl={url}
+        imageUrl={currentUrl}
         aspectRatio={aspectRatio}
         cropShape={cropShape}
         initialCrop={currentCrop}
@@ -1438,6 +1441,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [projectEditorTab, setProjectEditorTab] = useState<'content' | 'assets'>('content');
   const [projectAssets, setProjectAssets] = useState<ProjectAsset[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
+  const [imageSeoGenerating, setImageSeoGenerating] = useState(false);
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [homepageAssetPickerOpen, setHomepageAssetPickerOpen] = useState(false);
   const [homepageAssetProjectId, setHomepageAssetProjectId] = useState('');
@@ -1869,6 +1873,7 @@ export default function AdminPage({ data, refresh }: any) {
       seoTitle: '',
       seoDescription: '',
       seoKeywords: '',
+      coverImage: '',
       cityName: '',
       year: '',
       completedAt: '',
@@ -1907,6 +1912,7 @@ export default function AdminPage({ data, refresh }: any) {
       seoTitle: project.seoTitle || '',
       seoDescription: project.seoDescription || '',
       seoKeywords: project.seoKeywords || '',
+      coverImage: project.coverImage || '',
       cityName: project.cityName || '',
       year: project.year || '',
       completedAt: project.completedAt || '',
@@ -2076,6 +2082,42 @@ export default function AdminPage({ data, refresh }: any) {
     }
   }
 
+  async function generateProjectImageSeo() {
+    if (!selId) {
+      alert('Save the project first, then image SEO can be generated.');
+      return;
+    }
+
+    setImageSeoGenerating(true);
+    try {
+      const response = await api.generateProjectImageSeo(selId, {
+        overwrite: true,
+        updateProjectSeo: true,
+        useGemini: true,
+        instructions: aiInstructions,
+      });
+
+      if (response?.assets) setProjectAssets(response.assets);
+      if (response?.project) {
+        setForm((prev: any) => ({
+          ...prev,
+          content: response.project.content || prev.content || [],
+          seoTitle: response.project.seoTitle || prev.seoTitle || '',
+          seoDescription: response.project.seoDescription || prev.seoDescription || '',
+          seoKeywords: response.project.seoKeywords || prev.seoKeywords || '',
+          updatedAt: response.project.updatedAt || prev.updatedAt,
+        }));
+      }
+
+      await sync();
+      alert(`Image SEO generated via ${response?.provider || 'local'}: ${response?.changedAssets || 0} assets updated.`);
+    } catch (err: any) {
+      alert(err.message || 'Image SEO generation failed');
+    } finally {
+      setImageSeoGenerating(false);
+    }
+  }
+
   async function generateBlogSeo() {
     setSaving(true);
     try {
@@ -2147,6 +2189,7 @@ export default function AdminPage({ data, refresh }: any) {
           isFeatured: !!project.isFeatured,
           isPublished: project.isPublished !== false,
           stylePreset: project.stylePreset || 'default',
+          coverImage: project.coverImage || '',
           seoTitle: project.seoTitle || '',
           seoDescription: project.seoDescription || '',
         seoKeywords: project.seoKeywords || '',
@@ -2351,7 +2394,7 @@ export default function AdminPage({ data, refresh }: any) {
   }
 
   function getCover(project: any) {
-    return getHeroImage(parseProjectContent(project.content));
+    return project.coverImage || getHeroImage(parseProjectContent(project.content));
   }
 
   function scrollToBlockEditor(blockId: string) {
@@ -2533,9 +2576,9 @@ export default function AdminPage({ data, refresh }: any) {
               ))}
             </div>
           ) : (
-            <div style={{ ...cardStyle, maxHeight: isCompact ? 'none' : '80vh', overflow: isCompact ? 'visible' : 'auto' }}>
+            <div style={cardStyle}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{selId ? 'Edit Project' : 'New Project'}</h3>
-              <form onSubmit={saveProject} style={{ display: 'grid', gap: '12px' }}>
+              <form id="project-editor-form" onSubmit={saveProject} style={{ display: 'grid', gap: '12px', paddingBottom: '84px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <label style={labelStyle}>Title<input value={form.title} onChange={(e) => setF('title', e.target.value)} required style={inputStyle} /></label>
                   <label style={labelStyle}>Slug<input value={form.slug} onChange={(e) => setF('slug', e.target.value)} style={inputStyle} placeholder="auto-generated" /></label>
@@ -2568,6 +2611,28 @@ export default function AdminPage({ data, refresh }: any) {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontSize: '14px' }}><input type="checkbox" checked={form.isPublished} onChange={(e) => setF('isPublished', e.target.checked)} /> Published</label>
                 </div>
 
+                <div style={{ ...panelStyle, gap: '10px' }}>
+                  <div>
+                    <div style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>Project cover</div>
+                    <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginTop: '3px' }}>Used on project cards, category pages, service pages, and location pages.</div>
+                  </div>
+                  <BasicCoverFieldEditor
+                    url={form.coverImage}
+                    crop={ensureCrop()}
+                    aspectRatio="4 / 3"
+                    cropEnabled={false}
+                    previewMaxWidth={isCompact ? '100%' : '360px'}
+                    onUrlChange={(next) => setF('coverImage', next)}
+                    onCropChange={() => {}}
+                    onUpload={async (file) => {
+                      const uploaded = await uploadProjectAssetFile(file);
+                      if (uploaded?.url) setF('coverImage', uploaded.url);
+                      return uploaded;
+                    }}
+                    onPickAsset={selId ? openProjectAssetPicker : undefined}
+                  />
+                </div>
+
                 <details style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px' }}>
                   <summary style={{ cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: 600 }}>SEO Settings</summary>
                   <div style={{ display: 'grid', gap: '10px', marginTop: '10px' }}>
@@ -2576,6 +2641,9 @@ export default function AdminPage({ data, refresh }: any) {
                     <label style={labelStyle}>Keywords<input value={form.seoKeywords} onChange={(e) => setF('seoKeywords', e.target.value)} placeholder="interior, kitchen, SF" style={inputStyle} /></label>
                     <button type="button" onClick={generateProjectSeo} disabled={saving || !selId} style={actionButtonStyle(true)}>
                       Generate SEO with Gemini
+                    </button>
+                    <button type="button" onClick={generateProjectImageSeo} disabled={imageSeoGenerating || !selId} style={actionButtonStyle(true)}>
+                      {imageSeoGenerating ? 'Generating image SEO...' : 'Generate image SEO'}
                     </button>
                   </div>
                 </details>
@@ -2638,6 +2706,8 @@ export default function AdminPage({ data, refresh }: any) {
                       loading={assetsLoading}
                       onRefresh={() => loadProjectAssets(selId)}
                       onSync={syncCurrentProjectAssets}
+                      onGenerateImageSeo={generateProjectImageSeo}
+                      generatingSeo={imageSeoGenerating}
                       onUpload={async (file) => {
                         try {
                           await uploadProjectAssetFile(file);
@@ -2733,9 +2803,27 @@ export default function AdminPage({ data, refresh }: any) {
                 </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  <button type="submit" className="btn-primary" disabled={saving} style={{ flex: 1 }}>{saving ? 'Saving...' : 'Save Project'}</button>
-                  {selId ? <button type="button" onClick={deleteProject} style={{ ...miniBtn, padding: '10px 20px', background: '#e74c3c', border: 'none' }}>Mark Deleted</button> : null}
+                <div
+                  style={{
+                    position: 'fixed',
+                    left: '50%',
+                    bottom: '18px',
+                    transform: 'translateX(-50%)',
+                    width: isCompact ? 'calc(100vw - 24px)' : 'min(980px, calc(100vw - 48px))',
+                    zIndex: 1200,
+                    display: 'flex',
+                    gap: '10px',
+                    flexWrap: 'wrap',
+                    padding: '10px',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'linear-gradient(180deg, rgba(26,26,26,0.96), rgba(14,14,14,0.96))',
+                    boxShadow: '0 18px 48px rgba(0,0,0,0.42)',
+                    backdropFilter: 'blur(14px)',
+                  }}
+                >
+                  <button type="submit" className="btn-primary" disabled={saving} style={{ flex: '1 1 220px', minHeight: '42px' }}>{saving ? 'Saving...' : 'Save Project'}</button>
+                  {selId ? <button type="button" onClick={deleteProject} style={{ ...miniBtn, flex: '0 0 auto', minHeight: '42px', padding: '10px 20px', background: 'rgba(231,76,60,0.82)', border: '1px solid rgba(255,255,255,0.12)' }}>Mark Deleted</button> : null}
                 </div>
               </form>
             </div>

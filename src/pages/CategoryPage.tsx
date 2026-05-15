@@ -32,7 +32,8 @@ export default function CategoryPage() {
   );
 
   function getCover(project: any) {
-    return (project.assets || []).find((asset: any) => asset.kind === 'image' && asset.status === 'active' && asset.publicUrl)?.publicUrl
+    return project.coverImage
+      || (project.assets || []).find((asset: any) => asset.kind === 'image' && asset.status === 'active' && asset.publicUrl)?.publicUrl
       || collectProjectImages(parseProjectContent(project.content))[0]
       || '';
   }

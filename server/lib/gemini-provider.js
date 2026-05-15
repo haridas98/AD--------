@@ -299,3 +299,60 @@ export async function generateGeminiSeoMetadata({
       : cleanText(parsed.seoKeywords).slice(0, 300),
   };
 }
+
+export async function generateGeminiImageSeo({
+  apiKey,
+  model,
+  project,
+  assets = [],
+  uploadsRoot,
+  imageLimit = 12,
+  instructions = '',
+}) {
+  const imageAssets = assets
+    .filter((asset) => asset.kind === 'image' && asset.status === 'active' && asset.includeInAi !== false)
+    .slice(0, Math.max(0, imageLimit));
+  const imageParts = await buildImageParts({ assets: imageAssets, uploadsRoot, limit: imageLimit });
+
+  if (!imageParts.length) return [];
+
+  const prompt = [
+    'You write accurate image SEO for a premium interior design portfolio.',
+    'Return strict JSON only. No markdown.',
+    'Write concise descriptive alt text. Do not keyword stuff.',
+    'Avoid saying photo/image/picture unless needed. Mention room type, material, location if useful.',
+    'Keep altText under 125 characters and caption under 160 characters.',
+    'Use English.',
+    'JSON shape: {"assets":[{"assetId":"...","altText":"...","caption":"..."}]}',
+    `Project: ${cleanText(project?.title) || 'Project'}`,
+    `Category: ${categoryLabel(project)}`,
+    `Location: ${projectLocation(project)}`,
+    `Assets in attached image order: ${JSON.stringify(imageAssets.map((asset, index) => ({
+      index: index + 1,
+      assetId: asset.id,
+      filename: asset.originalFilename,
+      width: asset.width || null,
+      height: asset.height || null,
+    })))}`,
+    `User instructions: ${cleanText(instructions) || 'No extra instructions.'}`,
+  ].join('\n');
+
+  let text = '';
+  try {
+    text = await generateGeminiContent({ apiKey, model, prompt, parts: imageParts });
+  } catch (error) {
+    if (isLocationError(error)) return [];
+    throw error;
+  }
+
+  const parsed = parseJsonText(text);
+  return Array.isArray(parsed.assets)
+    ? parsed.assets
+      .map((item) => ({
+        assetId: cleanText(item.assetId),
+        altText: cleanText(item.altText).slice(0, 160),
+        caption: cleanText(item.caption).slice(0, 220),
+      }))
+      .filter((item) => item.assetId && item.altText)
+    : [];
+}

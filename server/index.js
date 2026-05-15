@@ -11,7 +11,15 @@ import { saveProjectAssetUpload, ensureProjectAssetDirectories } from './lib/pro
 import { hydrateProjectAssetsFromContent, importProjectAssetsFromArchive } from './lib/project-asset-migration.js';
 import { syncProjectAssetFolder } from './lib/project-asset-sync.js';
 import { generateProjectPageDraft, generateTextDraft } from './lib/project-ai-draft.js';
-import { generateGeminiBlockText, generateGeminiProjectMetadata, generateGeminiSeoMetadata } from './lib/gemini-provider.js';
+import { generateGeminiBlockText, generateGeminiImageSeo, generateGeminiProjectMetadata, generateGeminiSeoMetadata } from './lib/gemini-provider.js';
+import {
+  buildProjectAssetSeo,
+  buildProjectSeoMetadata,
+  collectProjectAssetUsages,
+  parseProjectContent,
+  sortProjectImageAssets,
+  updateProjectContentImageSeo,
+} from './lib/project-image-seo.js';
 import { assertThemeShape, readThemeSettings, writeThemeSettings } from './theme-settings.js';
 import { DEFAULT_TESTIMONIALS, readHomepageSettingsFromDb, writeHomepageSettingsToDb } from './homepage-settings.js';
 
@@ -78,6 +86,69 @@ const sessions = new Map();
 app.set('trust proxy', 1);
 
 const SITE_URL = getEnvValue('SITE_URL', 'https://alexandradiz.com').replace(/\/+$/, '');
+
+const SERVICE_LANDING_PATHS = [
+  '/services/kitchen-remodeling',
+  '/services/bathroom-remodeling',
+  '/services/full-house-remodeling',
+  '/services/adu-interiors',
+  '/services/fireplace-design',
+];
+const SITE_INFO_KEY = 'site-info';
+const DEFAULT_SITE_INFO = {
+  name: 'Alexandra Diz Architecture',
+  phone: '+1 415 769 8563',
+  email: 'alexandra@alexandradiz.com',
+  instagram: 'https://www.instagram.com/alexandradiz/',
+  facebook: 'https://www.facebook.com/dizarts/',
+  houzz: 'https://www.houzz.com/pro/alexandra-diz/alexandra-diz-architecture',
+  pinterest: 'https://www.pinterest.com/alexandradiz',
+  youtube: 'https://www.youtube.com/@alexandradizsiliconvalleyd5188',
+  tiktok: '',
+};
+
+function slugifyLocation(value = '') {
+  return String(value)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function normalizeSiteInfo(input = {}) {
+  return {
+    name: String(input.name || DEFAULT_SITE_INFO.name).trim(),
+    phone: String(input.phone || DEFAULT_SITE_INFO.phone).trim(),
+    email: String(input.email || DEFAULT_SITE_INFO.email).trim(),
+    instagram: String(input.instagram || DEFAULT_SITE_INFO.instagram).trim(),
+    facebook: String(input.facebook || DEFAULT_SITE_INFO.facebook).trim(),
+    houzz: String(input.houzz || DEFAULT_SITE_INFO.houzz).trim(),
+    pinterest: String(input.pinterest || DEFAULT_SITE_INFO.pinterest).trim(),
+    youtube: String(input.youtube || DEFAULT_SITE_INFO.youtube).trim(),
+    tiktok: String(input.tiktok || DEFAULT_SITE_INFO.tiktok).trim(),
+  };
+}
+
+function readLegacySiteInfo() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.resolve('server/data/content.json'), 'utf8'));
+    return normalizeSiteInfo(raw.site || {});
+  } catch {
+    return DEFAULT_SITE_INFO;
+  }
+}
+
+async function readSiteInfoFromDb(prismaClient) {
+  try {
+    const existing = await prismaClient.siteSetting.findUnique({ where: { key: SITE_INFO_KEY } });
+    if (existing?.value) return normalizeSiteInfo(JSON.parse(existing.value));
+  } catch (err) {
+    console.warn('Failed to read site info from DB', err.message);
+  }
+  return readLegacySiteInfo();
+}
 
 function absoluteSiteUrl(pathname = '/') {
   return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
@@ -581,12 +652,134 @@ async function getProjectOr404(projectId, res) {
   return project;
 }
 
+async function applyProjectImageSeo(projectId, {
+  overwrite = false,
+  updateContent = false,
+  updateProjectSeo = false,
+  useGemini = false,
+  instructions = '',
+} = {}) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: {
+      category: true,
+      assets: {
+        where: {
+          kind: 'image',
+          status: 'active',
+        },
+        orderBy: [
+          { sortOrder: 'asc' },
+          { createdAt: 'asc' },
+        ],
+      },
+    },
+  });
+
+  if (!project) return null;
+
+  const orderedAssets = sortProjectImageAssets(project.assets || []);
+  const seoByAssetId = new Map(orderedAssets.map((asset, index) => [asset.id, buildProjectAssetSeo(project, asset, index)]));
+  let provider = 'local';
+
+  if (useGemini && orderedAssets.length) {
+    const gemini = getGeminiOptions();
+    if (gemini.apiKey) {
+      try {
+        const generated = await generateGeminiImageSeo({
+          ...gemini,
+          project,
+          assets: orderedAssets,
+          uploadsRoot: UPLOADS_DIR,
+          instructions,
+          imageLimit: Number(getEnvValue('GEMINI_IMAGE_SEO_LIMIT', gemini.imageLimit || 12)) || 12,
+        });
+        for (const item of generated) {
+          const fallback = seoByAssetId.get(item.assetId);
+          if (!fallback) continue;
+          seoByAssetId.set(item.assetId, {
+            altText: item.altText || fallback.altText,
+            caption: item.caption || fallback.caption,
+          });
+        }
+        if (generated.length) provider = 'gemini';
+      } catch (err) {
+        console.warn('Gemini image SEO failed, using local fallback:', err.message);
+      }
+    }
+  }
+
+  let changedAssets = 0;
+  const now = new Date().toISOString();
+  for (const [index, asset] of orderedAssets.entries()) {
+    const generated = seoByAssetId.get(asset.id) || buildProjectAssetSeo(project, asset, index);
+    const data = {
+      sortOrder: index + 1,
+      altText: overwrite || !asset.altText ? generated.altText : asset.altText,
+      caption: overwrite || !asset.caption ? generated.caption : asset.caption,
+      updatedAt: now,
+    };
+
+    if (asset.sortOrder !== data.sortOrder || asset.altText !== data.altText || asset.caption !== data.caption) {
+      changedAssets += 1;
+      await prisma.projectAsset.update({ where: { id: asset.id }, data });
+    }
+  }
+
+  let contentChanged = false;
+  let usages = 0;
+  if (updateContent && orderedAssets.length) {
+    const blocks = parseProjectContent(project.content);
+    const nextBlocks = updateProjectContentImageSeo({
+      project,
+      content: blocks,
+      orderedAssets,
+      seoByAssetId,
+      replaceHero: true,
+    });
+    contentChanged = JSON.stringify(nextBlocks) !== JSON.stringify(blocks);
+    const projectSeo = buildProjectSeoMetadata(project);
+    const updateData = {
+      content: contentChanged ? JSON.stringify(nextBlocks) : project.content,
+      updatedAt: now,
+    };
+    if (!project.coverImage && orderedAssets[0]?.publicUrl) {
+      updateData.coverImage = orderedAssets[0].publicUrl;
+    }
+    if (updateProjectSeo) {
+      updateData.seoTitle = projectSeo.seoTitle;
+      updateData.seoDescription = projectSeo.seoDescription;
+      updateData.seoKeywords = projectSeo.seoKeywords;
+    }
+    await prisma.project.update({ where: { id: project.id }, data: updateData });
+
+    const nextUsages = collectProjectAssetUsages(project, nextBlocks, orderedAssets);
+    await prisma.projectAssetUsage.deleteMany({ where: { projectId: project.id } });
+    if (nextUsages.length) await prisma.projectAssetUsage.createMany({ data: nextUsages });
+    usages = nextUsages.length;
+  }
+
+  const updatedProject = await prisma.project.findUnique({
+    where: { id: project.id },
+    include: projectImageAssetsInclude,
+  });
+
+  return {
+    provider,
+    changedAssets,
+    contentChanged,
+    usages,
+    project: updatedProject ? serializeProject(updatedProject) : null,
+  };
+}
+
 // ============ Public API ============
 
 app.get('/api/content', async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const [categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
+    const [site, categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
+      readSiteInfoFromDb(prisma),
       prisma.category.findMany({ where: { showInHeader: true }, orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ where: { isPublished: true, deletedAt: null }, include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ where: { isPublished: true }, orderBy: { publishedAt: 'desc' }, take: 10 }),
@@ -594,7 +787,7 @@ app.get('/api/content', async (_req, res) => {
       readHomepageSettingsFromDb(prisma),
     ]);
     const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
-    res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
+    res.json({ site, categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
 });
 
@@ -614,7 +807,7 @@ app.get('/sitemap.xml', async (_req, res) => {
       prisma.category.findMany(),
       prisma.project.findMany({
         where: { isPublished: true, deletedAt: null },
-        select: { slug: true, categoryId: true, updatedAt: true },
+        select: { slug: true, categoryId: true, cityName: true, updatedAt: true },
       }),
       prisma.blogPost.findMany({
         where: { isPublished: true },
@@ -622,6 +815,14 @@ app.get('/sitemap.xml', async (_req, res) => {
       }),
     ]);
     const categoryById = new Map(categories.map((category) => [category.id, category]));
+    const locationUrls = Array.from(new Set(
+      projects
+        .map((project) => slugifyLocation(project.cityName || ''))
+        .filter(Boolean),
+    )).map((citySlug) => ({
+      loc: `/locations/${citySlug}`,
+      priority: '0.65',
+    }));
     const urls = [
       { loc: '/', priority: '1.0' },
       { loc: '/projects', priority: '0.8' },
@@ -636,6 +837,8 @@ app.get('/sitemap.xml', async (_req, res) => {
           priority: '0.8',
         } : null)
         .filter(Boolean),
+      ...SERVICE_LANDING_PATHS.map((loc) => ({ loc, priority: '0.75' })),
+      ...locationUrls,
       ...projects.map((project) => ({
         loc: getProjectSitemapPath(project, categoryById),
         lastmod: project.updatedAt,
@@ -723,7 +926,8 @@ app.get('/api/auth/me', requireAuth, (req, res) => res.json({ ok: true, user: re
 app.get('/api/admin/content', requireAuth, async (_req, res) => {
   try {
     const themeSettings = readThemeSettings();
-    const [categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
+    const [site, categories, projects, blogPosts, testimonials, baseHomepageSettings] = await Promise.all([
+      readSiteInfoFromDb(prisma),
       prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
       prisma.project.findMany({ include: projectImageAssetsInclude, orderBy: [{ isFeatured: 'desc' }, { completedAt: 'desc' }, { year: 'desc' }, { updatedAt: 'desc' }, { createdAt: 'desc' }] }),
       prisma.blogPost.findMany({ orderBy: { createdAt: 'desc' } }),
@@ -731,7 +935,7 @@ app.get('/api/admin/content', requireAuth, async (_req, res) => {
       readHomepageSettingsFromDb(prisma),
     ]);
     const homepageSettings = resolveHomepageSettingsImages(baseHomepageSettings, projects);
-    res.json({ categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
+    res.json({ site, categories, projects: projects.map(serializeProject), blogPosts, testimonials, themeSettings, homepageSettings });
   } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
 
@@ -838,7 +1042,7 @@ app.post('/api/admin/projects', requireAuth, async (req, res) => {
     const now = new Date().toISOString();
     let slug = b.slug || normalizeSlug(b.title);
     if (await prisma.project.findUnique({ where: { slug } })) slug = `${slug}-${Date.now()}`;
-    const p = await prisma.project.create({ data: { title: b.title, slug, categoryId: b.categoryId, content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content || []), isFeatured: !!b.isFeatured, isPublished: b.isPublished !== false, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null, completedAt: b.completedAt || null, createdAt: now, updatedAt: now, deletedAt: null } });
+    const p = await prisma.project.create({ data: { title: b.title, slug, categoryId: b.categoryId, content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content || []), coverImage: b.coverImage || null, isFeatured: !!b.isFeatured, isPublished: b.isPublished !== false, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null, completedAt: b.completedAt || null, createdAt: now, updatedAt: now, deletedAt: null } });
     ensureProjectAssetDirectories(p.slug, UPLOADS_DIR);
     res.status(201).json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
@@ -851,7 +1055,7 @@ app.put('/api/admin/projects/:id', requireAuth, async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Not found' });
     let slug = b.slug ?? existing.slug;
     if (slug !== existing.slug && await prisma.project.findUnique({ where: { slug } })) return res.status(409).json({ error: 'Slug exists' });
-    const p = await prisma.project.update({ where: { id: req.params.id }, data: { title: b.title, slug, categoryId: b.categoryId, content: b.content ? (typeof b.content === 'string' ? b.content : JSON.stringify(b.content)) : undefined, isFeatured: b.isFeatured, isPublished: b.isPublished, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null, completedAt: b.completedAt || null, updatedAt: new Date().toISOString(), deletedAt: b.deletedAt === '' ? null : b.deletedAt } });
+    const p = await prisma.project.update({ where: { id: req.params.id }, data: { title: b.title, slug, categoryId: b.categoryId, content: b.content ? (typeof b.content === 'string' ? b.content : JSON.stringify(b.content)) : undefined, coverImage: b.coverImage || null, isFeatured: b.isFeatured, isPublished: b.isPublished, stylePreset: b.stylePreset || 'default', seoTitle: b.seoTitle, seoDescription: b.seoDescription, seoKeywords: b.seoKeywords, cityName: b.cityName, year: b.year ? Number(b.year) : null, completedAt: b.completedAt || null, updatedAt: new Date().toISOString(), deletedAt: b.deletedAt === '' ? null : b.deletedAt } });
     ensureProjectAssetDirectories(p.slug, UPLOADS_DIR);
     res.json({ ...p, content: parseContent(p.content) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Failed' }); }
@@ -1015,6 +1219,39 @@ app.post('/api/admin/ai/generate-seo', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/api/admin/projects/:id/assets/generate-seo', requireAuth, async (req, res) => {
+  try {
+    const result = await applyProjectImageSeo(req.params.id, {
+      overwrite: req.body?.overwrite !== false,
+      updateContent: req.body?.updateContent !== false,
+      updateProjectSeo: req.body?.updateProjectSeo !== false,
+      useGemini: req.body?.useGemini !== false,
+      instructions: req.body?.instructions || '',
+    });
+
+    if (!result) return res.status(404).json({ error: 'Project not found' });
+
+    const assets = await prisma.projectAsset.findMany({
+      where: {
+        projectId: req.params.id,
+        status: { not: 'archived' },
+      },
+      include: {
+        _count: { select: { usages: true } },
+      },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { createdAt: 'asc' },
+      ],
+    });
+
+    res.json({ ...result, assets: assets.map(serializeProjectAsset) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate project image SEO' });
+  }
+});
+
 app.get('/api/admin/projects/:id/assets', requireAuth, async (req, res) => {
   try {
     const project = await getProjectOr404(req.params.id, res);
@@ -1080,7 +1317,12 @@ app.post('/api/admin/projects/:id/assets/upload', requireAuth, runAssetUpload, a
 
     if (duplicate) {
       if (fs.existsSync(saved.absolutePath)) fs.unlinkSync(saved.absolutePath);
-      return res.json({ asset: serializeProjectAsset(duplicate), deduplicated: true });
+      await applyProjectImageSeo(project.id, { overwrite: false, updateContent: false, useGemini: true });
+      const updatedDuplicate = await prisma.projectAsset.findUnique({
+        where: { id: duplicate.id },
+        include: { _count: { select: { usages: true } } },
+      });
+      return res.json({ asset: serializeProjectAsset(updatedDuplicate || duplicate), deduplicated: true });
     }
 
     const asset = await prisma.projectAsset.create({
@@ -1103,7 +1345,13 @@ app.post('/api/admin/projects/:id/assets/upload', requireAuth, runAssetUpload, a
       },
     });
 
-    res.status(201).json({ asset: serializeProjectAsset(asset) });
+    await applyProjectImageSeo(project.id, { overwrite: false, updateContent: false, useGemini: true });
+    const updatedAsset = await prisma.projectAsset.findUnique({
+      where: { id: asset.id },
+      include: { _count: { select: { usages: true } } },
+    });
+
+    res.status(201).json({ asset: serializeProjectAsset(updatedAsset || asset) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to upload project asset' });
@@ -1144,7 +1392,12 @@ app.post('/api/admin/projects/:id/assets/import-url', requireAuth, async (req, r
 
     if (duplicate) {
       if (fs.existsSync(saved.absolutePath)) fs.unlinkSync(saved.absolutePath);
-      return res.json({ asset: serializeProjectAsset(duplicate), deduplicated: true });
+      await applyProjectImageSeo(project.id, { overwrite: false, updateContent: false, useGemini: true });
+      const updatedDuplicate = await prisma.projectAsset.findUnique({
+        where: { id: duplicate.id },
+        include: { _count: { select: { usages: true } } },
+      });
+      return res.json({ asset: serializeProjectAsset(updatedDuplicate || duplicate), deduplicated: true });
     }
 
     const asset = await prisma.projectAsset.create({
@@ -1167,7 +1420,13 @@ app.post('/api/admin/projects/:id/assets/import-url', requireAuth, async (req, r
       },
     });
 
-    res.status(201).json({ asset: serializeProjectAsset(asset) });
+    await applyProjectImageSeo(project.id, { overwrite: false, updateContent: false, useGemini: true });
+    const updatedAsset = await prisma.projectAsset.findUnique({
+      where: { id: asset.id },
+      include: { _count: { select: { usages: true } } },
+    });
+
+    res.status(201).json({ asset: serializeProjectAsset(updatedAsset || asset) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to import project asset' });
@@ -1185,8 +1444,9 @@ app.post('/api/admin/projects/:id/assets/sync', requireAuth, async (req, res) =>
       project,
       uploadsRoot: UPLOADS_DIR,
     });
+    const imageSeo = await applyProjectImageSeo(project.id, { overwrite: false, updateContent: false, useGemini: true });
 
-    res.json({ projectId: project.id, summary });
+    res.json({ projectId: project.id, summary, imageSeo });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to sync project assets' });

@@ -10,7 +10,7 @@ import {
   resolvePortfolioSectionFromPathname,
 } from '../lib/portfolioRoutes';
 import { sortProjectsForPortfolio } from '../lib/projectOrdering';
-import { absoluteUrl, imageUrl } from '../lib/seo';
+import { absoluteUrl, breadcrumbSchema, imageUrl, projectSchema } from '../lib/seo';
 import styles from './ProjectPage.module.scss';
 
 export default function ProjectPage() {
@@ -83,16 +83,24 @@ export default function ProjectPage() {
         {heroImage ? <meta property="og:image" content={imageUrl(heroImage)} /> : null}
         <meta property="og:type" content="article" />
         <script type="application/ld+json">
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'CreativeWork',
-            name: project.title,
-            description,
-            url: absoluteUrl(canonicalPath),
-            image: imageUrl(heroImage),
-            category: projectCategory?.name,
-            author: { '@type': 'Organization', name: site?.name },
-          })}
+          {JSON.stringify([
+            projectSchema({
+              title: project.title,
+              description,
+              pathname: canonicalPath,
+              image: heroImage,
+              category: projectCategory?.name,
+              cityName: project.cityName,
+              year: project.year || project.completedAt,
+              siteName: site?.name,
+            }),
+            breadcrumbSchema([
+              { name: 'Home', url: '/' },
+              { name: 'Projects', url: '/projects' },
+              { name: projectCategory?.name || 'Project', url: canonicalPath.split('/').slice(0, -1).join('/') || '/projects' },
+              { name: project.title, url: canonicalPath },
+            ]),
+          ])}
         </script>
       </Helmet>
       <motion.main

@@ -11,6 +11,8 @@
     "test:smoke": "node scripts/smoke-test.mjs",
     "archive:site-images": "node scripts/archive-live-site-images.mjs",
     "audit:image-duplicates": "node scripts/audit-image-duplicates.mjs",
+    "audit:project-seo-assets": "node scripts/update-project-seo-assets.mjs",
+    "fix:project-seo-assets": "node scripts/update-project-seo-assets.mjs --apply",
     "rebuild:project-assets": "node server/scripts/rebuild-project-assets-from-archive.mjs",
     "ai:reset-project-content": "node server/scripts/reset-project-content-from-assets.mjs",
     "deploy:check": "node scripts/deploy-preflight.mjs",

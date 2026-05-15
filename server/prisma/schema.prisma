@@ -40,6 +40,7 @@ model Project {
   cityName    String?
   year        Int?
   completedAt String?
+  coverImage  String?
   isFeatured  Boolean  @default(false)
   isPublished Boolean  @default(true)
   stylePreset String   @default("default")

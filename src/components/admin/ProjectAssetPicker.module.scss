@@ -6,12 +6,15 @@
   display: grid;
   place-items: center;
   padding: 24px;
+  overscroll-behavior: contain;
 }
 
 .dialog {
   width: min(1040px, 100%);
   max-height: min(84vh, 920px);
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   display: grid;
   gap: 16px;
   padding: 18px;

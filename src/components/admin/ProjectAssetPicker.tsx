@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import type { ProjectAsset } from '../../types';
 import styles from './ProjectAssetPicker.module.scss';
@@ -26,6 +26,15 @@ export default function ProjectAssetPicker({
 }: Props) {
   const [url, setUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   if (!open) return null;
 

@@ -90,8 +90,12 @@ export default function Header() {
   return (
     <header className={`${styles.siteHeader} ${scrolled ? styles.scrolled : ''} ${transparentOverHero && !menuOpen ? styles.transparentOverHero : ''}`} data-site-header>
       <div className={styles.inner}>
-        <NavLink to="/" className={styles.brand} onClick={closeMenu}>
-          Alexandra Diz
+        <NavLink to="/" className={styles.brand} onClick={closeMenu} aria-label="Alexandra Diz">
+          <span className={styles.brandMarkWrap} aria-hidden="true">
+            <img className={`${styles.brandMark} ${styles.brandMarkDefault}`} src="/brand/alexandra-diz-mark.svg" alt="" />
+            <img className={`${styles.brandMark} ${styles.brandMarkLight}`} src="/brand/alexandra-diz-mark-light.svg" alt="" />
+          </span>
+          <span className={styles.brandText}>Alexandra Diz</span>
         </NavLink>
 
         <nav className={styles.desktopNav}>

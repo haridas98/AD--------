@@ -13,6 +13,12 @@ function fallbackTitle(project: ProjectLike) {
   return project.title || 'Project overview';
 }
 
+function imageSource(value: any) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  return value.url || value.image || '';
+}
+
 export function parseProjectContent(content: any): BlockItem[] {
   if (!content) return [];
   if (typeof content === 'string') {
@@ -28,14 +34,14 @@ export function parseProjectContent(content: any): BlockItem[] {
 export function collectProjectImages(blocks: BlockItem[]) {
   return blocks
     .flatMap((block: any) => {
-      if (block.type === 'heroImage' && block.data?.image) return [block.data.image];
-      if (block.type === 'imageGrid') return (block.data?.images || []).map((item: any) => (typeof item === 'string' ? item : item?.url));
-      if (block.type === 'beforeAfter') return [block.data?.beforeImage, block.data?.afterImage];
-      if (block.type === 'refinedSlider') return (block.data?.images || []).map((item: any) => (typeof item === 'string' ? item : item?.url));
-      if (block.type === 'mosaicPreset') return (block.data?.images || []).map((item: any) => (typeof item === 'string' ? item : item?.url));
-      if (block.type === 'circleDetail') return (block.data?.items || []).map((item: any) => item?.image);
-      if (block.type === 'editorialNote') return [block.data?.image];
-      if (block.type === 'sideBySide') return [block.data?.image];
+      if (block.type === 'heroImage' && block.data?.image) return [imageSource(block.data.image)];
+      if (block.type === 'imageGrid') return (block.data?.images || []).map(imageSource);
+      if (block.type === 'beforeAfter') return [imageSource(block.data?.beforeImage), imageSource(block.data?.afterImage)];
+      if (block.type === 'refinedSlider') return (block.data?.images || []).map(imageSource);
+      if (block.type === 'mosaicPreset') return (block.data?.images || []).map(imageSource);
+      if (block.type === 'circleDetail') return (block.data?.items || []).map((item: any) => imageSource(item?.image));
+      if (block.type === 'editorialNote') return [imageSource(block.data?.image)];
+      if (block.type === 'sideBySide') return [imageSource(block.data?.image)];
       return [];
     })
     .filter(Boolean);
