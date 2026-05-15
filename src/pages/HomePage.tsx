@@ -543,10 +543,6 @@ export default function HomePage() {
             onError={(event) => handlePreviewFallback(event, heroImage)}
           />
           <div className={styles.heroShade} />
-          <div className={styles.heroSignature} aria-hidden="true">
-            <img src="/brand/alexandra-diz-mark-light.svg" alt="" />
-            <span>Alexandra Diz</span>
-          </div>
           <div className={styles.heroText}>
             <p className={styles.heroKicker}>California interiors / lived-in elegance</p>
             <h1>{homepageSettings.hero.title}</h1>

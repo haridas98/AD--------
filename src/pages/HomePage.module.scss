@@ -154,30 +154,6 @@
   transform: translateY(-2px);
 }
 
-.heroSignature {
-  position: absolute;
-  right: max(var(--home-gutter), calc((100vw - var(--home-content)) / 2 + var(--home-gutter)));
-  top: calc(var(--header-offset) + clamp(32px, 5vw, 70px));
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
-  opacity: 0;
-  animation: heroSoftIn 0.9s ease 0.32s forwards;
-}
-
-.heroSignature img {
-  width: clamp(44px, 4vw, 72px);
-  height: clamp(44px, 4vw, 72px);
-  object-fit: contain;
-}
-
 .heroMeta {
   position: absolute;
   right: max(var(--home-gutter), calc((100vw - var(--home-content)) / 2 + var(--home-gutter)));
@@ -1135,7 +1111,6 @@
   .heroText h1,
   .heroKicker,
   .heroCta,
-  .heroSignature,
   .heroMeta {
     animation: none;
     opacity: 1;
@@ -1304,10 +1279,6 @@
 @media (max-width: 980px) {
   .heroText {
     padding-bottom: clamp(70px, 12vw, 120px);
-  }
-
-  .heroSignature {
-    right: 28px;
   }
 
   .heroMeta {
@@ -1553,18 +1524,6 @@
     min-height: 40px;
     margin-top: 24px;
     padding-inline: 18px;
-  }
-
-  .heroSignature {
-    top: calc(var(--header-offset) + 20px);
-    right: 24px;
-    gap: 10px;
-    font-size: 10px;
-  }
-
-  .heroSignature img {
-    width: 42px;
-    height: 42px;
   }
 
   .collage,
