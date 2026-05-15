@@ -45,7 +45,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 42%;
+  object-position: center center;
   filter: none;
   transform: scale(1.012);
   animation: heroImageDrift 22s ease-in-out infinite alternate;
@@ -80,6 +80,9 @@
   line-height: 0.91;
   letter-spacing: 0;
   text-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  transform: translateY(18px);
+  animation: heroCopyIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.12s forwards;
 }
 
 .heroKicker,
@@ -96,6 +99,9 @@
 
 .heroKicker {
   margin-bottom: clamp(16px, 2vw, 28px);
+  opacity: 0;
+  transform: translateY(14px);
+  animation: heroCopyIn 0.82s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .heroCta {
@@ -114,6 +120,9 @@
   text-transform: uppercase;
   pointer-events: auto;
   backdrop-filter: blur(16px);
+  opacity: 0;
+  transform: translateY(14px);
+  animation: heroCopyIn 0.84s cubic-bezier(0.2, 0.8, 0.2, 1) 0.24s forwards;
   transition: background 0.24s ease, border-color 0.24s ease, transform 0.24s ease;
 }
 
@@ -137,6 +146,8 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  animation: heroSoftIn 0.9s ease 0.32s forwards;
 }
 
 .heroSignature img {
@@ -152,6 +163,8 @@
   z-index: 3;
   max-width: 260px;
   text-align: right;
+  opacity: 0;
+  animation: heroSoftIn 0.9s ease 0.46s forwards;
 }
 
 .collage {
@@ -1082,9 +1095,29 @@
   }
 }
 
+@keyframes heroCopyIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroSoftIn {
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .heroImage {
+  .heroImage,
+  .heroText h1,
+  .heroKicker,
+  .heroCta,
+  .heroSignature,
+  .heroMeta {
     animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -1474,6 +1507,10 @@
   .heroText h1 {
     max-width: 10.5ch;
     font-size: clamp(43px, 15vw, 72px);
+  }
+
+  .heroImage {
+    object-position: 68% center;
   }
 
   .heroKicker {
