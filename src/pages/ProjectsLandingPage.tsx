@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -52,6 +52,7 @@ function getCountText(count: number) {
 export default function ProjectsLandingPage() {
   const { site, categories, projects } = useAppStore();
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+  const [heroSpotlight, setHeroSpotlight] = useState({ x: 50, y: 50 });
 
   const categoryMap = useMemo(() => new Map(categories.map((category) => [category.id, category])), [categories]);
   const publishedProjects = useMemo(
@@ -105,6 +106,12 @@ export default function ProjectsLandingPage() {
   }, [heroProjects.length]);
 
   const activeHero = heroProjects[activeHeroIndex] || heroProjects[0];
+  const heroPreviewItems = heroProjects.length <= 4
+    ? heroProjects.map((item, index) => ({ ...item, index }))
+    : Array.from({ length: 4 }, (_, offset) => {
+      const index = (activeHeroIndex + offset) % heroProjects.length;
+      return { ...heroProjects[index], index };
+    });
 
   return (
     <>
@@ -116,9 +123,14 @@ export default function ProjectsLandingPage() {
       <main className={styles.page}>
         {activeHero ? (
           <section className={styles.hero}>
-            <div className={styles.heroCopy}>
+            <motion.div
+              className={styles.heroCopy}
+              initial={{ opacity: 0, y: 26 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
               <p>Portfolio</p>
-              <h1>Homes shaped by light, rhythm and restraint.</h1>
+              <h1>Real homes, edited with light and restraint.</h1>
               <nav className={styles.categoryLinks} aria-label="Project categories">
                 {categoryGroups.slice(0, 6).map(({ category, count }) => (
                   <Link key={category.id} to={getCanonicalPortfolioCategoryPathForCategory(category)}>
@@ -127,11 +139,23 @@ export default function ProjectsLandingPage() {
                   </Link>
                 ))}
               </nav>
-            </div>
+            </motion.div>
 
             <Link
               className={styles.heroFeature}
               to={getCanonicalPortfolioProjectPathForCategory(activeHero.category, activeHero.project.slug)}
+              style={{
+                '--spotlight-x': `${heroSpotlight.x}%`,
+                '--spotlight-y': `${heroSpotlight.y}%`,
+              } as CSSProperties}
+              onPointerMove={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setHeroSpotlight({
+                  x: ((event.clientX - rect.left) / rect.width) * 100,
+                  y: ((event.clientY - rect.top) / rect.height) * 100,
+                });
+              }}
+              onPointerLeave={() => setHeroSpotlight({ x: 50, y: 50 })}
             >
               <motion.img
                 key={activeHero.project.id}
@@ -145,19 +169,28 @@ export default function ProjectsLandingPage() {
               <span className={styles.heroCounter}>
                 {String(activeHeroIndex + 1).padStart(2, '0')} / {String(heroProjects.length).padStart(2, '0')}
               </span>
+              <span className={styles.heroAction}>View project</span>
               <strong>{getShortTitle(activeHero.project.title)}</strong>
               <small>{getProjectMeta(activeHero.project, activeHero.category)}</small>
             </Link>
 
-            <div className={styles.heroDots} aria-label="Featured project selector">
-              {heroProjects.map(({ project }, index) => (
+            <div className={styles.heroPreviewStack} aria-label="Featured project selector">
+              {heroPreviewItems.map(({ project, image, index }) => (
                 <button
                   key={project.id}
                   type="button"
-                  className={index === activeHeroIndex ? styles.heroDotActive : undefined}
+                  className={index === activeHeroIndex ? styles.heroPreviewActive : undefined}
                   onClick={() => setActiveHeroIndex(index)}
                   aria-label={`Show ${project.title}`}
-                />
+                >
+                  <img
+                    src={getPreviewImageUrl(image)}
+                    alt=""
+                    loading="lazy"
+                    onError={(event) => handlePreviewFallback(event, image)}
+                  />
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                </button>
               ))}
             </div>
           </section>

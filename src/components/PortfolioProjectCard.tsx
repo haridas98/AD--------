@@ -27,6 +27,7 @@ export function PortfolioProjectCard({ to, title, image, eyebrow, cityName, year
         <h3 className={styles.title}>{title}</h3>
         {(cityName || year) ? <p className={styles.meta}>{[cityName, year].filter(Boolean).join(' / ')}</p> : null}
       </div>
+      <span className={styles.action}>Open project</span>
     </Link>
   );
 }

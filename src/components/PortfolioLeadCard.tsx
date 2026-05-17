@@ -27,6 +27,7 @@ export function PortfolioLeadCard({ to, title, image, categoryName, cityName, ye
         <h3 className={styles.title}>{title}</h3>
         {(cityName || year) ? <p className={styles.meta}>{[cityName, year].filter(Boolean).join(' • ')}</p> : null}
       </div>
+      <span className={styles.action}>Open project</span>
     </Link>
   );
 }
