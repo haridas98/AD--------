@@ -10,6 +10,7 @@
   min-height: clamp(460px, 68svh, 760px);
   display: flex;
   align-items: flex-end;
+  overflow: hidden;
   margin-bottom: clamp(40px, 7vw, 88px);
 }
 
@@ -22,6 +23,16 @@
   align-items: center;
 }
 
+.project-hero-image-frame {
+  position: absolute;
+  inset: -14% 0;
+  will-change: transform;
+}
+
+.project-hero--immersive .project-hero-image-frame {
+  inset: -18% 0;
+}
+
 .project-hero-image {
   position: absolute;
   inset: 0;
@@ -29,6 +40,13 @@
   height: 100%;
   object-fit: cover;
   transform: scale(1.01);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-hero-image-frame {
+    transform: none !important;
+    will-change: auto;
+  }
 }
 
 .project-hero-overlay {

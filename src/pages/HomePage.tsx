@@ -226,6 +226,7 @@ export default function HomePage() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [activeDetailIndex, setActiveDetailIndex] = useState(0);
   const [activeTestimonialImageIndex, setActiveTestimonialImageIndex] = useState(0);
+  const [heroImageReady, setHeroImageReady] = useState(false);
   const projectDragStartRef = useRef<{ x: number; y: number } | null>(null);
   const projectIgnoreClickRef = useRef(false);
   const projectAutoPausedRef = useRef(false);
@@ -321,6 +322,10 @@ export default function HomePage() {
   const collageImages = homepageSettings.collage.images;
   const seoTitle = homepageSettings.seo.title;
   const seoDescription = homepageSettings.seo.description;
+
+  useEffect(() => {
+    setHeroImageReady(false);
+  }, [heroImage]);
 
   const showPrevProject = () => {
     if (!showcaseProjects.length) return;
@@ -534,13 +539,29 @@ export default function HomePage() {
         </script>
       </Helmet>
 
-      <main className={styles.page}>
-        <section className={styles.hero} data-home-hero="immersive">
+      <main className={styles.page} aria-busy={!heroImageReady}>
+        <div
+          className={`${styles.heroLoader} ${heroImageReady ? styles.heroLoaderHidden : ''}`}
+          data-home-loader
+          aria-hidden={heroImageReady}
+        >
+          <img src="/brand/alexandra-diz-mark.svg" alt="" />
+          <span>Alexandra Diz</span>
+        </div>
+        <section className={`${styles.hero} ${heroImageReady ? styles.heroReady : ''}`} data-home-hero="immersive">
           <img
             className={styles.heroImage}
             src={getPreviewImageUrl(heroImage)}
             alt="Alexandra Diz in a finished kitchen interior"
-            onError={(event) => handlePreviewFallback(event, heroImage)}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            onLoad={() => setHeroImageReady(true)}
+            onError={(event) => {
+              const fallbackAlreadyTried = event.currentTarget.dataset.fallbackApplied === 'true';
+              handlePreviewFallback(event, heroImage);
+              if (fallbackAlreadyTried) setHeroImageReady(true);
+            }}
           />
           <div className={styles.heroShade} />
           <div className={styles.heroText}>

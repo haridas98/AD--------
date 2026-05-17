@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import type { BlockRenderContext } from '.';
 import { getCoverImageStyle, normalizeImageAsset } from '../../lib/imageTransforms';
 import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
@@ -23,25 +23,34 @@ interface HeroImageBlockProps {
 
 export default function HeroImageBlock({ data, context }: HeroImageBlockProps) {
   const asset = normalizeImageAsset(typeof data.image === 'string' ? { url: data.image, alt: data.alt, crop: data.crop } : data.image);
-  if (!asset?.url) return null;
   const displayTitle = shortenProjectHeroTitle(data.title || '');
   const isImmersive = data.variant === 'immersive';
   const navigation = context?.projectNavigation;
+  const heroRef = React.useRef<HTMLElement | null>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start end', 'end start'],
+  });
+  const parallaxY = useTransform(scrollYProgress, [0.5, 1], [0, isImmersive ? 180 : 120]);
+  if (!asset?.url) return null;
 
   return (
     <motion.section
+      ref={heroRef}
       className={`project-hero${isImmersive ? ' project-hero--immersive' : ''}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <img
-        src={getPreviewImageUrl(asset.url)}
-        alt={asset.alt || data.alt || data.title || ''}
-        className="project-hero-image"
-        style={getCoverImageStyle(asset.crop)}
-        onError={(event) => handlePreviewFallback(event, asset.url)}
-      />
+      <motion.div className="project-hero-image-frame" style={{ y: parallaxY }}>
+        <img
+          src={getPreviewImageUrl(asset.url)}
+          alt={asset.alt || data.alt || data.title || ''}
+          className="project-hero-image"
+          style={getCoverImageStyle(asset.crop)}
+          onError={(event) => handlePreviewFallback(event, asset.url)}
+        />
+      </motion.div>
       <div className="project-hero-overlay" />
       {navigation?.previous ? (
         <Link className="project-hero-nav project-hero-nav--prev" to={navigation.previous.href} aria-label={`Previous project: ${navigation.previous.title}`}>
