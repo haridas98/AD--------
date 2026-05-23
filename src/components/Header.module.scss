@@ -51,6 +51,36 @@
   filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.42));
 }
 
+.transparentOverHero .desktopNav {
+  position: relative;
+}
+
+.transparentOverHero .desktopNav::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 18px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+  pointer-events: none;
+}
+
+.transparentOverHero .navLink {
+  color: #fff;
+  opacity: 0.9;
+}
+
+.transparentOverHero .navLink::after {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.transparentOverHero .navLink:hover,
+.transparentOverHero .active {
+  color: #fff;
+  opacity: 1;
+}
+
 .transparentOverHero .themeToggle,
 .transparentOverHero .menuToggle {
   background: rgba(255, 255, 255, 0.08);
@@ -73,6 +103,11 @@
 .transparentOverHero:focus-within .brand {
   color: var(--theme-text-primary);
   text-shadow: none;
+}
+
+.transparentOverHero:hover .desktopNav::before,
+.transparentOverHero:focus-within .desktopNav::before {
+  opacity: 0;
 }
 
 .transparentOverHero:hover .navLink,
@@ -176,8 +211,9 @@
 .desktopNav {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: clamp(4px, 0.55vw, 10px);
   margin-left: auto;
+  padding: 0 6px;
 }
 
 .navItemWrap {
@@ -191,6 +227,7 @@
 }
 
 .navLink {
+  position: relative;
   min-height: var(--header-offset);
   display: inline-flex;
   align-items: center;
@@ -203,10 +240,28 @@
   flex-shrink: 0;
 }
 
+.navLink::after {
+  content: "";
+  position: absolute;
+  right: clamp(6px, 0.65vw, 10px);
+  bottom: 17px;
+  left: clamp(6px, 0.65vw, 10px);
+  height: 1px;
+  background: var(--theme-text-primary);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.24s ease, background-color 0.24s ease;
+}
+
 .navLink:hover,
 .mobileNavLink:hover,
 .active {
   color: var(--theme-text-primary);
+}
+
+.navLink:hover::after,
+.navLink.active::after {
+  transform: scaleX(1);
 }
 
 .submenu {
