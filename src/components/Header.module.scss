@@ -312,24 +312,69 @@
   border: 1px solid var(--theme-border);
   background: var(--theme-surface);
   color: var(--theme-text-primary);
-  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.26s ease, background-color 0.26s ease, color 0.26s ease, box-shadow 0.26s ease;
 }
 
 .themeToggle {
+  --theme-icon-primary: currentColor;
+  --theme-icon-secondary: var(--theme-surface);
+
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 72px;
-  height: 34px;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
   margin-left: 10px;
-  padding: 0 12px;
+  padding: 0;
   border-radius: 999px;
+  box-shadow:
+    0 12px 28px rgba(42, 31, 21, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  overflow: hidden;
 }
 
-.themeToggleText {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.themeToggle:hover {
+  border-color: color-mix(in srgb, var(--theme-accent) 54%, var(--theme-border));
+  box-shadow:
+    0 16px 34px rgba(42, 31, 21, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.themeToggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--theme-accent) 72%, #fff);
+  outline-offset: 3px;
+}
+
+.themeToggleLight {
+  color: var(--theme-text-primary);
+}
+
+.themeToggleDark {
+  --theme-icon-secondary: #151515;
+}
+
+.themeToggleIcon {
+  width: 19px;
+  height: 19px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transition: transform 0.34s cubic-bezier(0.2, 0.82, 0.22, 1), opacity 0.24s ease;
+}
+
+.themeToggleIconSun {
+  transform: rotate(0deg) scale(1.04);
+}
+
+.themeToggleIconMoon {
+  transform: rotate(-10deg) scale(1);
 }
 
 .menuToggle {
@@ -420,14 +465,22 @@
 }
 
 .mobileThemeToggle {
-  width: 100%;
-  margin-bottom: 14px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  text-align: left;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  margin: 0 0 14px auto;
+  padding: 0;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeToggle,
+  .themeToggleIcon {
+    transition: none;
+  }
 }
 
 .submenuGroup {
@@ -445,7 +498,7 @@
     display: none;
   }
 
-  .themeToggle {
+  .inner > .themeToggle {
     display: none;
   }
 

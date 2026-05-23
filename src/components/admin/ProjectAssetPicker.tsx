@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 import type { ProjectAsset } from '../../types';
 import styles from './ProjectAssetPicker.module.scss';
 
@@ -107,7 +108,11 @@ export default function ProjectAssetPicker({
             {imageAssets.map((asset) => (
               <button key={asset.id} type="button" className={styles.card} onClick={() => onSelect(asset)}>
                 <div className={styles.media}>
-                  <img src={asset.publicUrl} alt={asset.altText || asset.originalFilename} />
+                  <img
+                    src={getPreviewImageUrl(asset.publicUrl)}
+                    alt={asset.altText || asset.originalFilename}
+                    onError={(event) => handlePreviewFallback(event, asset.publicUrl)}
+                  />
                 </div>
                 <div className={styles.filename}>{asset.originalFilename}</div>
                 <div className={styles.meta}>{asset.usageCount ? `Used ${asset.usageCount} times` : 'Unused'}</div>

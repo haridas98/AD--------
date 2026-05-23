@@ -7,8 +7,15 @@ import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 interface ImageGridBlockProps {
   data: {
     images: Array<{ url: string; alt?: string }>;
-    columns?: 1 | 2 | 3;
+    columns?: 1 | 2 | 3 | 4 | 5;
+    rows?: 1 | 2 | 3 | 4;
   };
+}
+
+function clampGridValue(value: unknown, min: number, max: number, fallback: number) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(numeric)));
 }
 
 export default function ImageGridBlock({ data }: ImageGridBlockProps) {
@@ -21,7 +28,10 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
   if (!normalizedImages.length) return null;
 
   const images = normalizedImages.map((img) => img!.url);
-  const cols = data.columns || 2;
+  const rows = data.rows ? clampGridValue(data.rows, 1, 4, 2) : 0;
+  const cols = rows
+    ? clampGridValue(Math.ceil(normalizedImages.length / rows), 1, 5, 2)
+    : clampGridValue(data.columns, 1, 5, 2);
 
   return (
     <>

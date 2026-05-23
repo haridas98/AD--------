@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 
+import { getPreviewImageUrl, handlePreviewFallback } from '../../lib/imageUrls';
 import type { ProjectAsset } from '../../types';
 import styles from './ProjectAssetLibrary.module.scss';
 
@@ -217,7 +218,11 @@ export default function ProjectAssetLibrary({
             <div key={asset.id} className={styles.card}>
               <div className={styles.media}>
                 {asset.kind === 'image' ? (
-                  <img src={asset.publicUrl} alt={asset.altText || asset.originalFilename} />
+                  <img
+                    src={getPreviewImageUrl(asset.publicUrl)}
+                    alt={asset.altText || asset.originalFilename}
+                    onError={(event) => handlePreviewFallback(event, asset.publicUrl)}
+                  />
                 ) : asset.kind === 'video' ? (
                   <div className={styles.videoFallback}>Video</div>
                 ) : (

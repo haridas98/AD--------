@@ -19,6 +19,10 @@ export default function Header() {
   const location = useLocation();
   const themeMode = useAppStore((s) => s.themeMode);
   const toggleThemeMode = useAppStore((s) => s.toggleThemeMode);
+  const isDarkTheme = themeMode === 'dark';
+  const themeToggleClass = `${styles.themeToggle} ${isDarkTheme ? styles.themeToggleDark : styles.themeToggleLight}`;
+  const themeIconClass = `${styles.themeToggleIcon} ${isDarkTheme ? styles.themeToggleIconMoon : styles.themeToggleIconSun}`;
+  const themeToggleLabel = isDarkTheme ? 'Switch to light theme' : 'Switch to dark theme';
 
   useEffect(() => {
     const updateHeaderState = () => {
@@ -127,12 +131,22 @@ export default function Header() {
         </nav>
 
         <button
-          className={styles.themeToggle}
+          type="button"
+          className={themeToggleClass}
           onClick={toggleThemeMode}
-          aria-label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-          title={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          aria-label={themeToggleLabel}
+          title={themeToggleLabel}
         >
-          <span className={styles.themeToggleText}>{themeMode === 'dark' ? 'Light' : 'Dark'}</span>
+          {isDarkTheme ? (
+            <svg className={themeIconClass} viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 14.2A7.7 7.7 0 0 1 9.8 4a7.9 7.9 0 1 0 10.2 10.2Z" />
+            </svg>
+          ) : (
+            <svg className={themeIconClass} viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4.2" />
+              <path d="M12 2.8v2.4M12 18.8v2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7" />
+            </svg>
+          )}
         </button>
 
         <button
@@ -158,11 +172,21 @@ export default function Header() {
 
       <nav className={`${styles.topNav} ${menuOpen ? styles.open : ''}`}>
         <button
-          className={styles.mobileThemeToggle}
+          type="button"
+          className={`${styles.mobileThemeToggle} ${themeToggleClass}`}
           onClick={toggleThemeMode}
-          aria-label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          aria-label={themeToggleLabel}
         >
-          Theme: {themeMode === 'dark' ? 'Light' : 'Dark'}
+          {isDarkTheme ? (
+            <svg className={themeIconClass} viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 14.2A7.7 7.7 0 0 1 9.8 4a7.9 7.9 0 1 0 10.2 10.2Z" />
+            </svg>
+          ) : (
+            <svg className={themeIconClass} viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4.2" />
+              <path d="M12 2.8v2.4M12 18.8v2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7" />
+            </svg>
+          )}
         </button>
         {menuItems.map((item) => (
           <div key={item.name}>

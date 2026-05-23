@@ -9,7 +9,9 @@ import ProjectAssetPicker from '../components/admin/ProjectAssetPicker';
 import { normalizeEditorCrop } from '../lib/adminImageCrop';
 import { buildBlogBaseBlocks, getBlogBlocksCover, parseBlogArticleSections, parseBlogPostBlocks } from '../lib/blogBlockTemplates';
 import { getCoverImageStyle } from '../lib/imageTransforms';
+import { getPreviewImageUrl, handlePreviewFallback } from '../lib/imageUrls';
 import { normalizeHomepageSettings } from '../lib/homepageSettings';
+import { getCanonicalPortfolioProjectPathForCategory } from '../lib/portfolioRoutes';
 import { buildProjectBaseBlocks, parseProjectContent } from '../lib/projectBlockTemplates';
 import { PROJECT_STYLE_PRESET_OPTIONS } from '../lib/projectStylePresets';
 import { normalizeThemeSettings } from '../lib/themeTokens';
@@ -29,6 +31,22 @@ const BLOCK_TYPES = [
   { value: 'mosaicPreset', label: 'Mosaic Preset' },
   { value: 'photoSequence', label: 'Photo Sequence' },
 ];
+
+const ADMIN_TAB_IDS = ['dashboard', 'home', 'testimonials', 'projects', 'categories', 'beforeafter', 'themes', 'blog', 'audit'];
+const ADMIN_TAB_STORAGE_KEY = 'ad_admin_tab';
+
+function getInitialAdminTab() {
+  if (typeof window === 'undefined') return 'dashboard';
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab && ADMIN_TAB_IDS.includes(urlTab)) return urlTab;
+  const storedTab = window.localStorage.getItem(ADMIN_TAB_STORAGE_KEY);
+  return storedTab && ADMIN_TAB_IDS.includes(storedTab) ? storedTab : 'dashboard';
+}
+
+function getInitialAdminProjectId() {
+  if (typeof window === 'undefined') return '';
+  return new URLSearchParams(window.location.search).get('project') || '';
+}
 
 function toSlug(t: string) {
   if (!t) return '';
@@ -233,8 +251,9 @@ function CoverPreview({
     <div style={{ aspectRatio, borderRadius: radius, overflow: 'hidden', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', position: 'relative' }}>
       {url ? (
         <img
-          src={url}
+          src={getPreviewImageUrl(url)}
           alt=""
+          onError={(event) => handlePreviewFallback(event, url)}
           style={{
             width: '100%',
             height: '100%',
@@ -1234,7 +1253,12 @@ function HomepageProjectAssetPicker({
                   style={{ display: 'grid', gap: '8px', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', cursor: 'pointer', textAlign: 'left' }}
                 >
                   <span style={{ display: 'block', aspectRatio: '4 / 3', overflow: 'hidden', borderRadius: '8px', background: 'rgba(255,255,255,0.05)' }}>
-                    <img src={asset.publicUrl} alt={asset.altText || asset.originalFilename} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <img
+                      src={getPreviewImageUrl(asset.publicUrl)}
+                      alt={asset.altText || asset.originalFilename}
+                      onError={(event) => handlePreviewFallback(event, asset.publicUrl)}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
                   </span>
                   <span style={{ fontSize: '12px', lineHeight: 1.35, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.originalFilename}</span>
                   <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: '11px' }}>{asset.width && asset.height ? `${asset.width} x ${asset.height}` : 'Project asset'}</span>
@@ -1382,7 +1406,13 @@ function AssetAuditPanel({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(126px, 1fr))', gap: '10px' }}>
               {assets.map((asset: any) => (
                 <div key={asset.id} style={{ border: asset.auditTags.includes('heroImage') ? '2px solid #c6a47b' : '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden', background: 'rgba(255,255,255,0.035)' }}>
-                  <img src={asset.publicUrl} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', display: 'block' }} />
+                  <img
+                    src={getPreviewImageUrl(asset.publicUrl)}
+                    alt=""
+                    loading="lazy"
+                    onError={(event) => handlePreviewFallback(event, asset.publicUrl)}
+                    style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', display: 'block' }}
+                  />
                   <div style={{ padding: '8px', display: 'grid', gap: '5px' }}>
                     <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{asset.originalFilename}</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -1419,7 +1449,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
-  const [tab, setTab] = useState('dashboard');
+  const [tab, setTab] = useState(getInitialAdminTab);
   const [adminData, setAdminData] = useState(data || { projects: [], categories: [], blogPosts: [], testimonials: [], themeSettings: normalizeThemeSettings(), homepageSettings: normalizeHomepageSettings() });
   const [stats, setStats] = useState({ projectCount: 0, publishedCount: 0, blogCount: 0, categoryCount: 0 });
   const [loading, setLoading] = useState(false);
@@ -1439,6 +1469,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [isCompact, setIsCompact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 960 : false));
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [projectEditorTab, setProjectEditorTab] = useState<'content' | 'assets'>('content');
+  const [projectPreviewOpen, setProjectPreviewOpen] = useState(false);
   const [projectAssets, setProjectAssets] = useState<ProjectAsset[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
   const [imageSeoGenerating, setImageSeoGenerating] = useState(false);
@@ -1451,6 +1482,7 @@ export default function AdminPage({ data, refresh }: any) {
   const [driveAudit, setDriveAudit] = useState<any>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const blogBlockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const pendingProjectIdFromUrl = useRef(getInitialAdminProjectId());
   const assetPickerResolver = useRef<((asset: ProjectAsset | null) => void) | null>(null);
   const homepageAssetPickerResolver = useRef<((asset: ProjectAsset | null) => void) | null>(null);
 
@@ -1458,6 +1490,18 @@ export default function AdminPage({ data, refresh }: any) {
     () => adminData.categories?.find((category: any) => category.id === form?.categoryId)?.name || 'Project',
     [adminData.categories, form?.categoryId],
   );
+  const currentProjectPublicPath = useMemo(() => {
+    if (!form?.slug) return '';
+    const category = adminData.categories?.find((item: any) => item.id === form.categoryId);
+    return getCanonicalPortfolioProjectPathForCategory(category, form.slug);
+  }, [adminData.categories, form?.categoryId, form?.slug]);
+
+  function selectAdminTab(nextTab: string) {
+    setTab(nextTab);
+    if (nextTab !== 'projects') pendingProjectIdFromUrl.current = '';
+    if (nextTab !== 'projects') closeProjectEditor();
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10);
+  }
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -1466,6 +1510,25 @@ export default function AdminPage({ data, refresh }: any) {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  useEffect(() => {
+    if (!authed || typeof window === 'undefined') return;
+
+    window.localStorage.setItem(ADMIN_TAB_STORAGE_KEY, tab);
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', tab);
+    if (tab === 'projects' && selId) {
+      params.set('project', selId);
+    } else if (tab === 'projects' && pendingProjectIdFromUrl.current) {
+      params.set('project', pendingProjectIdFromUrl.current);
+    } else {
+      params.delete('project');
+    }
+
+    const nextUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) window.history.replaceState(null, '', nextUrl);
+  }, [authed, tab, selId]);
 
   async function sync() {
     setLoading(true);
@@ -1663,6 +1726,14 @@ export default function AdminPage({ data, refresh }: any) {
     if (!authed || tab !== 'audit' || driveAudit) return;
     void loadDriveAudit();
   }, [authed, tab, driveAudit]);
+
+  useEffect(() => {
+    if (!authed || tab !== 'projects' || selId || form || !(adminData.projects || []).length) return;
+    const projectId = pendingProjectIdFromUrl.current || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('project') : '');
+    if (!projectId) return;
+    const project = (adminData.projects || []).find((item: Project) => String(item.id) === String(projectId));
+    if (project) editProject(project);
+  }, [authed, tab, selId, form, adminData.projects]);
 
   async function loadDriveAudit() {
     try {
@@ -1862,6 +1933,7 @@ export default function AdminPage({ data, refresh }: any) {
   }
 
   function newProject() {
+    pendingProjectIdFromUrl.current = '';
     const firstCategory = adminData.categories?.[0];
     const nextProject = {
       title: '',
@@ -1885,19 +1957,23 @@ export default function AdminPage({ data, refresh }: any) {
       content: buildProjectBaseBlocks(nextProject, firstCategory?.name || 'Project', 1),
     });
     setProjectEditorTab('content');
+    setProjectPreviewOpen(false);
     setProjectAssets([]);
     setActiveBlockId('base-hero-image');
   }
 
   function closeProjectEditor() {
+    pendingProjectIdFromUrl.current = '';
     setSelId('');
     setForm(null);
     setActiveBlockId(null);
     setProjectEditorTab('content');
+    setProjectPreviewOpen(false);
     setProjectAssets([]);
   }
 
   function editProject(project: any) {
+    pendingProjectIdFromUrl.current = '';
     const projectCategoryName = adminData.categories?.find((category: any) => category.id === project.categoryId)?.name || 'Project';
     const projectBlocks = parseProjectContent(project.content);
     setSelId(project.id);
@@ -1921,6 +1997,7 @@ export default function AdminPage({ data, refresh }: any) {
       deletedAt: project.deletedAt || '',
     });
     setProjectEditorTab('content');
+    setProjectPreviewOpen(false);
     setAiInstructions('');
     setActiveBlockId((projectBlocks[0]?.id as string) || 'base-hero-image');
   }
@@ -2455,7 +2532,7 @@ export default function AdminPage({ data, refresh }: any) {
             {tabs.map((nextTab) => (
               <button
                 key={nextTab.id}
-                onClick={() => setTab(nextTab.id)}
+                onClick={() => selectAdminTab(nextTab.id)}
                 style={{
                   padding: '10px 18px',
                   borderRadius: '8px',
@@ -2537,6 +2614,16 @@ export default function AdminPage({ data, refresh }: any) {
                   Back to List
                 </button>
               ) : null}
+              {form && currentProjectPublicPath ? (
+                <a href={currentProjectPublicPath} target="_blank" rel="noreferrer" style={{ ...miniBtn, padding: '8px 16px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                  Open public page
+                </a>
+              ) : null}
+              {form && currentProjectPublicPath ? (
+                <button type="button" onClick={() => setProjectPreviewOpen((value) => !value)} style={{ ...miniBtn, padding: '8px 16px', borderColor: projectPreviewOpen ? 'rgba(198,164,123,0.65)' : 'rgba(255,255,255,0.12)', color: projectPreviewOpen ? '#e7c89b' : '#fff' }}>
+                  {projectPreviewOpen ? 'Hide preview' : 'Preview page'}
+                </button>
+              ) : null}
               {!form ? (
                 <button onClick={applyBaseStructureToAllProjects} style={{ ...miniBtn, padding: '8px 16px', borderColor: 'rgba(198,164,123,0.45)', color: 'rgba(198,164,123,1)' }}>
                   Fill All Structures
@@ -2552,25 +2639,38 @@ export default function AdminPage({ data, refresh }: any) {
                 <section key={category.id} style={{ display: 'grid', gap: '12px' }}>
                   <h4 style={{ color: '#fff', margin: 0, fontSize: '15px' }}>{category.name} <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '12px' }}>{groupProjects.length}</span></h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px' }}>
-                    {groupProjects.map((project: any) => (
-                      <div
-                        key={project.id}
-                        onClick={() => editProject(project)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: homepageProjectIds.has(project.id) ? '1px solid rgba(198,164,123,0.55)' : '1px solid rgba(255,255,255,0.1)' }}
-                      >
-                        {getCover(project) ? <img src={getCover(project)} alt="" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} /> : <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />}
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</div>
-                          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{project.cityName || ''} {project.completedAt || project.year ? `(${project.completedAt || project.year})` : ''}</div>
-                          <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: project.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: project.isPublished ? '#27ae60' : '#e74c3c' }}>{project.isPublished ? 'Published' : 'Draft'}</span>
-                            {homepageProjectIds.has(project.id) ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(198,164,123,0.2)', color: '#e7c89b' }}>Home</span> : null}
-                            {project.isFeatured ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span> : null}
-                            {project.deletedAt ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(231,76,60,0.18)', color: '#ff8a80' }}>Deleted</span> : null}
+                    {groupProjects.map((project: any) => {
+                      const cover = getCover(project);
+
+                      return (
+                        <div
+                          key={project.id}
+                          onClick={() => editProject(project)}
+                          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', border: homepageProjectIds.has(project.id) ? '1px solid rgba(198,164,123,0.55)' : '1px solid rgba(255,255,255,0.1)' }}
+                        >
+                          {cover ? (
+                            <img
+                              src={getPreviewImageUrl(cover)}
+                              alt=""
+                              onError={(event) => handlePreviewFallback(event, cover)}
+                              style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
+                            />
+                          ) : (
+                            <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />
+                          )}
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ color: '#fff', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.title}</div>
+                            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{project.cityName || ''} {project.completedAt || project.year ? `(${project.completedAt || project.year})` : ''}</div>
+                            <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: project.isPublished ? 'rgba(39,174,96,0.2)' : 'rgba(231,76,60,0.2)', color: project.isPublished ? '#27ae60' : '#e74c3c' }}>{project.isPublished ? 'Published' : 'Draft'}</span>
+                              {homepageProjectIds.has(project.id) ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(198,164,123,0.2)', color: '#e7c89b' }}>Home</span> : null}
+                              {project.isFeatured ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(140,106,78,0.2)', color: '#8c6a4e' }}>Featured</span> : null}
+                              {project.deletedAt ? <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(231,76,60,0.18)', color: '#ff8a80' }}>Deleted</span> : null}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </section>
               ))}
@@ -2578,6 +2678,22 @@ export default function AdminPage({ data, refresh }: any) {
           ) : (
             <div style={cardStyle}>
               <h3 style={{ color: '#fff', margin: '0 0 15px', fontSize: '16px' }}>{selId ? 'Edit Project' : 'New Project'}</h3>
+              {projectPreviewOpen && currentProjectPublicPath ? (
+                <section style={{ display: 'grid', gap: '10px', marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>Live project preview</div>
+                      <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', marginTop: '3px' }}>Save the project to update this preview.</div>
+                    </div>
+                    <a href={currentProjectPublicPath} target="_blank" rel="noreferrer" style={{ ...miniBtn, textDecoration: 'none' }}>Open full page</a>
+                  </div>
+                  <iframe
+                    title="Project page preview"
+                    src={currentProjectPublicPath}
+                    style={{ width: '100%', height: isCompact ? '520px' : '720px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', background: '#fff' }}
+                  />
+                </section>
+              ) : null}
               <form id="project-editor-form" onSubmit={saveProject} style={{ display: 'grid', gap: '12px', paddingBottom: '84px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: '12px' }}>
                   <label style={labelStyle}>Title<input value={form.title} onChange={(e) => setF('title', e.target.value)} required style={inputStyle} /></label>
@@ -2841,7 +2957,14 @@ export default function AdminPage({ data, refresh }: any) {
             {adminData.blogPosts?.map((post: any) => (
               <div key={post.id} onClick={() => editBlog(post)} style={{ display: 'grid', gridTemplateColumns: '58px 1fr', gap: '10px', alignItems: 'center', padding: '10px', borderRadius: '10px', cursor: 'pointer', background: blogSelId === post.id ? 'rgba(198,164,123,0.15)' : 'transparent', marginBottom: '6px' }}>
                 <div style={{ width: '58px', aspectRatio: '4 / 3', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  {post.coverImage ? <img src={post.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : null}
+                  {post.coverImage ? (
+                    <img
+                      src={getPreviewImageUrl(post.coverImage)}
+                      alt=""
+                      onError={(event) => handlePreviewFallback(event, post.coverImage)}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : null}
                 </div>
                 <div>
                   <div style={{ color: '#fff', fontSize: '13px', lineHeight: 1.25 }}>{post.title}</div>
@@ -3211,7 +3334,7 @@ function BlockEditor({
           />
         ))}
       </div>
-      {field('Columns', 'columns', { select: true, options: [{ value: 1, label: '1' }, { value: 2, label: '2' }, { value: 3, label: '3' }], default: 2 })}
+      {field('Rows', 'rows', { select: true, options: [{ value: 1, label: '1 row' }, { value: 2, label: '2 rows' }, { value: 3, label: '3 rows' }, { value: 4, label: '4 rows' }], default: 2 })}
     </>
   );
 
