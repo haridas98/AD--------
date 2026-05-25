@@ -424,10 +424,11 @@ function resolveHomepageSettingsImages(homepageSettings, projects) {
   const projectImages = projects.flatMap((project) => {
     const assetImages = (project.assets || []).map((asset) => asset.publicUrl).filter(Boolean);
     const nextImages = collectImagesFromValue(parseContent(project.content));
-    [...assetImages, ...nextImages].forEach((url) => {
+    const images = [project.coverImage, ...assetImages, ...nextImages].filter(Boolean);
+    images.forEach((url) => {
       if (!urlToProjectId.has(url)) urlToProjectId.set(url, project.id);
     });
-    return [...assetImages, ...nextImages];
+    return images;
   });
   const images = uniqueStrings([...projectImages, ...homepageFallbackImages]).slice(0, 14);
   const heroImage = homepageSettings.hero?.image || '/home/Alexandra-2.jpg';

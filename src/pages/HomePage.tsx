@@ -53,7 +53,7 @@ function getProjectCategorySlug(project: Project, categoryMap: Map<string, Categ
 }
 
 function getProjectCover(project: Project) {
-  return getProjectImages(project)[0] || '';
+  return project.coverImage || getProjectImages(project)[0] || '';
 }
 
 function getProjectPath(project: Project, categoryMap: Map<string, Category>) {
