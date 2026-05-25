@@ -28,10 +28,12 @@ export default function ImageGridBlock({ data }: ImageGridBlockProps) {
   if (!normalizedImages.length) return null;
 
   const images = normalizedImages.map((img) => img!.url);
-  const rows = data.rows ? clampGridValue(data.rows, 1, 4, 2) : 0;
-  const cols = rows
-    ? clampGridValue(Math.ceil(normalizedImages.length / rows), 1, 5, 2)
-    : clampGridValue(data.columns, 1, 5, 2);
+  const rows = !data.columns && data.rows ? clampGridValue(data.rows, 1, 4, 2) : 0;
+  const cols = data.columns
+    ? clampGridValue(data.columns, 1, 5, 2)
+    : rows
+      ? clampGridValue(Math.ceil(normalizedImages.length / rows), 1, 5, 2)
+      : 2;
 
   return (
     <>
