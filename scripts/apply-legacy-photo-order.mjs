@@ -41,15 +41,19 @@ function parseListingCovers() {
     const html = readText(path.join(legacyRoot, relativeFile));
     if (!html) continue;
 
-    const cardRegex = /<a\b[^>]*href=["']([^"']+)["'][\s\S]*?data-file-name=["']([^"']+)["']/gi;
+    const cardRegex = /<a\b[^>]*href=["']([^"']+)["'][\s\S]*?<\/a>/gi;
     for (const match of html.matchAll(cardRegex)) {
       const slug = normalizeSlug(match[1]);
-      const hash = hashFrom(match[2]);
+      const cardHtml = match[0];
+      const file = cardHtml.match(/data-file-name=["']([^"']+)["']/i)?.[1] || '';
+      const basePath = cardHtml.match(/data-base-path=["']([^"']+)["']/i)?.[1] || '';
+      const hash = hashFrom(file);
       if (!slug || !hash || covers.has(slug)) continue;
       covers.set(slug, {
         slug,
         hash,
-        file: match[2],
+        file,
+        basePath,
         source: relativeFile.replace(/\\/g, '/'),
         order: order++,
       });
@@ -151,7 +155,10 @@ async function downloadCoverAsset(project, cover) {
   fs.mkdirSync(path.dirname(originalPath), { recursive: true });
   fs.mkdirSync(path.dirname(derivedPath), { recursive: true });
 
-  const baseUrl = 'https://static-cdn4-2.vigbo.tech/u54940/67783/preview';
+  const fallbackBaseUrl = 'https://static-cdn4-2.vigbo.tech/u54940/67783/preview';
+  const baseUrl = cover.basePath
+    ? cover.basePath.replace(/^\/\//, 'https://').replace(/\\\//g, '/').replace(/\/+$/, '')
+    : fallbackBaseUrl;
   const candidates = [
     `${baseUrl}/${cover.file}`,
     `${baseUrl}/1000-${cover.file}`,
